@@ -1,0 +1,48 @@
+﻿using ModCaches.ExtendedDistributedCache;
+using ModCaches.OrleansCaches.Distributed;
+using ModCaches.OrleansCaches.InCluster;
+using ModEndpoints.Core;
+using ShowcaseApi;
+
+var builder = WebApplication.CreateBuilder(args);
+
+// Add services to the container.
+// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+
+builder.Services.AddCoHostedOrleansDistributedCache();
+
+builder.Services.AddExtendedDistributedCache(options =>
+{
+  options.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(1);
+});
+
+builder.Services.AddOrleansInClusterCache(options =>
+{
+  options.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5);
+  options.SlidingExpiration = TimeSpan.FromMinutes(1);
+});
+
+builder.Host.UseOrleans(siloBuilder =>
+{
+  siloBuilder.UseLocalhostClustering();
+});
+
+builder.Services.AddModEndpointsCoreFromAssemblyContaining<GetWeatherForecast>();
+var app = builder.Build();
+
+// Configure the HTTP request pipeline.
+if (app.Environment.IsDevelopment())
+{
+  app.UseSwagger();
+  app.UseSwaggerUI();
+}
+
+app.UseHttpsRedirection();
+
+app.MapModEndpointsCore();
+
+app.Run();
+
+
