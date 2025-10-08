@@ -24,17 +24,17 @@ jobs:
           8.0.x
     - name: Restore dependencies
       run: dotnet restore
-    - name: Build
+    - name: Build - Extended Distributed Cache
       run: dotnet build ${{ env.EXTENDEDDISTRIBUTEDCACHEPROJECTNAME }} --configuration Release --no-restore
       working-directory: src
-    - name: Build
+    - name: Build - Orleans Caches
       run: dotnet build ${{ env.ORLEANSCACHESPROJECTNAME }} --configuration Release --no-restore
       working-directory: src
 
-    - name: Package nuget remote services core
+    - name: Package nuget - Extended Distributed Cache
       run: dotnet pack ${{ env.EXTENDEDDISTRIBUTEDCACHEPROJECTNAME }} --configuration Release --no-build -o:package
       working-directory: src
-    - name: Package nuget remote services
+    - name: Package nuget - Orleans Caches
       run: dotnet pack ${{ env.ORLEANSCACHESPROJECTNAME }} --configuration Release --no-build -o:package
       working-directory: src
 
