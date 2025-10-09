@@ -65,7 +65,7 @@ public abstract class PersistedInClusterCacheGrain<TValue>
   public override async Task RemoveAsync(CancellationToken ct)
   {
     await base.RemoveAsync(ct);
-    await PersistentState.ClearStateAsync(ct);
+    await ClearStateAsync(ct);
   }
 
   public override async Task SetAsync(
@@ -171,7 +171,7 @@ public abstract class PersistedInClusterCacheGrain<TValue, TCreateArgs>
   public override async Task RemoveAsync(CancellationToken ct)
   {
     await base.RemoveAsync(ct);
-    await PersistentState.ClearStateAsync(ct);
+    await ClearStateAsync(ct);
   }
 
   public override async Task SetAsync(

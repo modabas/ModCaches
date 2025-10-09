@@ -20,6 +20,21 @@ public static class ServiceCollectionExtensions
     return services;
   }
 
+  public static IServiceCollection AddCoHostedOrleansPersistedDistributedCache(
+    this IServiceCollection services,
+    object? cacheDiKey = null,
+    ServiceLifetime lifetime = ServiceLifetime.Singleton)
+  {
+    services.TryAddSingleton(TimeProvider.System);
+    services.TryAdd(new ServiceDescriptor(
+      typeof(IDistributedCache),
+      cacheDiKey,
+      typeof(CoHostedOrleansPersistedCache),
+      lifetime));
+
+    return services;
+  }
+
   public static IServiceCollection AddRemoteOrleansDistributedCache(
     this IServiceCollection services,
     object? cacheDiKey = null,
@@ -29,6 +44,20 @@ public static class ServiceCollectionExtensions
       typeof(IDistributedCache),
       cacheDiKey,
       typeof(RemoteOrleansCache),
+      lifetime));
+
+    return services;
+  }
+
+  public static IServiceCollection AddRemoteOrleansPersistedDistributedCache(
+    this IServiceCollection services,
+    object? cacheDiKey = null,
+    ServiceLifetime lifetime = ServiceLifetime.Singleton)
+  {
+    services.TryAdd(new ServiceDescriptor(
+      typeof(IDistributedCache),
+      cacheDiKey,
+      typeof(RemoteOrleansPersistedCache),
       lifetime));
 
     return services;
