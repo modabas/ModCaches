@@ -15,7 +15,7 @@ public class RemoteOrleansCache : IDistributedCache
 
   public byte[]? Get(string key)
   {
-    throw new NotImplementedException();
+    return GetAsync(key).GetAwaiter().GetResult();
   }
 
   public async Task<byte[]?> GetAsync(string key, CancellationToken token = default)
@@ -25,7 +25,7 @@ public class RemoteOrleansCache : IDistributedCache
 
   public void Refresh(string key)
   {
-    throw new NotImplementedException();
+    RefreshAsync(key).GetAwaiter().GetResult();
   }
 
   public async Task RefreshAsync(string key, CancellationToken token = default)
@@ -35,7 +35,7 @@ public class RemoteOrleansCache : IDistributedCache
 
   public void Remove(string key)
   {
-    throw new NotImplementedException();
+    RemoveAsync(key).GetAwaiter().GetResult();
   }
 
   public async Task RemoveAsync(string key, CancellationToken token = default)
@@ -45,7 +45,7 @@ public class RemoteOrleansCache : IDistributedCache
 
   public void Set(string key, byte[] value, DistributedCacheEntryOptions options)
   {
-    throw new NotImplementedException();
+    SetAsync(key, value, options).GetAwaiter().GetResult();
   }
 
   public async Task SetAsync(string key, byte[] value, DistributedCacheEntryOptions options, CancellationToken token = default)
