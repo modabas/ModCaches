@@ -22,7 +22,7 @@ internal interface IWeatherForecastCacheGrain : IInClusterCacheGrain<WeatherFore
 }
 
 internal class WeatherForecastCacheGrain :
-  InClusterCacheGrain<WeatherForecastCacheItem[], WeatherForecastCacheArgs>,
+  VolatileInClusterCacheGrain<WeatherForecastCacheItem[], WeatherForecastCacheArgs>,
   IWeatherForecastCacheGrain
 {
   private static readonly string[] _summaries =

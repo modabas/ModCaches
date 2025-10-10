@@ -4,7 +4,7 @@ using Orleans;
 
 namespace ModCaches.OrleansCaches.Distributed;
 
-internal interface IDistributedCacheGrain : IGrainWithStringKey
+internal interface IVolatileDistributedCacheGrain : IGrainWithStringKey
 {
   Task<ImmutableArray<byte>?> GetAsync(CancellationToken ct);
   Task SetAsync(ImmutableArray<byte> value, CacheEntryOptions options, CancellationToken ct);

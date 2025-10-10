@@ -1,14 +1,19 @@
-﻿using ModCaches.OrleansCaches.Common;
+﻿using Microsoft.Extensions.Caching.Memory;
+using ModCaches.OrleansCaches.Common;
+using Orleans;
 using Orleans.Runtime;
 
 namespace ModCaches.OrleansCaches.InCluster;
 
-public abstract class PersistedInClusterCacheGrain<TValue>
-  : InClusterCacheGrain<TValue>, IInClusterCacheGrain<TValue>
+public abstract class PersistentInClusterCacheGrain<TValue>
+  : VolatileInClusterCacheGrain<TValue>, IInClusterCacheGrain<TValue>
   where TValue : notnull
 {
+  private bool _stateCleared = false;
+
   internal IPersistentState<InClusterCacheState<TValue>> PersistentState { get; set; }
-  public PersistedInClusterCacheGrain(IServiceProvider serviceProvider,
+
+  public PersistentInClusterCacheGrain(IServiceProvider serviceProvider,
     IPersistentState<InClusterCacheState<TValue>> persistentState)
     : base(serviceProvider)
   {
@@ -30,22 +35,35 @@ public abstract class PersistedInClusterCacheGrain<TValue>
     }
   }
 
+  public override async Task OnDeactivateAsync(DeactivationReason reason, CancellationToken cancellationToken)
+  {
+    if (!_stateCleared)
+    {
+      if (CacheEntry is null ||
+        !CacheEntry.TryGetValue(TimeProviderFunc, out _, out _))
+      {
+        await ClearStateAsync(cancellationToken);
+      }
+    }
+    await base.OnDeactivateAsync(reason, cancellationToken);
+  }
+
   public override async Task<TValue> GetOrCreateAsync(
     CancellationToken ct,
     InClusterCacheEntryOptions? options = null)
   {
-    var cached = await base.GetOrCreateAsync(ct, options);
+    var ret = await base.GetOrCreateAsync(ct, options);
     await WriteStateAsync(ct);
-    return cached;
+    return ret;
   }
 
   public override async Task<TValue> CreateAsync(
     CancellationToken ct,
     InClusterCacheEntryOptions? options = null)
   {
-    var cached = await base.CreateAsync(ct, options);
+    var ret = await base.CreateAsync(ct, options);
     await WriteStateAsync(ct);
-    return cached;
+    return ret;
   }
 
   public override async Task<bool> RefreshAsync(CancellationToken ct)
@@ -65,7 +83,7 @@ public abstract class PersistedInClusterCacheGrain<TValue>
   public override async Task RemoveAsync(CancellationToken ct)
   {
     await base.RemoveAsync(ct);
-    await PersistentState.ClearStateAsync(ct);
+    await ClearStateAsync(ct);
   }
 
   public override async Task SetAsync(
@@ -95,6 +113,7 @@ public abstract class PersistedInClusterCacheGrain<TValue>
   {
     PersistentState.State = CacheEntry!.ToState();
     await PersistentState.WriteStateAsync(ct);
+    _stateCleared = false;
   }
 
   private async Task ClearStateAsync(CancellationToken ct)
@@ -103,16 +122,18 @@ public abstract class PersistedInClusterCacheGrain<TValue>
     {
       await PersistentState.ClearStateAsync(ct);
     }
+    _stateCleared = true;
   }
 }
 
-public abstract class PersistedInClusterCacheGrain<TValue, TCreateArgs>
-  : InClusterCacheGrain<TValue, TCreateArgs>, IInClusterCacheGrain<TValue, TCreateArgs>
+public abstract class PersistentInClusterCacheGrain<TValue, TCreateArgs>
+  : VolatileInClusterCacheGrain<TValue, TCreateArgs>, IInClusterCacheGrain<TValue, TCreateArgs>
   where TValue : notnull
   where TCreateArgs : notnull
 {
+  private bool _stateCleared = false;
   internal IPersistentState<InClusterCacheState<TValue>> PersistentState { get; set; }
-  public PersistedInClusterCacheGrain(IServiceProvider serviceProvider,
+  public PersistentInClusterCacheGrain(IServiceProvider serviceProvider,
     IPersistentState<InClusterCacheState<TValue>> persistentState)
     : base(serviceProvider)
   {
@@ -134,14 +155,27 @@ public abstract class PersistedInClusterCacheGrain<TValue, TCreateArgs>
     }
   }
 
+  public override async Task OnDeactivateAsync(DeactivationReason reason, CancellationToken cancellationToken)
+  {
+    if (!_stateCleared)
+    {
+      if (CacheEntry is null ||
+        !CacheEntry.TryGetValue(TimeProviderFunc, out _, out _))
+      {
+        await ClearStateAsync(cancellationToken);
+      }
+    }
+    await base.OnDeactivateAsync(reason, cancellationToken);
+  }
+
   public override async Task<TValue> GetOrCreateAsync(
     TCreateArgs? createArgs,
     CancellationToken ct,
     InClusterCacheEntryOptions? options = null)
   {
-    var cached = await base.GetOrCreateAsync(createArgs, ct, options);
+    var ret = await base.GetOrCreateAsync(createArgs, ct, options);
     await WriteStateAsync(ct);
-    return cached;
+    return ret;
   }
 
   public override async Task<TValue> CreateAsync(
@@ -149,9 +183,9 @@ public abstract class PersistedInClusterCacheGrain<TValue, TCreateArgs>
     CancellationToken ct,
     InClusterCacheEntryOptions? options = null)
   {
-    var cached = await base.CreateAsync(createArgs, ct, options);
+    var ret = await base.CreateAsync(createArgs, ct, options);
     await WriteStateAsync(ct);
-    return cached;
+    return ret;
   }
 
   public override async Task<bool> RefreshAsync(CancellationToken ct)
@@ -171,7 +205,7 @@ public abstract class PersistedInClusterCacheGrain<TValue, TCreateArgs>
   public override async Task RemoveAsync(CancellationToken ct)
   {
     await base.RemoveAsync(ct);
-    await PersistentState.ClearStateAsync(ct);
+    await ClearStateAsync(ct);
   }
 
   public override async Task SetAsync(
@@ -201,6 +235,7 @@ public abstract class PersistedInClusterCacheGrain<TValue, TCreateArgs>
   {
     PersistentState.State = CacheEntry!.ToState();
     await PersistentState.WriteStateAsync(ct);
+    _stateCleared = false;
   }
 
   private async Task ClearStateAsync(CancellationToken ct)
@@ -209,5 +244,6 @@ public abstract class PersistedInClusterCacheGrain<TValue, TCreateArgs>
     {
       await PersistentState.ClearStateAsync(ct);
     }
+    _stateCleared = true;
   }
 }

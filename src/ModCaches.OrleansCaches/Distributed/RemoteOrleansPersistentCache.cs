@@ -4,52 +4,52 @@ using Orleans;
 
 namespace ModCaches.OrleansCaches.Distributed;
 
-public class RemoteOrleansCache : IDistributedCache
+public class RemoteOrleansPersistentCache : IDistributedCache
 {
   private readonly IClusterClient _clusterClient;
 
-  public RemoteOrleansCache(IClusterClient clusterClient)
+  public RemoteOrleansPersistentCache(IClusterClient clusterClient)
   {
     _clusterClient = clusterClient;
   }
 
   public byte[]? Get(string key)
   {
-    throw new NotImplementedException();
+    return GetAsync(key).GetAwaiter().GetResult();
   }
 
   public async Task<byte[]?> GetAsync(string key, CancellationToken token = default)
   {
-    return (await _clusterClient.GetGrain<IDistributedCacheGrain>(key).GetAsync(token))?.ToArray();
+    return (await _clusterClient.GetGrain<IPersistentDistributedCacheGrain>(key).GetAsync(token))?.ToArray();
   }
 
   public void Refresh(string key)
   {
-    throw new NotImplementedException();
+    RefreshAsync(key).GetAwaiter().GetResult();
   }
 
   public async Task RefreshAsync(string key, CancellationToken token = default)
   {
-    await _clusterClient.GetGrain<IDistributedCacheGrain>(key).RefreshAsync(token);
+    await _clusterClient.GetGrain<IPersistentDistributedCacheGrain>(key).RefreshAsync(token);
   }
 
   public void Remove(string key)
   {
-    throw new NotImplementedException();
+    RemoveAsync(key).GetAwaiter().GetResult();
   }
 
   public async Task RemoveAsync(string key, CancellationToken token = default)
   {
-    await _clusterClient.GetGrain<IDistributedCacheGrain>(key).RemoveAsync(token);
+    await _clusterClient.GetGrain<IPersistentDistributedCacheGrain>(key).RemoveAsync(token);
   }
 
   public void Set(string key, byte[] value, DistributedCacheEntryOptions options)
   {
-    throw new NotImplementedException();
+    SetAsync(key, value, options).GetAwaiter().GetResult();
   }
 
   public async Task SetAsync(string key, byte[] value, DistributedCacheEntryOptions options, CancellationToken token = default)
   {
-    await _clusterClient.GetGrain<IDistributedCacheGrain>(key).SetAsync(value.ToImmutableArray(), options.ToOrleansCacheEntryOptions(), token);
+    await _clusterClient.GetGrain<IPersistentDistributedCacheGrain>(key).SetAsync(value.ToImmutableArray(), options.ToOrleansCacheEntryOptions(), token);
   }
 }

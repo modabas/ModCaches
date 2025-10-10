@@ -11,7 +11,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.AddCoHostedOrleansDistributedCache();
+builder.Services.AddCoHostedOrleansVolatileDistributedCache();
 
 builder.Services.AddExtendedDistributedCache(options =>
 {

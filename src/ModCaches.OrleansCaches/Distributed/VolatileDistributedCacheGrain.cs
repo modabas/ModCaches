@@ -4,12 +4,12 @@ using Orleans;
 
 namespace ModCaches.OrleansCaches.Distributed;
 
-internal class DistributedCacheGrain : Grain, IDistributedCacheGrain
+internal class VolatileDistributedCacheGrain : Grain, IVolatileDistributedCacheGrain
 {
   private CacheEntry<ImmutableArray<byte>>? _cacheEntry;
   private readonly Func<DateTimeOffset> _timeProviderFunc;
 
-  public DistributedCacheGrain(TimeProvider timeProvider)
+  public VolatileDistributedCacheGrain(TimeProvider timeProvider)
   {
     _timeProviderFunc = () => timeProvider.GetUtcNow();
   }
