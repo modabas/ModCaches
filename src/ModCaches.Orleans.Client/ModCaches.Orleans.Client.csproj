@@ -1,13 +1,13 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net8.0;net9.0;net10.0</TargetFrameworks>
+    <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <PropertyGroup>
-    <Description>An extension for IDistributedCache interface providing methods similar to HybridCache, serialization automation and local cache stampede protection.</Description>
+    <Description>Volatile and persistent distributed cache service implementations to be used from Microsoft Orleans clients.</Description>
     <NuGetTarget></NuGetTarget>
   </PropertyGroup>
 
@@ -20,11 +20,10 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-  </ItemGroup>  
+  </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Extensions.Caching.Abstractions" Version="9.0.9" />
-    <PackageReference Include="Microsoft.Extensions.Options" Version="9.0.9" />
+    <ProjectReference Include="..\ModCaches.Orleans.Abstractions\ModCaches.Orleans.Abstractions.csproj" />
   </ItemGroup>
 
 </Project>
