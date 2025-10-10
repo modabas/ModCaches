@@ -4,11 +4,11 @@ using Orleans;
 
 namespace ModCaches.OrleansCaches.Distributed;
 
-public class RemoteOrleansCache : IDistributedCache
+public class RemoteOrleansVolatileCache : IDistributedCache
 {
   private readonly IClusterClient _clusterClient;
 
-  public RemoteOrleansCache(IClusterClient clusterClient)
+  public RemoteOrleansVolatileCache(IClusterClient clusterClient)
   {
     _clusterClient = clusterClient;
   }
@@ -20,7 +20,7 @@ public class RemoteOrleansCache : IDistributedCache
 
   public async Task<byte[]?> GetAsync(string key, CancellationToken token = default)
   {
-    return (await _clusterClient.GetGrain<IDistributedCacheGrain>(key).GetAsync(token))?.ToArray();
+    return (await _clusterClient.GetGrain<IVolatileDistributedCacheGrain>(key).GetAsync(token))?.ToArray();
   }
 
   public void Refresh(string key)
@@ -30,7 +30,7 @@ public class RemoteOrleansCache : IDistributedCache
 
   public async Task RefreshAsync(string key, CancellationToken token = default)
   {
-    await _clusterClient.GetGrain<IDistributedCacheGrain>(key).RefreshAsync(token);
+    await _clusterClient.GetGrain<IVolatileDistributedCacheGrain>(key).RefreshAsync(token);
   }
 
   public void Remove(string key)
@@ -40,7 +40,7 @@ public class RemoteOrleansCache : IDistributedCache
 
   public async Task RemoveAsync(string key, CancellationToken token = default)
   {
-    await _clusterClient.GetGrain<IDistributedCacheGrain>(key).RemoveAsync(token);
+    await _clusterClient.GetGrain<IVolatileDistributedCacheGrain>(key).RemoveAsync(token);
   }
 
   public void Set(string key, byte[] value, DistributedCacheEntryOptions options)
@@ -50,6 +50,6 @@ public class RemoteOrleansCache : IDistributedCache
 
   public async Task SetAsync(string key, byte[] value, DistributedCacheEntryOptions options, CancellationToken token = default)
   {
-    await _clusterClient.GetGrain<IDistributedCacheGrain>(key).SetAsync(value.ToImmutableArray(), options.ToOrleansCacheEntryOptions(), token);
+    await _clusterClient.GetGrain<IVolatileDistributedCacheGrain>(key).SetAsync(value.ToImmutableArray(), options.ToOrleansCacheEntryOptions(), token);
   }
 }

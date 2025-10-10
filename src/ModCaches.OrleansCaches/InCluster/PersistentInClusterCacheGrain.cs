@@ -3,12 +3,12 @@ using Orleans.Runtime;
 
 namespace ModCaches.OrleansCaches.InCluster;
 
-public abstract class PersistedInClusterCacheGrain<TValue>
-  : InClusterCacheGrain<TValue>, IInClusterCacheGrain<TValue>
+public abstract class PersistentInClusterCacheGrain<TValue>
+  : VolatileInClusterCacheGrain<TValue>, IInClusterCacheGrain<TValue>
   where TValue : notnull
 {
   internal IPersistentState<InClusterCacheState<TValue>> PersistentState { get; set; }
-  public PersistedInClusterCacheGrain(IServiceProvider serviceProvider,
+  public PersistentInClusterCacheGrain(IServiceProvider serviceProvider,
     IPersistentState<InClusterCacheState<TValue>> persistentState)
     : base(serviceProvider)
   {
@@ -106,13 +106,13 @@ public abstract class PersistedInClusterCacheGrain<TValue>
   }
 }
 
-public abstract class PersistedInClusterCacheGrain<TValue, TCreateArgs>
-  : InClusterCacheGrain<TValue, TCreateArgs>, IInClusterCacheGrain<TValue, TCreateArgs>
+public abstract class PersistentInClusterCacheGrain<TValue, TCreateArgs>
+  : VolatileInClusterCacheGrain<TValue, TCreateArgs>, IInClusterCacheGrain<TValue, TCreateArgs>
   where TValue : notnull
   where TCreateArgs : notnull
 {
   internal IPersistentState<InClusterCacheState<TValue>> PersistentState { get; set; }
-  public PersistedInClusterCacheGrain(IServiceProvider serviceProvider,
+  public PersistentInClusterCacheGrain(IServiceProvider serviceProvider,
     IPersistentState<InClusterCacheState<TValue>> persistentState)
     : base(serviceProvider)
   {

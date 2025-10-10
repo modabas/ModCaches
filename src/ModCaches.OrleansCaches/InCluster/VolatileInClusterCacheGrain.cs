@@ -2,11 +2,11 @@
 
 namespace ModCaches.OrleansCaches.InCluster;
 
-public abstract class InClusterCacheGrain<TValue>
+public abstract class VolatileInClusterCacheGrain<TValue>
   : BaseInClusterCacheGrain<TValue>, IInClusterCacheGrain<TValue>
   where TValue : notnull
 {
-  public InClusterCacheGrain(IServiceProvider serviceProvider)
+  public VolatileInClusterCacheGrain(IServiceProvider serviceProvider)
     : base(serviceProvider)
   {
   }
@@ -57,12 +57,12 @@ public abstract class InClusterCacheGrain<TValue>
   protected abstract Task<TValue> GenerateValueAsync(InClusterCacheEntryOptions options, CancellationToken ct);
 }
 
-public abstract class InClusterCacheGrain<TValue, TCreateArgs>
+public abstract class VolatileInClusterCacheGrain<TValue, TCreateArgs>
   : BaseInClusterCacheGrain<TValue>, IInClusterCacheGrain<TValue, TCreateArgs>
   where TValue : notnull
   where TCreateArgs : notnull
 {
-  public InClusterCacheGrain(IServiceProvider serviceProvider)
+  public VolatileInClusterCacheGrain(IServiceProvider serviceProvider)
     : base(serviceProvider)
   {
   }

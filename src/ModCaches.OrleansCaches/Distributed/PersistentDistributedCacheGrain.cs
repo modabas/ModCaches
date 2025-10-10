@@ -5,14 +5,14 @@ using Orleans.Runtime;
 
 namespace ModCaches.OrleansCaches.Distributed;
 
-internal class PersistedDistributedCacheGrain : Grain, IPersistedDistributedCacheGrain
+internal class PersistentDistributedCacheGrain : Grain, IPersistentDistributedCacheGrain
 {
   private CacheEntry<ImmutableArray<byte>>? _cacheEntry;
   private readonly Func<DateTimeOffset> _timeProviderFunc;
 
   private IPersistentState<DistributedCacheState> _persistentState;
 
-  public PersistedDistributedCacheGrain(TimeProvider timeProvider,
+  public PersistentDistributedCacheGrain(TimeProvider timeProvider,
     IPersistentState<DistributedCacheState> persistentState)
   {
     _timeProviderFunc = () => timeProvider.GetUtcNow();

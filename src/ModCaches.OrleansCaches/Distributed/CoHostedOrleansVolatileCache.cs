@@ -5,11 +5,11 @@ using Orleans;
 
 namespace ModCaches.OrleansCaches.Distributed;
 
-public class CoHostedOrleansPersistedCache : IDistributedCache
+public class CoHostedOrleansVolatileCache : IDistributedCache
 {
   private readonly IGrainFactory _grainFactory;
 
-  public CoHostedOrleansPersistedCache(IGrainFactory grainFactory)
+  public CoHostedOrleansVolatileCache(IGrainFactory grainFactory)
   {
     _grainFactory = grainFactory;
   }
@@ -21,7 +21,7 @@ public class CoHostedOrleansPersistedCache : IDistributedCache
 
   public async Task<byte[]?> GetAsync(string key, CancellationToken token = default)
   {
-    return (await _grainFactory.GetGrain<IPersistedDistributedCacheGrain>(key).GetAsync(token))?.ToArray();
+    return (await _grainFactory.GetGrain<IVolatileDistributedCacheGrain>(key).GetAsync(token))?.ToArray();
   }
 
   public void Refresh(string key)
@@ -31,7 +31,7 @@ public class CoHostedOrleansPersistedCache : IDistributedCache
 
   public async Task RefreshAsync(string key, CancellationToken token = default)
   {
-    await _grainFactory.GetGrain<IPersistedDistributedCacheGrain>(key).RefreshAsync(token);
+    await _grainFactory.GetGrain<IVolatileDistributedCacheGrain>(key).RefreshAsync(token);
   }
 
   public void Remove(string key)
@@ -41,7 +41,7 @@ public class CoHostedOrleansPersistedCache : IDistributedCache
 
   public async Task RemoveAsync(string key, CancellationToken token = default)
   {
-    await _grainFactory.GetGrain<IPersistedDistributedCacheGrain>(key).RemoveAsync(token);
+    await _grainFactory.GetGrain<IVolatileDistributedCacheGrain>(key).RemoveAsync(token);
   }
 
   public void Set(string key, byte[] value, DistributedCacheEntryOptions options)
@@ -51,6 +51,6 @@ public class CoHostedOrleansPersistedCache : IDistributedCache
 
   public async Task SetAsync(string key, byte[] value, DistributedCacheEntryOptions options, CancellationToken token = default)
   {
-    await _grainFactory.GetGrain<IPersistedDistributedCacheGrain>(key).SetAsync(value.ToImmutableArray(), options.ToOrleansCacheEntryOptions(), token);
+    await _grainFactory.GetGrain<IVolatileDistributedCacheGrain>(key).SetAsync(value.ToImmutableArray(), options.ToOrleansCacheEntryOptions(), token);
   }
 }
