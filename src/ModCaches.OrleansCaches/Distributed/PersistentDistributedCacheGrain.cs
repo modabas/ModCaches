@@ -33,6 +33,16 @@ internal class PersistentDistributedCacheGrain : Grain, IPersistentDistributedCa
     }
   }
 
+  public override async Task OnDeactivateAsync(DeactivationReason reason, CancellationToken cancellationToken)
+  {
+    if (_cacheEntry is null ||
+      !_cacheEntry.TryGetValue(_timeProviderFunc, out _, out _))
+    {
+      await ClearStateAsync(cancellationToken);
+    }
+    await base.OnDeactivateAsync(reason, cancellationToken);
+  }
+
   public async Task<ImmutableArray<byte>?> GetAsync(CancellationToken ct)
   {
     if (_cacheEntry?.TryGetValue(_timeProviderFunc, out var value, out var expiresIn) == true)
@@ -56,11 +66,11 @@ internal class PersistentDistributedCacheGrain : Grain, IPersistentDistributedCa
     await WriteStateAsync(ct);
   }
 
-  public async Task RemoveAsync(CancellationToken ct)
+  public Task RemoveAsync(CancellationToken ct)
   {
     _cacheEntry = null; // Remove the cache entry
     DeactivateOnIdle(); // Deactivate the grain after removing the value
-    await ClearStateAsync(ct);
+    return Task.CompletedTask;
   }
 
   public async Task RefreshAsync(CancellationToken ct)
