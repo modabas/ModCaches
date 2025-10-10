@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.Caching.Memory;
-using ModCaches.OrleansCaches.Common;
+﻿using ModCaches.OrleansCaches.Common;
 using Orleans;
 using Orleans.Runtime;
 
