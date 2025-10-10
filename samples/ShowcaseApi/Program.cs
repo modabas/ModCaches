@@ -1,6 +1,6 @@
 ﻿using ModCaches.ExtendedDistributedCache;
-using ModCaches.OrleansCaches.Distributed;
-using ModCaches.OrleansCaches.InCluster;
+using ModCaches.Orleans.Server.Distributed;
+using ModCaches.Orleans.Server.InCluster;
 using ModEndpoints.Core;
 using ShowcaseApi;
 

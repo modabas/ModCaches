@@ -15,7 +15,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\ModCaches.ExtendedDistributedCache\ModCaches.ExtendedDistributedCache.csproj" />
-    <ProjectReference Include="..\..\src\ModCaches.OrleansCaches\ModCaches.OrleansCaches.csproj" />
+    <ProjectReference Include="..\..\src\ModCaches.Orleans.Server\ModCaches.Orleans.Server.csproj" />
   </ItemGroup>
 
 </Project>

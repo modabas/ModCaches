@@ -1,0 +1,19 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="ModCaches.Orleans.Client" />
+    <InternalsVisibleTo Include="ModCaches.Orleans.Server" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Caching.Abstractions" Version="9.0.9" />
+    <PackageReference Include="Microsoft.Orleans.Sdk" Version="9.2.1" />
+  </ItemGroup>
+
+</Project>
