@@ -11,6 +11,22 @@
     <InternalsVisibleTo Include="ModCaches.Orleans.Server" />
   </ItemGroup>
 
+  <PropertyGroup>
+    <Description>Abstractions and common classes for Microsoft Orleans client and server cache infrastructure.</Description>
+    <NuGetTarget></NuGetTarget>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="assets\README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Caching.Abstractions" Version="9.0.9" />
     <PackageReference Include="Microsoft.Orleans.Sdk" Version="9.2.1" />
