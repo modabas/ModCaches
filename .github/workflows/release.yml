@@ -5,8 +5,9 @@ on:
     types: [published]
 
 env:
-  EXTENDEDDISTRIBUTEDCACHEPROJECTNAME: "ModCaches.ExtendedDistributedCache"
-  ORLEANSCACHESPROJECTNAME: "ModCaches.OrleansCaches"
+  EXTENDED_DISTRIBUTED_CACHE_PROJECTNAME: "ModCaches.ExtendedDistributedCache"
+  ORLEANS_SERVER_PROJECTNAME: "ModCaches.Orleans.Server"
+  ORLEANS_CLIENT_PROJECTNAME: "ModCaches.Orleans.Client"
   
 jobs:
   build:
@@ -27,17 +28,23 @@ jobs:
     - name: Restore dependencies
       run: dotnet restore
     - name: Build - Extended Distributed Cache
-      run: dotnet build ${{ env.EXTENDEDDISTRIBUTEDCACHEPROJECTNAME }} --configuration Release --no-restore
+      run: dotnet build ${{ env.EXTENDED_DISTRIBUTED_CACHE_PROJECTNAME }} --configuration Release --no-restore
       working-directory: src
     - name: Build - Orleans Caches
-      run: dotnet build ${{ env.ORLEANSCACHESPROJECTNAME }} --configuration Release --no-restore
+      run: dotnet build ${{ env.ORLEANS_SERVER_PROJECTNAME }} --configuration Release --no-restore
+      working-directory: src
+    - name: Build - Orleans Caches
+      run: dotnet build ${{ env.ORLEANS_CLIENT_PROJECTNAME }} --configuration Release --no-restore
       working-directory: src
 
     - name: Package nuget - Extended Distributed Cache
-      run: dotnet pack ${{ env.EXTENDEDDISTRIBUTEDCACHEPROJECTNAME }} --configuration Release --no-build -o:package
+      run: dotnet pack ${{ env.EXTENDED_DISTRIBUTED_CACHE_PROJECTNAME }} --configuration Release --no-build -o:package
       working-directory: src
     - name: Package nuget - Orleans Caches
-      run: dotnet pack ${{ env.ORLEANSCACHESPROJECTNAME }} --configuration Release --no-build -o:package
+      run: dotnet pack ${{ env.ORLEANS_SERVER_PROJECTNAME }} --configuration Release --no-build -o:package
+      working-directory: src
+    - name: Package nuget - Orleans Caches
+      run: dotnet pack ${{ env.ORLEANS_CLIENT_PROJECTNAME }} --configuration Release --no-build -o:package
       working-directory: src
 
     - name: Push to NuGet
