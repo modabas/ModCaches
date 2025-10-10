@@ -9,6 +9,7 @@ internal class PersistentDistributedCacheGrain : Grain, IPersistentDistributedCa
 {
   private CacheEntry<ImmutableArray<byte>>? _cacheEntry;
   private readonly Func<DateTimeOffset> _timeProviderFunc;
+  private bool _stateCleared = false;
 
   private IPersistentState<DistributedCacheState> _persistentState;
 
@@ -35,10 +36,13 @@ internal class PersistentDistributedCacheGrain : Grain, IPersistentDistributedCa
 
   public override async Task OnDeactivateAsync(DeactivationReason reason, CancellationToken cancellationToken)
   {
-    if (_cacheEntry is null ||
-      !_cacheEntry.TryGetValue(_timeProviderFunc, out _, out _))
+    if (!_stateCleared)
     {
-      await ClearStateAsync(cancellationToken);
+      if (_cacheEntry is null ||
+        !_cacheEntry.TryGetValue(_timeProviderFunc, out _, out _))
+      {
+        await ClearStateAsync(cancellationToken);
+      }
     }
     await base.OnDeactivateAsync(reason, cancellationToken);
   }
@@ -66,11 +70,11 @@ internal class PersistentDistributedCacheGrain : Grain, IPersistentDistributedCa
     await WriteStateAsync(ct);
   }
 
-  public Task RemoveAsync(CancellationToken ct)
+  public async Task RemoveAsync(CancellationToken ct)
   {
     _cacheEntry = null; // Remove the cache entry
     DeactivateOnIdle(); // Deactivate the grain after removing the value
-    return Task.CompletedTask;
+    await ClearStateAsync(ct);
   }
 
   public async Task RefreshAsync(CancellationToken ct)
@@ -91,6 +95,7 @@ internal class PersistentDistributedCacheGrain : Grain, IPersistentDistributedCa
   {
     _persistentState.State = _cacheEntry!.ToState();
     await _persistentState.WriteStateAsync(ct);
+    _stateCleared = false;
   }
 
   private async Task ClearStateAsync(CancellationToken ct)
@@ -99,5 +104,6 @@ internal class PersistentDistributedCacheGrain : Grain, IPersistentDistributedCa
     {
       await _persistentState.ClearStateAsync(ct);
     }
+    _stateCleared = true;
   }
 }
