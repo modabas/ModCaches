@@ -6,6 +6,7 @@ on:
 
 env:
   EXTENDED_DISTRIBUTED_CACHE_PROJECTNAME: "ModCaches.ExtendedDistributedCache"
+  ORLEANS_ABSTRACTIONS_PROJECTNAME: "ModCaches.Orleans.Abstractions"
   ORLEANS_SERVER_PROJECTNAME: "ModCaches.Orleans.Server"
   ORLEANS_CLIENT_PROJECTNAME: "ModCaches.Orleans.Client"
   
@@ -30,20 +31,26 @@ jobs:
     - name: Build - Extended Distributed Cache
       run: dotnet build ${{ env.EXTENDED_DISTRIBUTED_CACHE_PROJECTNAME }} --configuration Release --no-restore
       working-directory: src
-    - name: Build - Orleans Caches
+    - name: Package nuget - Orleans Cache absrtactions
+      run: dotnet build ${{ env.ORLEANS_ABSTRACTIONS_PROJECTNAME }} --configuration Release --no-restore
+      working-directory: src
+    - name: Package nuget - Orleans server cache components
       run: dotnet build ${{ env.ORLEANS_SERVER_PROJECTNAME }} --configuration Release --no-restore
       working-directory: src
-    - name: Build - Orleans Caches
+    - name: Package nuget - Orleans client cache components
       run: dotnet build ${{ env.ORLEANS_CLIENT_PROJECTNAME }} --configuration Release --no-restore
       working-directory: src
 
     - name: Package nuget - Extended Distributed Cache
       run: dotnet pack ${{ env.EXTENDED_DISTRIBUTED_CACHE_PROJECTNAME }} --configuration Release --no-build -o:package
       working-directory: src
-    - name: Package nuget - Orleans Caches
+    - name: Package nuget - Orleans Cache absrtactions
+      run: dotnet pack ${{ env.ORLEANS_ABSTRACTIONS_PROJECTNAME }} --configuration Release --no-build -o:package
+      working-directory: src
+    - name: Package nuget - Orleans server cache components
       run: dotnet pack ${{ env.ORLEANS_SERVER_PROJECTNAME }} --configuration Release --no-build -o:package
       working-directory: src
-    - name: Package nuget - Orleans Caches
+    - name: Package nuget - Orleans client cache components
       run: dotnet pack ${{ env.ORLEANS_CLIENT_PROJECTNAME }} --configuration Release --no-build -o:package
       working-directory: src
 
