@@ -14,7 +14,7 @@ internal class PersistentDistributedCacheGrain : Grain, IPersistentDistributedCa
   private IPersistentState<DistributedCacheState> _persistentState;
 
   public PersistentDistributedCacheGrain(TimeProvider timeProvider,
-    [PersistentState(nameof(PersistentDistributedCacheGrain))]IPersistentState<DistributedCacheState> persistentState)
+    [PersistentState(nameof(PersistentDistributedCacheGrain))] IPersistentState<DistributedCacheState> persistentState)
   {
     _timeProviderFunc = () => timeProvider.GetUtcNow();
     _persistentState = persistentState;
