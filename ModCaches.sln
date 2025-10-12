@@ -38,6 +38,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ModCaches.ExtendedDistribut
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ModCaches.Orleans.Client.Tests", "tests\ModCaches.Orleans.Client.Tests\ModCaches.Orleans.Client.Tests.csproj", "{E6B52647-F3DD-46BC-82E5-323673B970F7}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ModCaches.Orleans.Server.Tests", "tests\ModCaches.Orleans.Server.Tests\ModCaches.Orleans.Server.Tests.csproj", "{8DE6688F-095E-41DB-BC11-0F9CFB84A6E7}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -72,6 +74,10 @@ Global
 		{E6B52647-F3DD-46BC-82E5-323673B970F7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E6B52647-F3DD-46BC-82E5-323673B970F7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E6B52647-F3DD-46BC-82E5-323673B970F7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8DE6688F-095E-41DB-BC11-0F9CFB84A6E7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8DE6688F-095E-41DB-BC11-0F9CFB84A6E7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8DE6688F-095E-41DB-BC11-0F9CFB84A6E7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8DE6688F-095E-41DB-BC11-0F9CFB84A6E7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -85,6 +91,7 @@ Global
 		{0726E2CF-2234-4A9F-82EE-5BFC69B177EA} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 		{D114F66C-5DF5-4825-8F8E-BB9E45361A6B} = {B22AB987-E2A7-44BE-BE7D-BE0E82929EBE}
 		{E6B52647-F3DD-46BC-82E5-323673B970F7} = {B22AB987-E2A7-44BE-BE7D-BE0E82929EBE}
+		{8DE6688F-095E-41DB-BC11-0F9CFB84A6E7} = {B22AB987-E2A7-44BE-BE7D-BE0E82929EBE}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {DA86FBD5-226F-42D9-85C0-40F12AC2F1FC}
