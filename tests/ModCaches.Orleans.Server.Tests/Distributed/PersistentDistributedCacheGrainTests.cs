@@ -4,9 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using ModCaches.Orleans.Abstractions.Common;
 using ModCaches.Orleans.Abstractions.Distributed;
 using ModCaches.Orleans.Server.Distributed;
-using Orleans;
 using Orleans.Providers;
-using Orleans.Runtime;
 using Orleans.Storage;
 
 namespace ModCaches.Orleans.Server.Tests.Distributed;
@@ -16,18 +14,13 @@ public class PersistentDistributedCacheGrainTests
 {
   private readonly ClusterFixture _fixture;
 
-  private IGrainStorage GetDefaultGrainStorage()
-  {
-    return _fixture.Cluster.GetSiloServiceProvider().GetRequiredKeyedService<IGrainStorage>(ProviderConstants.DEFAULT_STORAGE_PROVIDER_NAME);
-  }
-
-  private GrainIdFactory GetGrainIdFactory()
-  {
-    return _fixture.Cluster.GetSiloServiceProvider().GetRequiredService<GrainIdFactory>();
-  }
   private GrainId GetGrainId(string key)
   {
     return GetGrainIdFactory().CreateGrainId<IPersistentDistributedCacheGrain>(key);
+    GrainIdFactory GetGrainIdFactory()
+    {
+      return _fixture.Cluster.GetSiloServiceProvider().GetRequiredService<GrainIdFactory>();
+    }
   }
 
   private async Task<GrainState<DistributedCacheState>> GetStateAsync(GrainId grainId)
@@ -35,8 +28,11 @@ public class PersistentDistributedCacheGrainTests
     GrainState<DistributedCacheState> state = new();
     await GetDefaultGrainStorage().ReadStateAsync(nameof(PersistentDistributedCacheGrain), grainId, state);
     return state;
+    IGrainStorage GetDefaultGrainStorage()
+    {
+      return _fixture.Cluster.GetSiloServiceProvider().GetRequiredKeyedService<IGrainStorage>(ProviderConstants.DEFAULT_STORAGE_PROVIDER_NAME);
+    }
   }
-
 
   public PersistentDistributedCacheGrainTests(ClusterFixture fixture)
   {
