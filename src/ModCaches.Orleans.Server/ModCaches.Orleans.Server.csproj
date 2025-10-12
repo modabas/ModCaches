@@ -12,6 +12,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="ModCaches.Orleans.Server.Tests" />
+  </ItemGroup>
+  
+  <ItemGroup>
     <None Include="assets\README.md" Pack="true" PackagePath="\" />
   </ItemGroup>
 
