@@ -10,6 +10,10 @@ env:
   ORLEANS_SERVER_PROJECTNAME: "ModCaches.Orleans.Server"
   ORLEANS_CLIENT_PROJECTNAME: "ModCaches.Orleans.Client"
   
+  EXTENDED_DISTRIBUTED_CACHE_TESTS_PROJECTNAME: "ModCaches.ExtendedDistributedCache.Tests"
+  ORLEANS_SERVER_TESTS_PROJECTNAME: "ModCaches.Orleans.Server.Tests"
+  ORLEANS_CLIENT_TESTS_PROJECTNAME: "ModCaches.Orleans.Client.Tests"
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -31,15 +35,25 @@ jobs:
     - name: Build - Extended Distributed Cache
       run: dotnet build ${{ env.EXTENDED_DISTRIBUTED_CACHE_PROJECTNAME }} --configuration Release --no-restore
       working-directory: src
-    - name: Package nuget - Orleans Cache absrtactions
+    - name: Build - Orleans Cache absrtactions
       run: dotnet build ${{ env.ORLEANS_ABSTRACTIONS_PROJECTNAME }} --configuration Release --no-restore
       working-directory: src
-    - name: Package nuget - Orleans server cache components
+    - name: Build - Orleans server cache components
       run: dotnet build ${{ env.ORLEANS_SERVER_PROJECTNAME }} --configuration Release --no-restore
       working-directory: src
-    - name: Package nuget - Orleans client cache components
+    - name: Build - Orleans client cache components
       run: dotnet build ${{ env.ORLEANS_CLIENT_PROJECTNAME }} --configuration Release --no-restore
       working-directory: src
+
+    - name: Test - Extended Distributed Cache
+      run: dotnet test ${{ env.EXTENDED_DISTRIBUTED_CACHE_TESTS_PROJECTNAME }} --no-restore --verbosity normal
+      working-directory: tests
+    - name: Test - Orleans server cache components
+      run: dotnet test ${{ env.ORLEANS_SERVER_TESTS_PROJECTNAME }} --no-restore --verbosity normal
+      working-directory: tests
+    - name: Test - Orleans client cache components
+      run: dotnet test ${{ env.ORLEANS_CLIENT_TESTS_PROJECTNAME }} --no-restore --verbosity normal
+      working-directory: tests
 
     - name: Package nuget - Extended Distributed Cache
       run: dotnet pack ${{ env.EXTENDED_DISTRIBUTED_CACHE_PROJECTNAME }} --configuration Release --no-build -o:package
