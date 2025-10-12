@@ -9,6 +9,8 @@
   <ItemGroup>
     <InternalsVisibleTo Include="ModCaches.Orleans.Client" />
     <InternalsVisibleTo Include="ModCaches.Orleans.Server" />
+    <InternalsVisibleTo Include="ModCaches.Orleans.Client.Tests" />
+    <InternalsVisibleTo Include="DynamicProxyGenAssembly2" />    
   </ItemGroup>
 
   <PropertyGroup>

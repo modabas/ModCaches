@@ -20,13 +20,13 @@ public class ServiceCollectionExtensionsTests
     var serializerDescriptor = services
       .FirstOrDefault(d => d.ServiceType == typeof(IDistributedCacheSerializer));
     serializerDescriptor.Should().NotBeNull("the default serializer should be registered");
-    serializerDescriptor!.Lifetime.Should().Be(ServiceLifetime.Singleton);
+    serializerDescriptor.Lifetime.Should().Be(ServiceLifetime.Singleton);
 
     // IExtendedDistributedCache registration
     var extendedDescriptor = services
       .FirstOrDefault(d => d.ServiceType == typeof(IExtendedDistributedCache) && d.ImplementationType == typeof(DefaultExtendedDistributedCache));
     extendedDescriptor.Should().NotBeNull("IExtendedDistributedCache should be registered with DefaultExtendedDistributedCache implementation");
-    extendedDescriptor!.Lifetime.Should().Be(ServiceLifetime.Singleton);
+    extendedDescriptor.Lifetime.Should().Be(ServiceLifetime.Singleton);
   }
 
   [Fact]
@@ -60,7 +60,7 @@ public class ServiceCollectionExtensionsTests
     var extendedDescriptor = services
       .FirstOrDefault(d => d.ServiceType == typeof(IExtendedDistributedCache) && d.ImplementationType == typeof(DefaultExtendedDistributedCache));
     extendedDescriptor.Should().NotBeNull();
-    extendedDescriptor!.Lifetime.Should().Be(ServiceLifetime.Transient);
+    extendedDescriptor.Lifetime.Should().Be(ServiceLifetime.Transient);
   }
 
   [Fact]
@@ -76,9 +76,9 @@ public class ServiceCollectionExtensionsTests
     // Assert
     // There should be a descriptor for IExtendedDistributedCache that uses an implementation factory (keyed)
     var keyedExtendedDescriptor = services
-      .FirstOrDefault(d => d.ServiceType == typeof(IExtendedDistributedCache) && (d.ServiceKey?.Equals(key) ?? false));
+      .FirstOrDefault(d => d.ServiceType == typeof(IExtendedDistributedCache) && d.KeyedImplementationFactory is not null && (d.ServiceKey?.Equals(key) ?? false));
     keyedExtendedDescriptor.Should().NotBeNull("a keyed IExtendedDistributedCache registration using an implementation factory should be present");
-    keyedExtendedDescriptor!.Lifetime.Should().Be(ServiceLifetime.Scoped);
+    keyedExtendedDescriptor.Lifetime.Should().Be(ServiceLifetime.Scoped);
 
     // There should be some registration for IDistributedCacheSerializer (keyed registration may vary
     // in how it's represented in the collection, but the service type should be present)
