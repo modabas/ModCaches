@@ -37,7 +37,8 @@ namespace ModCaches.ExtendedDistributedCache.Lru;
 /// <param name="comparer">The equality comparer.</param>
 internal class ConcurrentLruCache<K, V>(
     int capacity,
-    IEqualityComparer<K>? comparer) : IEnumerable<KeyValuePair<K, V>>
+    IEqualityComparer<K>? comparer) : IEnumerable<KeyValuePair<K, V>>,
+    ConcurrentLruCache<K, V>.ITestAccessor
     where K : notnull
 {
   private readonly ConcurrentDictionary<K, LruItem> _dictionary = new(concurrencyLevel: -1, capacity: capacity, comparer: comparer);
@@ -729,6 +730,12 @@ internal class ConcurrentLruCache<K, V>(
     return ItemDestination.Remove;
   }
 
+  ConcurrentQueue<LruItem> ITestAccessor.HotQueue => _hotQueue;
+  ConcurrentQueue<LruItem> ITestAccessor.WarmQueue => _warmQueue;
+  ConcurrentQueue<LruItem> ITestAccessor.ColdQueue => _coldQueue;
+  ConcurrentDictionary<K, LruItem> ITestAccessor.Dictionary => _dictionary;
+  bool ITestAccessor.IsWarm => _isWarm;
+
   /// <summary>
   /// Represents an LRU item.
   /// </summary>
@@ -851,6 +858,15 @@ internal class ConcurrentLruCache<K, V>(
     Evicted,
     Cleared,
     Trimmed,
+  }
+
+  internal interface ITestAccessor
+  {
+    public ConcurrentQueue<LruItem> HotQueue { get; }
+    public ConcurrentQueue<LruItem> WarmQueue { get; }
+    public ConcurrentQueue<LruItem> ColdQueue { get; }
+    public ConcurrentDictionary<K, LruItem> Dictionary { get; }
+    public bool IsWarm { get; }
   }
 
   [MethodImpl(MethodImplOptions.AggressiveInlining)]
