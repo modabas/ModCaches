@@ -50,7 +50,7 @@ public class MyService(IExtendedDistributedCache cache)
 ```
 
 
-## 🧩 Implementation
+## 🧩 How To Use
 
 IExtendedDistributedCache exposes a couple of methods to interact with:
 
