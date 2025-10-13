@@ -108,6 +108,92 @@ public class DefaultExtendedDistributedCacheTests
         .WithMessage("Deserialized value is null.");
   }
 
+  // New tests for the TState overload of GetOrCreateAsync<TState, T>
+
+  [Fact]
+  public async Task GetOrCreateAsync_TState_WhenCacheHit_DeserializesAndReturnsValueAsync()
+  {
+    var mem = new InMemoryDistributedCache();
+    var serializer = new JsonSerializer();
+    var svc = CreateCache(mem, serializer);
+
+    var key = "k1-state";
+    var original = 12345;
+    var bytes = await serializer.SerializeAsync(original, CancellationToken.None);
+    await mem.SetAsync(key, bytes.ToArray(), new DistributedCacheEntryOptions(), CancellationToken.None);
+
+    // factory should not be called
+    Func<string, CancellationToken, Task<int>> factory = (_, ct) => throw new InvalidOperationException("Factory invoked");
+
+    var result = await svc.GetOrCreateAsync<string, int>(key, "ignored-state", factory, CancellationToken.None);
+    result.Should().Be(original);
+  }
+
+  [Fact]
+  public async Task GetOrCreateAsync_TState_WhenCacheMiss_CallsFactoryAndSetsCacheAsync()
+  {
+    var mem = new InMemoryDistributedCache();
+    var serializer = new JsonSerializer();
+    var svc = CreateCache(mem, serializer);
+
+    var key = "k-miss-state";
+    var state = "state-";
+    Func<string, CancellationToken, Task<string>> factory = (s, ct) => Task.FromResult(s + "hello");
+
+    var result = await svc.GetOrCreateAsync<string, string>(key, state, factory, CancellationToken.None);
+    result.Should().Be(state + "hello");
+
+    // verify cache was set
+    var stored = await mem.GetAsync(key, CancellationToken.None);
+    stored.Should().NotBeNull();
+    var deserialized = await serializer.DeserializeAsync<string>(stored, CancellationToken.None);
+    deserialized.Should().Be(state + "hello");
+  }
+
+  [Fact]
+  public async Task GetOrCreateAsync_TState_ConcurrentCalls_OnlyInvokesFactoryOnceAsync()
+  {
+    var mem = new InMemoryDistributedCache();
+    var serializer = new JsonSerializer();
+    var svc = CreateCache(mem, serializer);
+
+    var key = "concurrent-state";
+    int calls = 0;
+
+    Func<string, CancellationToken, Task<int>> factory = async (s, ct) =>
+    {
+      Interlocked.Increment(ref calls);
+      // simulate expensive work
+      await Task.Delay(100, ct);
+      return 42;
+    };
+
+    var t1 = svc.GetOrCreateAsync<string, int>(key, "state", factory, CancellationToken.None);
+    var t2 = svc.GetOrCreateAsync<string, int>(key, "state", factory, CancellationToken.None);
+
+    var results = await Task.WhenAll(t1, t2);
+    results[0].Should().Be(42);
+    results[1].Should().Be(42);
+    calls.Should().Be(1);
+  }
+
+  [Fact]
+  public async Task GetOrCreateAsync_TState_WhenDeserializedNull_ThrowsInvalidOperationExceptionAsync()
+  {
+    var mem = new InMemoryDistributedCache();
+    var serializer = new NullDeserializerSerializer();
+    var svc = CreateCache(mem, serializer);
+
+    var key = "bad-state";
+    await mem.SetAsync(key, Encoding.UTF8.GetBytes("ignored"), new DistributedCacheEntryOptions(), CancellationToken.None);
+
+    Func<string, CancellationToken, Task<string>> factory = (s, ct) => Task.FromResult(s + "-should-not-be-used");
+
+    await svc.Invoking(s => s.GetOrCreateAsync<string, string>(key, "st", factory, CancellationToken.None))
+        .Should().ThrowAsync<InvalidOperationException>()
+        .WithMessage("Deserialized value is null.");
+  }
+
   [Fact]
   public async Task SetAsync_UsesProvidedOptions_WhenOptionsPassedAsync()
   {
