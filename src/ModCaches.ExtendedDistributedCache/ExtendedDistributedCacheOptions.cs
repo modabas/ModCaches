@@ -7,5 +7,5 @@ public class ExtendedDistributedCacheOptions
   public TimeSpan? SlidingExpiration { get; set; }
   public int MaxLocks { get; set; } = DefaultMaxLocks; // Default maximum items in internal lock cache
 
-  public const int DefaultMaxLocks = 500;
+  public const int DefaultMaxLocks = 8192;
 }
