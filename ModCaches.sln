@@ -40,6 +40,13 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ModCaches.Orleans.Client.Te
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ModCaches.Orleans.Server.Tests", "tests\ModCaches.Orleans.Server.Tests\ModCaches.Orleans.Server.Tests.csproj", "{8DE6688F-095E-41DB-BC11-0F9CFB84A6E7}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{7BA935E2-7875-4C76-9A46-68B7E93082BF}"
+	ProjectSection(SolutionItems) = preProject
+		docs\ExtendedDistributedCache.md = docs\ExtendedDistributedCache.md
+		docs\OrleansDistributedCache.md = docs\OrleansDistributedCache.md
+		docs\OrleansInClusterCache.md = docs\OrleansInClusterCache.md
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

@@ -14,6 +14,13 @@ public interface IExtendedDistributedCache
     CancellationToken ct,
     DistributedCacheEntryOptions? options = null);
 
+  Task<T> GetOrCreateAsync<TState, T>(
+    string key,
+    TState state, 
+    Func<TState, CancellationToken, Task<T>> factory,
+    CancellationToken ct,
+    DistributedCacheEntryOptions? options = null);
+
   Task SetAsync<T>(
     string key,
     T value,

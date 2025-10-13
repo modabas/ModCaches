@@ -1,4 +1,6 @@
-﻿using Microsoft.Extensions.Caching.Distributed;
+﻿using System;
+using Microsoft.Extensions.Caching.Distributed;
+using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.Extensions.Options;
 using ModCaches.ExtendedDistributedCache.Lru;
 
@@ -34,11 +36,15 @@ internal class DefaultExtendedDistributedCache : IExtendedDistributedCache
       : new(ExtendedDistributedCacheOptions.DefaultMaxLocks); // Default capacity if not set
   }
 
-  public async Task<T> GetOrCreateAsync<T>(
+  public Task<T> GetOrCreateAsync<T>(
     string key,
     Func<CancellationToken, Task<T>> factory,
     CancellationToken ct,
     DistributedCacheEntryOptions? options = null)
+    => GetOrCreateAsync(key, factory, WrappedCallbackCache<T>.Instance, ct, options);
+
+
+  public async Task<T> GetOrCreateAsync<TState, T>(string key, TState state, Func<TState, CancellationToken, Task<T>> factory, CancellationToken ct, DistributedCacheEntryOptions? options = null)
   {
     //Read the cache first
     var bytes = await _cache.GetAsync(key, ct);
@@ -54,7 +60,7 @@ internal class DefaultExtendedDistributedCache : IExtendedDistributedCache
         bytes = await _cache.GetAsync(key, ct);
         if (bytes is null)
         {
-          var value = await factory(ct);
+          var value = await factory(state, ct);
           await SetAsync(key, value, ct, options);
           return value;
         }
@@ -87,6 +93,12 @@ internal class DefaultExtendedDistributedCache : IExtendedDistributedCache
       AbsoluteExpirationRelativeToNow = _options.Value.AbsoluteExpirationRelativeToNow,
       SlidingExpiration = _options.Value.SlidingExpiration
     };
+  }
+
+  private static class WrappedCallbackCache<T> // per-T memoized helper that allows GetOrCreateAsync<T> and GetOrCreateAsync<TState, T> to share an implementation
+  {
+    // for the simple usage scenario (no TState), pack the original callback as the "state", and use a wrapper function that just unrolls and invokes from the state
+    public static readonly Func<Func<CancellationToken, Task<T>>, CancellationToken, Task<T>> Instance = static (callback, ct) => callback(ct);
   }
 
   public async Task<(bool, T?)> TryGetValueAsync<T>(string key, CancellationToken ct)
