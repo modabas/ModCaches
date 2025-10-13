@@ -1,5 +1,6 @@
 ﻿# ModCaches
 
+[![Nuget](https://img.shields.io/nuget/v/ModCaches.ExtendedDistributedCache.svg)](https://www.nuget.org/packages/ModCaches.ExtendedDistributedCache/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/modabas/ModCaches/blob/main/LICENSE.txt)
 
 **ModCaches** provides cache and cache helper implementations for various use cases.
