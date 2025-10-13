@@ -62,7 +62,7 @@ builder.Services.AddCoHostedOrleansPersistentDistributedCache("persistentCache")
 
 ### Resolve from Dependency Injection
 
-Simply resolve IDistributedCache from dependency injection (i.e. constructor dependency injection) in application code to start using.
+Resolve `IDistributedCache` via dependency injection (for example, constructor injection) to start using it.
 
 ``` csharp
 public class MyService(IDistributedCache cache) 
@@ -70,7 +70,7 @@ public class MyService(IDistributedCache cache)
 }
 ```
 
-or if IDistributedCache service in use is registered as a keyed service:
+or if `IDistributedCache` service in use is registered as a keyed service:
 
 ``` csharp
 public class MyService([FromKeyedServices("persistentCache")]IDistributedCache cache) 

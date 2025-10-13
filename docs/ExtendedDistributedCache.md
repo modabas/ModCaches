@@ -1,14 +1,14 @@
 ﻿# Extended Distributed Cache
 
-Simplifies usage of any distributed cache that implements IDistributedCache interface.
+Simplifies the usage of any distributed cache that implements the `IDistributedCache` interface.
 
 ## ✨ Features
 
-- Built-in serializer support to simplify distributed cache usage,
-- In process cache stampede protection,
-- HybridCache-like interface simplifying storing and fetching data from any IDistributedCache implementation,
+- Built-in serializer support to simplify distributed-cache usage
+- In-process cache stampede protection
+- HybridCache-like interface that simplifies storing and fetching data from any `IDistributedCache` implementation
 
-> **Note**: Cache stampede protection is achieved via an in memory least recently used cache implementation from [Microsoft Orleans]() project.
+> **Note**: Cache stampede protection is achieved via an in-memory least-recently-used (LRU) cache implementation from the [Microsoft Orleans](https://github.com/dotnet/orleans) project.
 
 ## 🛠️ Getting Started
 
@@ -22,46 +22,45 @@ dotnet add package ModCaches.ExtendedDistributedCache
 
 In your `Program.cs`:
 
-``` csharp
+```csharp
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddExtendedDistributedCache();
 ```
 
-or if IDistributedCache service in use is registered as a keyed service:
+or, if the `IDistributedCache` service is registered as a keyed service:
 
-``` csharp
+```csharp
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddExtendedDistributedCache(serviceKey);
 ```
 
-> **Note**: These methods can also be used to configure default DistributedCacheEntryOptions value via the optional `Action<ExtendedDistributedCacheOptions>? setupAction` parameter.
+> **Note**: These methods can also be used to configure the default `DistributedCacheEntryOptions` via the optional `Action<ExtendedDistributedCacheOptions>? setupAction` parameter.
 
 
 ### Resolve from Dependency Injection
 
-Simply resolve IExtendedDistributedCache from dependency injection (i.e. constructor dependency injection) in application code to start using.
+Resolve `IExtendedDistributedCache` via dependency injection (for example, constructor injection) to start using it.
 
-``` csharp
+```csharp
 public class MyService(IExtendedDistributedCache cache) 
 {
 }
 ```
 
-
 ## 🧩 How To Use
 
-IExtendedDistributedCache exposes a couple of methods to interact with:
+The `IExtendedDistributedCache` exposes several methods to interact with:
 
-- GetOrCreate method to fetch a cached value or create one via factory input parameter if cached value is not found,
-- Set method to store a value in cache,
-- TryGet method to fetch cached value if exists,
-- DistributedCache property to access underlying distributed cache
+- `GetOrCreateAsync` method — fetch a cached value, or create one using the supplied factory if the cached value is not found
+- `SetAsync` method — store a value in the cache
+- `TryGetAsync` method — fetch a cached value if it exists
+- `DistributedCache` property — access the underlying `IDistributedCache`
 
-A serializer is used to convert value of type T to the byte[] IDistributedCache methods expect and also convert back from byte[] to type T. Default serializer provided in the package uses System.Text.Json.
+A serializer converts values of type `T` to the `byte[]` that `IDistributedCache` methods expect, and back from `byte[]` to `T`. The default serializer provided by the package uses `System.Text.Json`.
 
-> **Note**: If optional DistributedCacheEntryOptions parameter is not provided for any of these methods, default value configured during application service registration will be used.
+> **Note**: If the optional `DistributedCacheEntryOptions` parameter is not provided for a method, the default value configured during service registration will be used.
 
 ``` csharp
   IDistributedCache DistributedCache { get; }

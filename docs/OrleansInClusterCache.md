@@ -131,13 +131,13 @@ internal class WeatherForecastCacheGrain :
 
 In-Cluster cache grains expose a couple of methods to interact with:
 
-- GetOrCreate method to fetch a cached value or create one via GenerateValue method if cached value is not found/has expired,
-- Create method to create one via GenerateValue method,
-- Set method to store a value in cache,
-- TryGet method to fetch unexpired cached value if exists (updating last accessed time used for sliding expiration),
-- TryPeek method to fetch unexpired cached value if exists (without updating last accessed time used for sliding expiration),
-- Refresh method to update last accessed time used for sliding expiration if an unexpired cache value exists,
-- Remove method to clear cache value
+- `GetOrCreateAsync` method — fetch a cached value or create one via GenerateValue method if cached value is not found/has expired,
+- `CreateAsync` method — create one via GenerateValue method,
+- `SetAsync` method — store a value in cache,
+- `TryGetAsync` method — fetch unexpired cached value if exists (updating last accessed time used for sliding expiration),
+- `TryPeekAsync` method — fetch unexpired cached value if exists (without updating last accessed time used for sliding expiration),
+- `RefreshAsync` method — update last accessed time used for sliding expiration if an unexpired cache value exists,
+- `RemoveAsync` method — clear cache value
 
 So calling the `WeatherForecastCacheGrain` sample implemented above would be:
 
