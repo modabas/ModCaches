@@ -6,6 +6,13 @@ using Microsoft.Extensions.Options;
 namespace ModCaches.ExtendedDistributedCache;
 public static class ServiceCollectionExtensions
 {
+  /// <summary>
+  /// Registers a default <see cref="IExtendedDistributedCache"/> implementation to simplify use of underlying <see cref="IDistributedCache"/>.
+  /// </summary>
+  /// <param name="services"></param>
+  /// <param name="setupAction">Action to configure <see cref="ExtendedDistributedCacheOptions"/>.</param>
+  /// <param name="lifetime">Service lifetime for <see cref="DefaultExtendedDistributedCache"/>.</param>
+  /// <returns></returns>
   public static IServiceCollection AddExtendedDistributedCache(
     this IServiceCollection services,
     Action<ExtendedDistributedCacheOptions>? setupAction = null,
@@ -23,6 +30,14 @@ public static class ServiceCollectionExtensions
     return services;
   }
 
+  /// <summary>
+  /// Registers a default <see cref="IExtendedDistributedCache"/> implementation to simplify use of underlying <see cref="IDistributedCache"/>.
+  /// </summary>
+  /// <param name="services"></param>
+  /// <param name="cacheDiKey">Adds as a keyed service if provided. Also expects an <see cref="IDistributedCache"/> to be registered with same key.</param>
+  /// <param name="setupAction">Action to configure <see cref="ExtendedDistributedCacheOptions"/>.</param>
+  /// <param name="lifetime">Service lifetime for <see cref="DefaultExtendedDistributedCache"/>.</param>
+  /// <returns></returns>
   public static IServiceCollection AddExtendedDistributedCache(
     this IServiceCollection services,
     object? cacheDiKey,

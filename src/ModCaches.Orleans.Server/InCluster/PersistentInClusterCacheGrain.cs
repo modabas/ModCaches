@@ -2,6 +2,10 @@
 
 namespace ModCaches.Orleans.Server.InCluster;
 
+/// <summary>
+/// Abstract class to implement an in-cluster cache grain that keeps data in memory and also saves it as grain state (persistent).
+/// </summary>
+/// <typeparam name="TValue">Type of the cache data.</typeparam>
 public abstract class PersistentInClusterCacheGrain<TValue>
   : VolatileInClusterCacheGrain<TValue>, IInClusterCacheGrain<TValue>
   where TValue : notnull
@@ -123,6 +127,11 @@ public abstract class PersistentInClusterCacheGrain<TValue>
   }
 }
 
+/// <summary>
+/// Abstract class to implement an in-cluster cache grain that keeps data in memory and also saves it as grain state (persistent).
+/// </summary>
+/// <typeparam name="TValue">Type of the cache data.</typeparam>
+/// <typeparam name="TCreateArgs">Type of argument to be used during cache value generation.</typeparam>
 public abstract class PersistentInClusterCacheGrain<TValue, TCreateArgs>
   : VolatileInClusterCacheGrain<TValue, TCreateArgs>, IInClusterCacheGrain<TValue, TCreateArgs>
   where TValue : notnull

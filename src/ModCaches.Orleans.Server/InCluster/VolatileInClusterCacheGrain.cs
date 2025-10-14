@@ -2,6 +2,10 @@
 
 namespace ModCaches.Orleans.Server.InCluster;
 
+/// <summary>
+/// Abstract class to implement an in-cluster cache grain that keeps data in memory (volatile).
+/// </summary>
+/// <typeparam name="TValue">Type of the cache data.</typeparam>
 public abstract class VolatileInClusterCacheGrain<TValue>
   : BaseInClusterCacheGrain<TValue>, IInClusterCacheGrain<TValue>
   where TValue : notnull
@@ -48,15 +52,32 @@ public abstract class VolatileInClusterCacheGrain<TValue>
     return value;
   }
 
+  /// <summary>
+  /// Wrapper method over GenerateValueAsync method. Can be used to override cache options for the value.
+  /// </summary>
+  /// <param name="options">The cache options for the value.</param>
+  /// <param name="ct">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
+  /// <returns>A tuple, data to be cached and cache options that will be used for the cache item.</returns>
   protected virtual async Task<(TValue, InClusterCacheEntryOptions)> GenerateValueAndOptionsAsync(InClusterCacheEntryOptions options, CancellationToken ct)
   {
     var value = await GenerateValueAsync(options, ct);
     return (value, options);
   }
 
+  /// <summary>
+  /// Value generation method used by GetOrCreateAsync and CreateAsync methods while creating a new cache value.
+  /// </summary>
+  /// <param name="options">The cache options for the value.</param>
+  /// <param name="ct">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
+  /// <returns>Data to be cached.</returns>
   protected abstract Task<TValue> GenerateValueAsync(InClusterCacheEntryOptions options, CancellationToken ct);
 }
 
+/// <summary>
+/// Abstract class to implement an in-cluster cache grain that keeps data in memory (volatile).
+/// </summary>
+/// <typeparam name="TValue">Type of the cache data.</typeparam>
+/// <typeparam name="TCreateArgs">Type of argument to be used during cache value generation.</typeparam>
 public abstract class VolatileInClusterCacheGrain<TValue, TCreateArgs>
   : BaseInClusterCacheGrain<TValue>, IInClusterCacheGrain<TValue, TCreateArgs>
   where TValue : notnull
@@ -107,11 +128,25 @@ public abstract class VolatileInClusterCacheGrain<TValue, TCreateArgs>
     return value;
   }
 
+  /// <summary>
+  /// Wrapper method over GenerateValueAsync method. Can be used to override cache options for the value.
+  /// </summary>
+  /// <param name="args">Additional arguments to be used for value generation.</param>
+  /// <param name="options">The cache options for the value.</param>
+  /// <param name="ct">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
+  /// <returns>A tuple, data to be cached and cache options that will be used for the cache item.</returns>
   protected virtual async Task<(TValue, InClusterCacheEntryOptions)> GenerateValueAndOptionsAsync(TCreateArgs? args, InClusterCacheEntryOptions options, CancellationToken ct)
   {
     var value = await GenerateValueAsync(args, options, ct);
     return (value, options);
   }
 
+  /// <summary>
+  /// Value generation method used by GetOrCreateAsync and CreateAsync methods while creating a new cache value.
+  /// </summary>
+  /// <param name="args">Additional arguments to be used for value generation.</param>
+  /// <param name="options">The cache options for the value.</param>
+  /// <param name="ct">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
+  /// <returns>Data to be cached.</returns>
   protected abstract Task<TValue> GenerateValueAsync(TCreateArgs? args, InClusterCacheEntryOptions options, CancellationToken ct);
 }

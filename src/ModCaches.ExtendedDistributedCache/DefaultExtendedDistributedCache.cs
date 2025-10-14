@@ -17,7 +17,7 @@ internal class DefaultExtendedDistributedCache : IExtendedDistributedCache
   private readonly IOptions<ExtendedDistributedCacheOptions> _options;
   private readonly IDistributedCacheSerializer _serializer;
   private readonly ConcurrentLruCache<string, SemaphoreSlim> _locks;
-  private static Func<string, SemaphoreSlim> semaphoreFactory = _ => new SemaphoreSlim(1);
+  private static Func<string, SemaphoreSlim> _semaphoreFactory = _ => new SemaphoreSlim(1);
 
   public IDistributedCache DistributedCache => _cache;
 
@@ -53,7 +53,7 @@ internal class DefaultExtendedDistributedCache : IExtendedDistributedCache
     {
       // If the cache entry does not exist, we need to create it.
       // Use a semaphore to ensure that only one thread can create the entry.
-      var keyLock = _locks.GetOrAdd(key, semaphoreFactory);
+      var keyLock = _locks.GetOrAdd(key, _semaphoreFactory);
       await keyLock.WaitAsync(ct);
       try
       {
