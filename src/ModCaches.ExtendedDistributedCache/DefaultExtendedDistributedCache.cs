@@ -1,6 +1,4 @@
-﻿using System;
-using Microsoft.Extensions.Caching.Distributed;
-using Microsoft.Extensions.Caching.Hybrid;
+﻿using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Options;
 using ModCaches.ExtendedDistributedCache.Lru;
 
@@ -19,7 +17,7 @@ internal class DefaultExtendedDistributedCache : IExtendedDistributedCache
   private readonly IOptions<ExtendedDistributedCacheOptions> _options;
   private readonly IDistributedCacheSerializer _serializer;
   private readonly ConcurrentLruCache<string, SemaphoreSlim> _locks;
-  private static Func<string, SemaphoreSlim> semaphoreFactory = _ => new SemaphoreSlim(1);
+  private static Func<string, SemaphoreSlim> _semaphoreFactory = _ => new SemaphoreSlim(1);
 
   public IDistributedCache DistributedCache => _cache;
 
@@ -41,8 +39,11 @@ internal class DefaultExtendedDistributedCache : IExtendedDistributedCache
     Func<CancellationToken, Task<T>> factory,
     CancellationToken ct,
     DistributedCacheEntryOptions? options = null)
-    => GetOrCreateAsync(key, factory, WrappedCallbackCache<T>.Instance, ct, options);
-
+  {
+    //allows GetOrCreateAsync<T> and GetOrCreateAsync<TState, T> to share an implementation.
+    Func<Func<CancellationToken, Task<T>>, CancellationToken, Task<T>> wrappedFactoryCallback = (callback, ct) => callback(ct);
+    return GetOrCreateAsync(key, factory, wrappedFactoryCallback, ct, options);
+  }
 
   public async Task<T> GetOrCreateAsync<TState, T>(string key, TState state, Func<TState, CancellationToken, Task<T>> factory, CancellationToken ct, DistributedCacheEntryOptions? options = null)
   {
@@ -52,7 +53,7 @@ internal class DefaultExtendedDistributedCache : IExtendedDistributedCache
     {
       // If the cache entry does not exist, we need to create it.
       // Use a semaphore to ensure that only one thread can create the entry.
-      var keyLock = _locks.GetOrAdd(key, semaphoreFactory);
+      var keyLock = _locks.GetOrAdd(key, _semaphoreFactory);
       await keyLock.WaitAsync(ct);
       try
       {
@@ -93,12 +94,6 @@ internal class DefaultExtendedDistributedCache : IExtendedDistributedCache
       AbsoluteExpirationRelativeToNow = _options.Value.AbsoluteExpirationRelativeToNow,
       SlidingExpiration = _options.Value.SlidingExpiration
     };
-  }
-
-  private static class WrappedCallbackCache<T> // per-T memoized helper that allows GetOrCreateAsync<T> and GetOrCreateAsync<TState, T> to share an implementation
-  {
-    // for the simple usage scenario (no TState), pack the original callback as the "state", and use a wrapper function that just unrolls and invokes from the state
-    public static readonly Func<Func<CancellationToken, Task<T>>, CancellationToken, Task<T>> Instance = static (callback, ct) => callback(ct);
   }
 
   public async Task<(bool, T?)> TryGetValueAsync<T>(string key, CancellationToken ct)
