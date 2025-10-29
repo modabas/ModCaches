@@ -1,4 +1,5 @@
-﻿using ModCaches.Orleans.Server.Common;
+﻿using Microsoft.Extensions.Caching.Memory;
+using ModCaches.Orleans.Server.Common;
 
 namespace ModCaches.Orleans.Server.InCluster;
 
@@ -41,7 +42,7 @@ public abstract class PersistentInClusterCacheGrain<TValue>
     if (!_stateCleared)
     {
       if (CacheEntry is null ||
-        !CacheEntry.TryGetValue(TimeProviderFunc, out _, out _))
+        !CacheEntry.TryPeekValue(TimeProviderFunc, out _, out _))
       {
         await ClearStateAsync(cancellationToken);
       }
@@ -112,9 +113,13 @@ public abstract class PersistentInClusterCacheGrain<TValue>
 
   private async Task WriteStateAsync(CancellationToken ct)
   {
-    PersistentState.State = CacheEntry!.ToState();
-    await PersistentState.WriteStateAsync(ct);
-    _stateCleared = false;
+    //This is the expected case where we have a valid cache entry to write
+    if (CacheEntry is not null)
+    {
+      PersistentState.State = CacheEntry.ToState();
+      await PersistentState.WriteStateAsync(ct);
+      _stateCleared = false;
+    }
   }
 
   private async Task ClearStateAsync(CancellationToken ct)
@@ -166,7 +171,7 @@ public abstract class PersistentInClusterCacheGrain<TValue, TCreateArgs>
     if (!_stateCleared)
     {
       if (CacheEntry is null ||
-        !CacheEntry.TryGetValue(TimeProviderFunc, out _, out _))
+        !CacheEntry.TryPeekValue(TimeProviderFunc, out _, out _))
       {
         await ClearStateAsync(cancellationToken);
       }
@@ -239,9 +244,13 @@ public abstract class PersistentInClusterCacheGrain<TValue, TCreateArgs>
 
   private async Task WriteStateAsync(CancellationToken ct)
   {
-    PersistentState.State = CacheEntry!.ToState();
-    await PersistentState.WriteStateAsync(ct);
-    _stateCleared = false;
+    //This is the expected case where we have a valid cache entry to write
+    if (CacheEntry is not null)
+    {
+      PersistentState.State = CacheEntry.ToState();
+      await PersistentState.WriteStateAsync(ct);
+      _stateCleared = false;
+    }
   }
 
   private async Task ClearStateAsync(CancellationToken ct)
