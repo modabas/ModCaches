@@ -5,7 +5,7 @@ using ModCaches.Orleans.Server.Common;
 
 namespace ModCaches.Orleans.Server.Distributed;
 
-internal class BaseDistributedCacheGrain : Grain, IBaseDistributedCacheGrain
+internal abstract class BaseDistributedCacheGrain : Grain, IBaseDistributedCacheGrain
 {
   protected CacheEntry<ImmutableArray<byte>>? _cacheEntry;
   protected readonly Func<DateTimeOffset> _timeProviderFunc;

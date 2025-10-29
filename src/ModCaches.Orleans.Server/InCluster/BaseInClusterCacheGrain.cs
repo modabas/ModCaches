@@ -47,14 +47,15 @@ public abstract class BaseInClusterCacheGrain<TValue>
     return Task.CompletedTask;
   }
 
-  public virtual Task<(bool, TValue?)> TryGetAsync(CancellationToken ct)
+  public virtual async Task<(bool, TValue?)> TryGetAsync(CancellationToken ct)
   {
     if (CacheEntry?.TryGetValue(TimeProviderFunc, out var value, out var expiresIn) == true)
     {
       DelayDeactivation(expiresIn.Value);
-      return Task.FromResult<(bool, TValue?)>((true, value));
+      return (true, value);
     }
-    return Task.FromResult<(bool, TValue?)>((false, default));
+    await RemoveInternalAsync(ct);
+    return (false, default);
   }
 
   public virtual Task<(bool, TValue?)> TryPeekAsync(CancellationToken ct)

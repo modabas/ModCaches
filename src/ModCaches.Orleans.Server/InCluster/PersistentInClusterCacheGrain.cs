@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.Caching.Memory;
-using ModCaches.Orleans.Server.Common;
+﻿using ModCaches.Orleans.Server.Common;
 
 namespace ModCaches.Orleans.Server.InCluster;
 
