@@ -8,8 +8,7 @@ namespace ModCaches.Orleans.Server.Distributed;
 internal class PersistentDistributedCacheGrain : BaseDistributedCacheGrain, IPersistentDistributedCacheGrain
 {
   private bool _stateCleared = false;
-
-  private IPersistentState<DistributedCacheState> _persistentState;
+  private readonly IPersistentState<DistributedCacheState> _persistentState;
 
   public PersistentDistributedCacheGrain(TimeProvider timeProvider,
     [PersistentState(nameof(PersistentDistributedCacheGrain))] IPersistentState<DistributedCacheState> persistentState)
@@ -98,7 +97,7 @@ internal class PersistentDistributedCacheGrain : BaseDistributedCacheGrain, IPer
 
   private async Task ClearStateAsync(CancellationToken ct)
   {
-    if (_persistentState.RecordExists)
+    if (!_stateCleared && _persistentState.RecordExists)
     {
       await _persistentState.ClearStateAsync(ct);
     }

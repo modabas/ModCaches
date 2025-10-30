@@ -53,7 +53,7 @@ internal class DefaultExtendedDistributedCache : IExtendedDistributedCache
     {
       // If the cache entry does not exist, we need to create it.
       // Use a semaphore to ensure that only one thread can create the entry.
-      var keyLock = _locks.GetOrAdd(key, CreateSemaphore);
+      var keyLock = _locks.GetOrAdd(key, CreateLockSemaphore);
       await keyLock.WaitAsync(ct);
       try
       {
@@ -75,7 +75,7 @@ internal class DefaultExtendedDistributedCache : IExtendedDistributedCache
       throw new InvalidOperationException("Deserialized value is null.");
   }
 
-  private static SemaphoreSlim CreateSemaphore(string key) => new(1);
+  private static SemaphoreSlim CreateLockSemaphore(string key) => new(1);
 
   public async Task SetAsync<T>(
     string key,
