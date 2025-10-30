@@ -2,6 +2,11 @@
 
 namespace ModCaches.Orleans.Server.InCluster;
 
+
+/// <summary>
+/// Intended to be used as an internal base class for in-cluster cache grain implementations like volatile and persistent in-cluster cache grains.
+/// </summary>
+/// <typeparam name="TValue"></typeparam>
 public abstract class BasicInClusterCacheGrain<TValue>
   : BaseInClusterCacheGrain<TValue>, IInClusterCacheGrain<TValue>
   where TValue : notnull
@@ -69,6 +74,11 @@ public abstract class BasicInClusterCacheGrain<TValue>
   protected abstract Task<TValue> GenerateValueAsync(InClusterCacheEntryOptions options, CancellationToken ct);
 }
 
+/// <summary>
+/// Intended to be used as an internal base class for in-cluster cache grain implementations like volatile and persistent in-cluster cache grains.
+/// </summary>
+/// <typeparam name="TValue"></typeparam>
+/// <typeparam name="TCreateArgs"></typeparam>
 public abstract class BasicInClusterCacheGrain<TValue, TCreateArgs>
   : BaseInClusterCacheGrain<TValue>, IInClusterCacheGrain<TValue, TCreateArgs>
   where TValue : notnull

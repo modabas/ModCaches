@@ -4,6 +4,10 @@ using ModCaches.Orleans.Server.Common;
 
 namespace ModCaches.Orleans.Server.InCluster;
 
+/// <summary>
+/// Intended to be used as an internal base class for in-cluster cache grain implementations like volatile and persistent in-cluster cache grains.
+/// </summary>
+/// <typeparam name="TValue"></typeparam>
 public abstract class BaseInClusterCacheGrain<TValue>
   : BaseGrain, IBaseInClusterCacheGrain<TValue>
   where TValue : notnull
