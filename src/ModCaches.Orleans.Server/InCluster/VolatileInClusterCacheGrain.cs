@@ -1,6 +1,4 @@
-﻿using ModCaches.Orleans.Server.Common;
-
-namespace ModCaches.Orleans.Server.InCluster;
+﻿namespace ModCaches.Orleans.Server.InCluster;
 
 /// <summary>
 /// Abstract class to implement an in-cluster cache grain that keeps data in memory (volatile).
