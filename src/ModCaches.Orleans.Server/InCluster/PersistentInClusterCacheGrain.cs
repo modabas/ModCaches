@@ -7,7 +7,7 @@ namespace ModCaches.Orleans.Server.InCluster;
 /// </summary>
 /// <typeparam name="TValue">Type of the cache data.</typeparam>
 public abstract class PersistentInClusterCacheGrain<TValue>
-  : ExtensibleInClusterCacheGrain<TValue>, IInClusterCacheGrain<TValue>
+  : BasicInClusterCacheGrain<TValue>, IInClusterCacheGrain<TValue>
   where TValue : notnull
 {
   private bool _stateCleared = false;
@@ -141,7 +141,7 @@ public abstract class PersistentInClusterCacheGrain<TValue>
 /// <typeparam name="TValue">Type of the cache data.</typeparam>
 /// <typeparam name="TCreateArgs">Type of argument to be used during cache value generation.</typeparam>
 public abstract class PersistentInClusterCacheGrain<TValue, TCreateArgs>
-  : ExtensibleInClusterCacheGrain<TValue, TCreateArgs>, IInClusterCacheGrain<TValue, TCreateArgs>
+  : BasicInClusterCacheGrain<TValue, TCreateArgs>, IInClusterCacheGrain<TValue, TCreateArgs>
   where TValue : notnull
   where TCreateArgs : notnull
 {

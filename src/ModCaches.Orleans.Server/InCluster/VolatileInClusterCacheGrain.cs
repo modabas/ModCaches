@@ -5,7 +5,7 @@
 /// </summary>
 /// <typeparam name="TValue">Type of the cache data.</typeparam>
 public abstract class VolatileInClusterCacheGrain<TValue>
-  : ExtensibleInClusterCacheGrain<TValue>, IInClusterCacheGrain<TValue>
+  : BasicInClusterCacheGrain<TValue>, IInClusterCacheGrain<TValue>
   where TValue : notnull
 {
   public VolatileInClusterCacheGrain(IServiceProvider serviceProvider)
@@ -62,7 +62,7 @@ public abstract class VolatileInClusterCacheGrain<TValue>
 /// <typeparam name="TValue">Type of the cache data.</typeparam>
 /// <typeparam name="TCreateArgs">Type of argument to be used during cache value generation.</typeparam>
 public abstract class VolatileInClusterCacheGrain<TValue, TCreateArgs>
-  : ExtensibleInClusterCacheGrain<TValue, TCreateArgs>, IInClusterCacheGrain<TValue, TCreateArgs>
+  : BasicInClusterCacheGrain<TValue, TCreateArgs>, IInClusterCacheGrain<TValue, TCreateArgs>
   where TValue : notnull
   where TCreateArgs : notnull
 {
