@@ -1,11 +1,13 @@
-﻿namespace ModCaches.Orleans.Server.InCluster;
+﻿using ModCaches.Orleans.Server.Common;
+
+namespace ModCaches.Orleans.Server.InCluster;
 
 /// <summary>
 /// Abstract class to implement an in-cluster cache grain that keeps data in memory (volatile).
 /// </summary>
 /// <typeparam name="TValue">Type of the cache data.</typeparam>
 public abstract class VolatileInClusterCacheGrain<TValue>
-  : BasicInClusterCacheGrain<TValue>, IInClusterCacheGrain<TValue>
+  : BaseInClusterCacheGrain<TValue>, IInClusterCacheGrain<TValue>
   where TValue : notnull
 {
   public VolatileInClusterCacheGrain(IServiceProvider serviceProvider)
@@ -13,47 +15,62 @@ public abstract class VolatileInClusterCacheGrain<TValue>
   {
   }
 
-  public sealed override Task<TValue> GetOrCreateAsync(
+  public virtual async Task<TValue> GetOrCreateAsync(
     CancellationToken ct,
     InClusterCacheEntryOptions? options = null)
   {
-    return base.GetOrCreateAsync(ct, options);
+    if (CacheEntry?.TryGetValue(TimeProviderFunc, out var value, out var expiresIn) == true)
+    {
+      DelayDeactivation(expiresIn.Value);
+      return value;
+    }
+    return await CreateInternalAsync(ct, options);
   }
 
-  public sealed override Task<TValue> CreateAsync(
+  public virtual async Task<TValue> CreateAsync(
     CancellationToken ct,
     InClusterCacheEntryOptions? options = null)
   {
-    return base.CreateAsync(ct, options);
+    return await CreateInternalAsync(ct, options);
   }
 
-  public sealed override Task<bool> RefreshAsync(CancellationToken ct)
-  {
-    return base.RefreshAsync(ct);
-  }
-
-  public sealed override Task RemoveAsync(CancellationToken ct)
-  {
-    return base.RemoveAsync(ct);
-  }
-
-  public sealed override Task SetAsync(
-    TValue value,
+  private async Task<TValue> CreateInternalAsync(
     CancellationToken ct,
     InClusterCacheEntryOptions? options = null)
   {
-    return base.SetAsync(value, ct, options);
+    var entryOptions = options ?? DefaultOptions.Value;
+    (var value, entryOptions) = await GenerateValueAndOptionsAsync(entryOptions, ct);
+    CacheEntry = new CacheEntry<TValue>(
+      value,
+      entryOptions.ToOrleansCacheEntryOptions(),
+      TimeProviderFunc);
+    // Delay deactivation to ensure it remains active while it has a valid cache entry
+    if (CacheEntry.TryGetExpiresIn(TimeProviderFunc, out var expiresIn))
+    {
+      DelayDeactivation(expiresIn.Value);
+    }
+    return value;
   }
 
-  public sealed override Task<(bool, TValue?)> TryGetAsync(CancellationToken ct)
+  /// <summary>
+  /// Wrapper method over GenerateValueAsync method. Can be used to override cache options for the value.
+  /// </summary>
+  /// <param name="options">The cache options for the value.</param>
+  /// <param name="ct">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
+  /// <returns>A tuple, data to be cached and cache options that will be used for the cache item.</returns>
+  protected virtual async Task<(TValue, InClusterCacheEntryOptions)> GenerateValueAndOptionsAsync(InClusterCacheEntryOptions options, CancellationToken ct)
   {
-    return base.TryGetAsync(ct);
+    var value = await GenerateValueAsync(options, ct);
+    return (value, options);
   }
 
-  public sealed override Task<(bool, TValue?)> TryPeekAsync(CancellationToken ct)
-  {
-    return base.TryPeekAsync(ct);
-  }
+  /// <summary>
+  /// Value generation method used by GetOrCreateAsync and CreateAsync methods while creating a new cache value.
+  /// </summary>
+  /// <param name="options">The cache options for the value.</param>
+  /// <param name="ct">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
+  /// <returns>Data to be cached.</returns>
+  protected abstract Task<TValue> GenerateValueAsync(InClusterCacheEntryOptions options, CancellationToken ct);
 }
 
 /// <summary>
@@ -62,7 +79,7 @@ public abstract class VolatileInClusterCacheGrain<TValue>
 /// <typeparam name="TValue">Type of the cache data.</typeparam>
 /// <typeparam name="TCreateArgs">Type of argument to be used during cache value generation.</typeparam>
 public abstract class VolatileInClusterCacheGrain<TValue, TCreateArgs>
-  : BasicInClusterCacheGrain<TValue, TCreateArgs>, IInClusterCacheGrain<TValue, TCreateArgs>
+  : BaseInClusterCacheGrain<TValue>, IInClusterCacheGrain<TValue, TCreateArgs>
   where TValue : notnull
   where TCreateArgs : notnull
 {
@@ -71,47 +88,65 @@ public abstract class VolatileInClusterCacheGrain<TValue, TCreateArgs>
   {
   }
 
-  public sealed override Task<TValue> GetOrCreateAsync(
+  public virtual async Task<TValue> GetOrCreateAsync(
     TCreateArgs? createArgs,
     CancellationToken ct,
     InClusterCacheEntryOptions? options = null)
   {
-    return base.GetOrCreateAsync(createArgs, ct, options);
+    if (CacheEntry?.TryGetValue(TimeProviderFunc, out var value, out var expiresIn) == true)
+    {
+      DelayDeactivation(expiresIn.Value);
+      return value;
+    }
+    return await CreateInternalAsync(createArgs, ct, options);
   }
 
-  public sealed override Task<TValue> CreateAsync(
+  public virtual async Task<TValue> CreateAsync(
     TCreateArgs? createArgs,
     CancellationToken ct,
     InClusterCacheEntryOptions? options = null)
   {
-    return base.CreateAsync(createArgs, ct, options);
+    return await CreateInternalAsync(createArgs, ct, options);
   }
 
-  public sealed override Task<bool> RefreshAsync(CancellationToken ct)
-  {
-    return base.RefreshAsync(ct);
-  }
-
-  public sealed override Task RemoveAsync(CancellationToken ct)
-  {
-    return base.RemoveAsync(ct);
-  }
-
-  public sealed override Task SetAsync(
-    TValue value,
+  private async Task<TValue> CreateInternalAsync(
+    TCreateArgs? createArgs,
     CancellationToken ct,
     InClusterCacheEntryOptions? options = null)
   {
-    return base.SetAsync(value, ct, options);
+    var entryOptions = options ?? DefaultOptions.Value;
+    (var value, entryOptions) = await GenerateValueAndOptionsAsync(createArgs, entryOptions, ct);
+    CacheEntry = new CacheEntry<TValue>(
+      value,
+      entryOptions.ToOrleansCacheEntryOptions(),
+      TimeProviderFunc);
+    // Delay deactivation to ensure it remains active while it has a valid cache entry
+    if (CacheEntry.TryGetExpiresIn(TimeProviderFunc, out var expiresIn))
+    {
+      DelayDeactivation(expiresIn.Value);
+    }
+    return value;
   }
 
-  public sealed override Task<(bool, TValue?)> TryGetAsync(CancellationToken ct)
+  /// <summary>
+  /// Wrapper method over GenerateValueAsync method. Can be used to override cache options for the value.
+  /// </summary>
+  /// <param name="args">Additional arguments to be used for value generation.</param>
+  /// <param name="options">The cache options for the value.</param>
+  /// <param name="ct">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
+  /// <returns>A tuple, data to be cached and cache options that will be used for the cache item.</returns>
+  protected virtual async Task<(TValue, InClusterCacheEntryOptions)> GenerateValueAndOptionsAsync(TCreateArgs? args, InClusterCacheEntryOptions options, CancellationToken ct)
   {
-    return base.TryGetAsync(ct);
+    var value = await GenerateValueAsync(args, options, ct);
+    return (value, options);
   }
 
-  public sealed override Task<(bool, TValue?)> TryPeekAsync(CancellationToken ct)
-  {
-    return base.TryPeekAsync(ct);
-  }
+  /// <summary>
+  /// Value generation method used by GetOrCreateAsync and CreateAsync methods while creating a new cache value.
+  /// </summary>
+  /// <param name="args">Additional arguments to be used for value generation.</param>
+  /// <param name="options">The cache options for the value.</param>
+  /// <param name="ct">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
+  /// <returns>Data to be cached.</returns>
+  protected abstract Task<TValue> GenerateValueAsync(TCreateArgs? args, InClusterCacheEntryOptions options, CancellationToken ct);
 }

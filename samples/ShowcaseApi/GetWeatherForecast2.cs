@@ -17,9 +17,7 @@ internal struct WeatherForecastCacheItem
 [GenerateSerializer]
 internal record WeatherForecastCacheArgs(int DayCount);
 
-internal interface IWeatherForecastCacheGrain : IInClusterCacheGrain<WeatherForecastCacheItem[], WeatherForecastCacheArgs>
-{
-}
+internal interface IWeatherForecastCacheGrain : IInClusterCacheGrain<WeatherForecastCacheItem[], WeatherForecastCacheArgs>;
 
 internal class WeatherForecastCacheGrain :
   VolatileInClusterCacheGrain<WeatherForecastCacheItem[], WeatherForecastCacheArgs>,
