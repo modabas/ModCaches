@@ -4,11 +4,11 @@ using ModCaches.Orleans.Server.InCluster;
 namespace ModCaches.Orleans.Server.Tests.InCluster;
 
 [Collection(ClusterCollection.Name)]
-public class VolatileInClusterCacheTestGrainTests
+public class VolatileInClusterCacheTestGrainWithCreateArgsTests
 {
   private readonly ClusterFixture _fixture;
 
-  public VolatileInClusterCacheTestGrainTests(ClusterFixture fixture)
+  public VolatileInClusterCacheTestGrainWithCreateArgsTests(ClusterFixture fixture)
   {
     _fixture = fixture;
   }
@@ -16,28 +16,28 @@ public class VolatileInClusterCacheTestGrainTests
   [Fact]
   public async Task GetOrCreateAsync_ReturnsGeneratedValue_WhenNotSetAsync()
   {
-    var grain = _fixture.Cluster.GrainFactory.GetGrain<IVolatileInClusterCacheTestGrain>("GetOrCreate_ReturnsGeneratedValue");
-    var result = await grain.GetOrCreateAsync(CancellationToken.None);
-    result.Should().Be("volatile in cluster cache");
+    var grain = _fixture.Cluster.GrainFactory.GetGrain<IVolatileInClusterCacheTestGrainWithCreateArgs>("GetOrCreate_ReturnsGeneratedValue");
+    var result = await grain.GetOrCreateAsync(2, CancellationToken.None);
+    result.Should().Be("volatile in cluster cache 2");
   }
 
   [Fact]
   public async Task CreateAsync_Then_GetOrCreateAsync_ReturnsValueAsync()
   {
-    var grain = _fixture.Cluster.GrainFactory.GetGrain<IVolatileInClusterCacheTestGrain>("Create_Then_GetOrCreate");
+    var grain = _fixture.Cluster.GrainFactory.GetGrain<IVolatileInClusterCacheTestGrainWithCreateArgs>("Create_Then_GetOrCreate");
     // Force creation
-    var created = await grain.CreateAsync(CancellationToken.None);
-    created.Should().Be("volatile in cluster cache");
+    var created = await grain.CreateAsync(2, CancellationToken.None);
+    created.Should().Be("volatile in cluster cache 2");
 
     // Then ensure subsequent GetOrCreate returns value (cached)
-    var fetched = await grain.GetOrCreateAsync(CancellationToken.None);
-    fetched.Should().Be("volatile in cluster cache");
+    var fetched = await grain.GetOrCreateAsync(3, CancellationToken.None);
+    fetched.Should().Be("volatile in cluster cache 2");
   }
 
   [Fact]
   public async Task SetAsync_Then_TryGetAsync_ReturnsValueAsync()
   {
-    var grain = _fixture.Cluster.GrainFactory.GetGrain<IVolatileInClusterCacheTestGrain>("Set_Then_TryGet");
+    var grain = _fixture.Cluster.GrainFactory.GetGrain<IVolatileInClusterCacheTestGrainWithCreateArgs>("Set_Then_TryGet");
     await grain.SetAsync("custom-value", CancellationToken.None, null);
 
     var (found, value) = await grain.TryGetAsync(CancellationToken.None);
@@ -48,7 +48,7 @@ public class VolatileInClusterCacheTestGrainTests
   [Fact]
   public async Task RemoveAsync_RemovesValueSoTryGetReturnsNullAsync()
   {
-    var grain = _fixture.Cluster.GrainFactory.GetGrain<IVolatileInClusterCacheTestGrain>("Remove_RemovesValue");
+    var grain = _fixture.Cluster.GrainFactory.GetGrain<IVolatileInClusterCacheTestGrainWithCreateArgs>("Remove_RemovesValue");
     await grain.SetAsync("to-be-removed", CancellationToken.None, null);
 
     // ensure set
@@ -65,7 +65,7 @@ public class VolatileInClusterCacheTestGrainTests
   [Fact]
   public async Task RefreshAsync_ExtendsSlidingLifetime_WhenNotExpiredAsync()
   {
-    var grain = _fixture.Cluster.GrainFactory.GetGrain<IVolatileInClusterCacheTestGrain>("Refresh_Extends");
+    var grain = _fixture.Cluster.GrainFactory.GetGrain<IVolatileInClusterCacheTestGrainWithCreateArgs>("Refresh_Extends");
     var options = new InClusterCacheEntryOptions
     {
       SlidingExpiration = TimeSpan.FromMilliseconds(750)
@@ -91,7 +91,7 @@ public class VolatileInClusterCacheTestGrainTests
   [Fact]
   public async Task RefreshAsync_DoesNotExtendAbsoluteLifetime_WhenNotExpiredAsync()
   {
-    var grain = _fixture.Cluster.GrainFactory.GetGrain<IVolatileInClusterCacheTestGrain>("Refresh_DoesNotExtend");
+    var grain = _fixture.Cluster.GrainFactory.GetGrain<IVolatileInClusterCacheTestGrainWithCreateArgs>("Refresh_DoesNotExtend");
     var options = new InClusterCacheEntryOptions
     {
       AbsoluteExpirationRelativeToNow = TimeSpan.FromMilliseconds(750)
@@ -117,7 +117,7 @@ public class VolatileInClusterCacheTestGrainTests
   [Fact]
   public async Task PeekAsync_DoesNotExtendSlidingLifetimeAsync()
   {
-    var grain = _fixture.Cluster.GrainFactory.GetGrain<IVolatileInClusterCacheTestGrain>("Peek_DoesNotExtend");
+    var grain = _fixture.Cluster.GrainFactory.GetGrain<IVolatileInClusterCacheTestGrainWithCreateArgs>("Peek_DoesNotExtend");
     var options = new InClusterCacheEntryOptions
     {
       SlidingExpiration = TimeSpan.FromMilliseconds(750)
@@ -144,13 +144,13 @@ public class VolatileInClusterCacheTestGrainTests
   [Fact]
   public async Task CachedValue_Expires_AfterAbsoluteExpirationRelativeToNowAsync()
   {
-    var grain = _fixture.Cluster.GrainFactory.GetGrain<IVolatileInClusterCacheTestGrain>("Expires_After_AbsoluteExpirationRelativeToNow");
+    var grain = _fixture.Cluster.GrainFactory.GetGrain<IVolatileInClusterCacheTestGrainWithCreateArgs>("Expires_After_AbsoluteExpirationRelativeToNow");
     var options = new InClusterCacheEntryOptions
     {
       AbsoluteExpirationRelativeToNow = TimeSpan.FromMilliseconds(100)
     };
-    var value = await grain.GetOrCreateAsync(CancellationToken.None, options);
-    value.Should().Be("volatile in cluster cache");
+    var value = await grain.GetOrCreateAsync(4, CancellationToken.None, options);
+    value.Should().Be("volatile in cluster cache 4");
 
     // Wait for expiration (use a little buffer)
     await Task.Delay(TimeSpan.FromMilliseconds(200));
