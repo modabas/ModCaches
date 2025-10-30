@@ -40,9 +40,10 @@ internal class DefaultExtendedDistributedCache : IExtendedDistributedCache
     CancellationToken ct,
     DistributedCacheEntryOptions? options = null)
   {
+    return GetOrCreateAsync(key, factory, WrapFactoryCallback, ct, options);
+
     //allows GetOrCreateAsync<T> and GetOrCreateAsync<TState, T> to share an implementation.
-    Func<Func<CancellationToken, Task<T>>, CancellationToken, Task<T>> wrappedFactoryCallback = (callback, ct) => callback(ct);
-    return GetOrCreateAsync(key, factory, wrappedFactoryCallback, ct, options);
+    static Task<T> WrapFactoryCallback(Func<CancellationToken, Task<T>> callback, CancellationToken ct) => callback(ct);
   }
 
   public async Task<T> GetOrCreateAsync<TState, T>(string key, TState state, Func<TState, CancellationToken, Task<T>> factory, CancellationToken ct, DistributedCacheEntryOptions? options = null)
