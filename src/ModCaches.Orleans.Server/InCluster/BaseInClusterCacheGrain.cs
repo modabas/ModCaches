@@ -18,6 +18,9 @@ public abstract class BaseInClusterCacheGrain<TValue>
 
   internal IOptions<InClusterCacheEntryOptions> DefaultOptions { get; }
 
+  internal bool HasSlidingExpiration =>
+    CacheEntry?.HasSlidingExpiration ?? false;
+
   public BaseInClusterCacheGrain(IServiceProvider serviceProvider)
   {
     var timeProvider = serviceProvider.GetService<TimeProvider>() ?? TimeProvider.System;

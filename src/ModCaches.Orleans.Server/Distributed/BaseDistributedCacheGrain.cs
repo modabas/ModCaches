@@ -10,6 +10,9 @@ internal abstract class BaseDistributedCacheGrain : BaseGrain, IBaseDistributedC
   protected CacheEntry<ImmutableArray<byte>>? _cacheEntry;
   protected readonly Func<DateTimeOffset> _timeProviderFunc;
 
+  protected bool HasSlidingExpiration =>
+    _cacheEntry?.HasSlidingExpiration ?? false;
+
   public BaseDistributedCacheGrain(TimeProvider timeProvider)
   {
     _timeProviderFunc = () => timeProvider.GetUtcNow();

@@ -53,7 +53,11 @@ internal class PersistentDistributedCacheGrain : BaseDistributedCacheGrain, IPer
     }
     else
     {
-      await WriteStateAsync(ct);
+      // Only write state if we have sliding expiration, as absolute expiration does not change on access
+      if (HasSlidingExpiration)
+      {
+        await WriteStateAsync(ct);
+      }
     }
     return ret;
   }
@@ -75,7 +79,11 @@ internal class PersistentDistributedCacheGrain : BaseDistributedCacheGrain, IPer
     var ret = await base.RefreshAsync(ct);
     if (ret)
     {
-      await WriteStateAsync(ct);
+      // Only write state if we have sliding expiration, as absolute expiration does not change on access
+      if (HasSlidingExpiration)
+      {
+        await WriteStateAsync(ct);
+      }
     }
     else
     {

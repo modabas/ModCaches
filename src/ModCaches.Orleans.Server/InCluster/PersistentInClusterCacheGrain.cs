@@ -52,9 +52,12 @@ public abstract class PersistentInClusterCacheGrain<TValue>
     CancellationToken ct,
     InClusterCacheEntryOptions? options = null)
   {
-    var ret = await base.GetOrCreateAsync(ct, options);
-    await WriteStateAsync(ct);
-    return ret;
+    var (created, value) = await base.GetOrCreateInternalAsync(ct, options);
+    if (created || HasSlidingExpiration)
+    {
+      await WriteStateAsync(ct);
+    }
+    return value;
   }
 
   public override async Task<TValue> CreateAsync(
@@ -71,7 +74,11 @@ public abstract class PersistentInClusterCacheGrain<TValue>
     var ret = await base.RefreshAsync(ct);
     if (ret)
     {
-      await WriteStateAsync(ct);
+      // Only write state if we have sliding expiration, as absolute expiration does not change on access
+      if (HasSlidingExpiration)
+      {
+        await WriteStateAsync(ct);
+      }
     }
     else
     {
@@ -100,7 +107,11 @@ public abstract class PersistentInClusterCacheGrain<TValue>
     var ret = await base.TryGetAsync(ct);
     if (ret.Item1)
     {
-      await WriteStateAsync(ct);
+      // Only write state if we have sliding expiration, as absolute expiration does not change on access
+      if (HasSlidingExpiration)
+      {
+        await WriteStateAsync(ct);
+      }
     }
     else
     {
@@ -183,9 +194,12 @@ public abstract class PersistentInClusterCacheGrain<TValue, TCreateArgs>
     CancellationToken ct,
     InClusterCacheEntryOptions? options = null)
   {
-    var ret = await base.GetOrCreateAsync(createArgs, ct, options);
-    await WriteStateAsync(ct);
-    return ret;
+    var (created, value) = await base.GetOrCreateInternalAsync(createArgs, ct, options);
+    if (created || HasSlidingExpiration)
+    {
+      await WriteStateAsync(ct);
+    }
+    return value;
   }
 
   public override async Task<TValue> CreateAsync(
@@ -203,7 +217,11 @@ public abstract class PersistentInClusterCacheGrain<TValue, TCreateArgs>
     var ret = await base.RefreshAsync(ct);
     if (ret)
     {
-      await WriteStateAsync(ct);
+      // Only write state if we have sliding expiration, as absolute expiration does not change on access
+      if (HasSlidingExpiration)
+      {
+        await WriteStateAsync(ct);
+      }
     }
     else
     {
@@ -232,7 +250,11 @@ public abstract class PersistentInClusterCacheGrain<TValue, TCreateArgs>
     var ret = await base.TryGetAsync(ct);
     if (ret.Item1)
     {
-      await WriteStateAsync(ct);
+      // Only write state if we have sliding expiration, as absolute expiration does not change on access
+      if (HasSlidingExpiration)
+      {
+        await WriteStateAsync(ct);
+      }
     }
     else
     {
