@@ -1,5 +1,8 @@
-﻿using AwesomeAssertions;
+﻿using System.Collections.Immutable;
+using AwesomeAssertions;
 using Microsoft.Extensions.DependencyInjection;
+using ModCaches.Orleans.Abstractions.Distributed;
+using ModCaches.Orleans.Server.Distributed;
 using ModCaches.Orleans.Server.InCluster;
 using Orleans.Providers;
 using Orleans.Storage;
@@ -19,22 +22,21 @@ public class PersistentInClusterCacheTestGrainTests
 
   private GrainId GetGrainId(string key)
   {
-    return GetGrainIdFactory().CreateGrainId<IPersistentInClusterCacheTestGrain>(key);
-    GrainIdFactory GetGrainIdFactory()
-    {
-      return _fixture.Cluster.GetSiloServiceProvider().GetRequiredService<GrainIdFactory>();
-    }
+    return OrleansHelpers.GetGrainIdFactory(_fixture).CreateGrainId<IPersistentInClusterCacheTestGrain>(key);
   }
 
   private async Task<GrainState<InClusterCacheState<InClusterTestCacheState>>> GetStateAsync(GrainId grainId)
   {
     GrainState<InClusterCacheState<InClusterTestCacheState>> state = new();
-    await GetDefaultGrainStorage().ReadStateAsync(nameof(PersistentInClusterCacheTestGrain), grainId, state);
+    await OrleansHelpers.GetDefaultGrainStorage(_fixture).ReadStateAsync(nameof(PersistentInClusterCacheTestGrain), grainId, state);
     return state;
-    IGrainStorage GetDefaultGrainStorage()
-    {
-      return _fixture.Cluster.GetSiloServiceProvider().GetRequiredKeyedService<IGrainStorage>(ProviderConstants.DEFAULT_STORAGE_PROVIDER_NAME);
-    }
+  }
+
+  private async Task<GrainState<InClusterCacheState<InClusterTestCacheState>>> SetStateAsync(GrainId grainId, InClusterCacheState<InClusterTestCacheState> cacheState)
+  {
+    GrainState<InClusterCacheState<InClusterTestCacheState>> state = new(cacheState);
+    await OrleansHelpers.GetDefaultGrainStorage(_fixture).WriteStateAsync(nameof(PersistentInClusterCacheTestGrain), grainId, state);
+    return state;
   }
 
   [Fact]
@@ -228,5 +230,51 @@ public class PersistentInClusterCacheTestGrainTests
     state.Should().NotBeNull();
     state.RecordExists.Should().BeFalse();
     state.State.LastAccessed.Should().Be(DateTimeOffset.MinValue);
+  }
+
+  [Fact]
+  public async Task OnActivate_Removes_StaleStateAsync()
+  {
+    var grainId = GetGrainId("OnActivate_Removes_StaleState");
+    InClusterTestCacheState data = new() { Data = "stale-data" };
+    var cacheState = new InClusterCacheState<InClusterTestCacheState>
+    {
+      Value = data,
+      AbsoluteExpiration = DateTimeOffset.UtcNow.AddMilliseconds(-500),
+      LastAccessed = DateTimeOffset.UtcNow.AddMilliseconds(-1000)
+    };
+    await SetStateAsync(grainId, cacheState);
+    var grain = _fixture.Cluster.GrainFactory.GetGrain<IPersistentInClusterCacheTestGrain>(grainId);
+
+    var (foundAfter, valueAfter) = await grain.TryGetAsync(CancellationToken.None);
+    foundAfter.Should().BeFalse();
+    valueAfter.Should().BeNull();
+    var stateAfterRemove = await GetStateAsync(grainId);
+    stateAfterRemove.Should().NotBeNull();
+    stateAfterRemove.RecordExists.Should().BeFalse();
+    stateAfterRemove.State.LastAccessed.Should().Be(DateTimeOffset.MinValue);
+  }
+
+  [Fact]
+  public async Task OnActivate_Keeps_ValidStateAsync()
+  {
+    var grainId = GetGrainId("OnActivate_Keeps_ValidState");
+    InClusterTestCacheState data = new() { Data = "valid-data" };
+    var cacheState = new InClusterCacheState<InClusterTestCacheState>
+    {
+      Value = data,
+      AbsoluteExpiration = DateTimeOffset.UtcNow.AddSeconds(3600),
+      LastAccessed = DateTimeOffset.UtcNow.AddMilliseconds(-1000)
+    };
+    await SetStateAsync(grainId, cacheState);
+    var grain = _fixture.Cluster.GrainFactory.GetGrain<IPersistentInClusterCacheTestGrain>(grainId);
+
+    var (found, value) = await grain.TryGetAsync(CancellationToken.None);
+    found.Should().BeTrue();
+    value.Should().NotBeNull();
+    value.Data.Should().Be("valid-data");
+    var state = await GetStateAsync(grainId);
+    state.Should().NotBeNull();
+    state.State.Value.Data.Should().Be("valid-data");
   }
 }
