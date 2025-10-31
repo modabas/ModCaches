@@ -32,6 +32,8 @@ public abstract class PersistentInClusterCacheGrain<TValue>
         _persistentState.State.AbsoluteExpiration,
         _persistentState.State.SlidingExpiration,
         _persistentState.State.LastAccessed);
+
+      await RefreshInternalAsync(cancellationToken);
     }
   }
 
@@ -66,7 +68,12 @@ public abstract class PersistentInClusterCacheGrain<TValue>
     return ret;
   }
 
-  public override async Task<bool> RefreshAsync(CancellationToken ct)
+  public override Task<bool> RefreshAsync(CancellationToken ct)
+  {
+    return RefreshInternalAsync(ct);
+  }
+
+  private async Task<bool> RefreshInternalAsync(CancellationToken ct)
   {
     var ret = await base.RefreshAsync(ct);
     if (ret)
@@ -162,6 +169,8 @@ public abstract class PersistentInClusterCacheGrain<TValue, TCreateArgs>
         _persistentState.State.AbsoluteExpiration,
         _persistentState.State.SlidingExpiration,
         _persistentState.State.LastAccessed);
+
+      await RefreshInternalAsync(cancellationToken);
     }
   }
 
@@ -198,7 +207,12 @@ public abstract class PersistentInClusterCacheGrain<TValue, TCreateArgs>
     return ret;
   }
 
-  public override async Task<bool> RefreshAsync(CancellationToken ct)
+  public override Task<bool> RefreshAsync(CancellationToken ct)
+  {
+    return RefreshInternalAsync(ct);
+  }
+
+  private async Task<bool> RefreshInternalAsync(CancellationToken ct)
   {
     var ret = await base.RefreshAsync(ct);
     if (ret)

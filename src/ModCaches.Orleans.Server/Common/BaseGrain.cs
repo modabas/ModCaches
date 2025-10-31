@@ -22,4 +22,13 @@ public class BaseGrain : Grain, IIncomingGrainCallFilter
       }
     }
   }
+
+  /// <summary>
+  /// Resets the activation delay set before (if any), so that the grain can be deactivated according to the default deactivation settings.
+  /// </summary>
+  //https://github.com/dotnet/orleans/issues/9635
+  public void ResetDeactivation()
+  {
+    base.DelayDeactivation(TimeSpan.Zero);
+  }
 }

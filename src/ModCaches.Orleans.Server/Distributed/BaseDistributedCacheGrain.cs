@@ -5,7 +5,7 @@ using ModCaches.Orleans.Server.Common;
 
 namespace ModCaches.Orleans.Server.Distributed;
 
-internal abstract class BaseDistributedCacheGrain : Grain, IBaseDistributedCacheGrain
+internal abstract class BaseDistributedCacheGrain : BaseGrain, IBaseDistributedCacheGrain
 {
   protected CacheEntry<ImmutableArray<byte>>? _cacheEntry;
   protected readonly Func<DateTimeOffset> _timeProviderFunc;
@@ -58,7 +58,7 @@ internal abstract class BaseDistributedCacheGrain : Grain, IBaseDistributedCache
   private Task RemoveInternalAsync(CancellationToken ct)
   {
     _cacheEntry = null; // Remove the cache entry
-    DeactivateOnIdle(); // Deactivate the grain after removing the value
+    ResetDeactivation(); // Reset deactivation to default behavior
     return Task.CompletedTask;
   }
 }

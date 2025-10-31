@@ -28,6 +28,8 @@ internal class PersistentDistributedCacheGrain : BaseDistributedCacheGrain, IPer
         _persistentState.State.AbsoluteExpiration,
         _persistentState.State.SlidingExpiration,
         _persistentState.State.LastAccessed);
+
+      await RefreshInternalAsync(cancellationToken);
     }
   }
 
@@ -70,7 +72,12 @@ internal class PersistentDistributedCacheGrain : BaseDistributedCacheGrain, IPer
     await ClearStateAsync(ct);
   }
 
-  public override async Task<bool> RefreshAsync(CancellationToken ct)
+  public override Task<bool> RefreshAsync(CancellationToken ct)
+  {
+    return RefreshInternalAsync(ct);
+  }
+
+  private async Task<bool> RefreshInternalAsync(CancellationToken ct)
   {
     var ret = await base.RefreshAsync(ct);
     if (ret)

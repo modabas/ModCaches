@@ -47,7 +47,7 @@ public abstract class BaseInClusterCacheGrain<TValue>
   private Task RemoveInternalAsync(CancellationToken ct)
   {
     CacheEntry = null; // Remove the cache entry
-    DeactivateOnIdle(); // Deactivate the grain after removing the value
+    ResetDeactivation(); // Reset deactivation to default behavior
     return Task.CompletedTask;
   }
 
