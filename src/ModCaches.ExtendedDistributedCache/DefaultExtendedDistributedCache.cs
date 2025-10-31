@@ -17,7 +17,6 @@ internal class DefaultExtendedDistributedCache : IExtendedDistributedCache
   private readonly IOptions<ExtendedDistributedCacheOptions> _options;
   private readonly IDistributedCacheSerializer _serializer;
   private readonly ConcurrentLruCache<string, SemaphoreSlim> _locks;
-  private static Func<string, SemaphoreSlim> _semaphoreFactory = _ => new SemaphoreSlim(1);
 
   public IDistributedCache DistributedCache => _cache;
 
@@ -40,9 +39,10 @@ internal class DefaultExtendedDistributedCache : IExtendedDistributedCache
     CancellationToken ct,
     DistributedCacheEntryOptions? options = null)
   {
+    return GetOrCreateAsync(key, factory, WrapFactoryCallback, ct, options);
+
     //allows GetOrCreateAsync<T> and GetOrCreateAsync<TState, T> to share an implementation.
-    Func<Func<CancellationToken, Task<T>>, CancellationToken, Task<T>> wrappedFactoryCallback = (callback, ct) => callback(ct);
-    return GetOrCreateAsync(key, factory, wrappedFactoryCallback, ct, options);
+    static Task<T> WrapFactoryCallback(Func<CancellationToken, Task<T>> callback, CancellationToken ct) => callback(ct);
   }
 
   public async Task<T> GetOrCreateAsync<TState, T>(string key, TState state, Func<TState, CancellationToken, Task<T>> factory, CancellationToken ct, DistributedCacheEntryOptions? options = null)
@@ -53,7 +53,7 @@ internal class DefaultExtendedDistributedCache : IExtendedDistributedCache
     {
       // If the cache entry does not exist, we need to create it.
       // Use a semaphore to ensure that only one thread can create the entry.
-      var keyLock = _locks.GetOrAdd(key, _semaphoreFactory);
+      var keyLock = _locks.GetOrAdd(key, CreateLockSemaphore);
       await keyLock.WaitAsync(ct);
       try
       {
@@ -74,6 +74,8 @@ internal class DefaultExtendedDistributedCache : IExtendedDistributedCache
     return await _serializer.DeserializeAsync<T>(bytes, ct) ??
       throw new InvalidOperationException("Deserialized value is null.");
   }
+
+  private static SemaphoreSlim CreateLockSemaphore(string key) => new(1);
 
   public async Task SetAsync<T>(
     string key,

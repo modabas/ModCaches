@@ -1,11 +1,8 @@
 ﻿using System.Collections.Immutable;
 using AwesomeAssertions;
-using Microsoft.Extensions.DependencyInjection;
 using ModCaches.Orleans.Abstractions.Common;
 using ModCaches.Orleans.Abstractions.Distributed;
 using ModCaches.Orleans.Server.Distributed;
-using Orleans.Providers;
-using Orleans.Storage;
 
 namespace ModCaches.Orleans.Server.Tests.Distributed;
 
@@ -16,22 +13,21 @@ public class PersistentDistributedCacheGrainTests
 
   private GrainId GetGrainId(string key)
   {
-    return GetGrainIdFactory().CreateGrainId<IPersistentDistributedCacheGrain>(key);
-    GrainIdFactory GetGrainIdFactory()
-    {
-      return _fixture.Cluster.GetSiloServiceProvider().GetRequiredService<GrainIdFactory>();
-    }
+    return OrleansHelpers.GetGrainIdFactory(_fixture).CreateGrainId<IPersistentDistributedCacheGrain>(key);
   }
 
   private async Task<GrainState<DistributedCacheState>> GetStateAsync(GrainId grainId)
   {
     GrainState<DistributedCacheState> state = new();
-    await GetDefaultGrainStorage().ReadStateAsync(nameof(PersistentDistributedCacheGrain), grainId, state);
+    await OrleansHelpers.GetDefaultGrainStorage(_fixture).ReadStateAsync(nameof(PersistentDistributedCacheGrain), grainId, state);
     return state;
-    IGrainStorage GetDefaultGrainStorage()
-    {
-      return _fixture.Cluster.GetSiloServiceProvider().GetRequiredKeyedService<IGrainStorage>(ProviderConstants.DEFAULT_STORAGE_PROVIDER_NAME);
-    }
+  }
+
+  private async Task<GrainState<DistributedCacheState>> SetStateAsync(GrainId grainId, DistributedCacheState cacheState)
+  {
+    GrainState<DistributedCacheState> state = new(cacheState);
+    await OrleansHelpers.GetDefaultGrainStorage(_fixture).WriteStateAsync(nameof(PersistentDistributedCacheGrain), grainId, state);
+    return state;
   }
 
   public PersistentDistributedCacheGrainTests(ClusterFixture fixture)
@@ -152,5 +148,49 @@ public class PersistentDistributedCacheGrainTests
     state.Should().NotBeNull();
     state.RecordExists.Should().BeFalse();
     state.State.LastAccessed.Should().Be(DateTimeOffset.MinValue);
+  }
+
+  [Fact]
+  public async Task OnActivate_Removes_StaleStateAsync()
+  {
+    var grainId = GetGrainId("OnActivate_Removes_StaleState");
+    var data = ImmutableArray.Create<byte>(11, 22, 33);
+    var cacheState = new DistributedCacheState
+    {
+      Value = data,
+      AbsoluteExpiration = DateTimeOffset.UtcNow.AddMilliseconds(-500),
+      LastAccessed = DateTimeOffset.UtcNow.AddMilliseconds(-1000)
+    };
+    await SetStateAsync(grainId, cacheState);
+    var grain = _fixture.Cluster.GrainFactory.GetGrain<IPersistentDistributedCacheGrain>(grainId);
+
+    var result = await grain.GetAsync(CancellationToken.None);
+    result.Should().BeNull();
+    var stateAfterRemove = await GetStateAsync(grainId);
+    stateAfterRemove.Should().NotBeNull();
+    stateAfterRemove.RecordExists.Should().BeFalse();
+    stateAfterRemove.State.LastAccessed.Should().Be(DateTimeOffset.MinValue);
+  }
+
+  [Fact]
+  public async Task OnActivate_Keeps_ValidStateAsync()
+  {
+    var grainId = GetGrainId("OnActivate_Keeps_ValidState");
+    var data = ImmutableArray.Create<byte>(12, 23, 34);
+    var cacheState = new DistributedCacheState
+    {
+      Value = data,
+      AbsoluteExpiration = DateTimeOffset.UtcNow.AddSeconds(3600),
+      LastAccessed = DateTimeOffset.UtcNow.AddMilliseconds(-1000)
+    };
+    await SetStateAsync(grainId, cacheState);
+    var grain = _fixture.Cluster.GrainFactory.GetGrain<IPersistentDistributedCacheGrain>(grainId);
+
+    var fetched = await grain.GetAsync(CancellationToken.None);
+    fetched.Should().NotBeNull();
+    fetched.Value.Should().Equal(data);
+    var state = await GetStateAsync(grainId);
+    state.Should().NotBeNull();
+    state.State.Value.Should().Equal(data);
   }
 }

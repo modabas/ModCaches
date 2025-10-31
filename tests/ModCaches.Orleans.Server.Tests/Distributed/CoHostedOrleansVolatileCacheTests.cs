@@ -63,7 +63,7 @@ public class CoHostedOrleansVolatileCacheTests
   {
     // Arrange
     var grain = Substitute.For<IVolatileDistributedCacheGrain>();
-    grain.RefreshAsync(Arg.Any<CancellationToken>()).Returns(Task.CompletedTask);
+    grain.RefreshAsync(Arg.Any<CancellationToken>()).Returns(Task.FromResult<bool>(true));
 
     var grainFactory = Substitute.For<IGrainFactory>();
     grainFactory.GetGrain<IVolatileDistributedCacheGrain>(Arg.Any<string>()).Returns(grain);
@@ -83,7 +83,7 @@ public class CoHostedOrleansVolatileCacheTests
   {
     // Arrange
     var grain = Substitute.For<IVolatileDistributedCacheGrain>();
-    grain.RefreshAsync(Arg.Any<CancellationToken>()).Returns(Task.CompletedTask);
+    grain.RefreshAsync(Arg.Any<CancellationToken>()).Returns(Task.FromResult<bool>(true));
 
     var grainFactory = Substitute.For<IGrainFactory>();
     grainFactory.GetGrain<IVolatileDistributedCacheGrain>(Arg.Any<string>()).Returns(grain);

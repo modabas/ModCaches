@@ -1,7 +1,7 @@
 ﻿namespace ModCaches.Orleans.Server.InCluster;
 
 /// <summary>
-/// Represents an in-cluster Microsoft Orleans cache grain.
+/// Represents an in-cluster cache grain.
 /// </summary>
 /// <typeparam name="TValue">Type of the cache data.</typeparam>
 public interface IBaseInClusterCacheGrain<TValue> : IGrainWithStringKey

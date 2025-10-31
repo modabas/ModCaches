@@ -4,6 +4,10 @@ using ModCaches.Orleans.Server.Common;
 
 namespace ModCaches.Orleans.Server.InCluster;
 
+/// <summary>
+/// Intended to be used as an internal base class for in-cluster cache grain implementations like volatile and persistent in-cluster cache grains.
+/// </summary>
+/// <typeparam name="TValue"></typeparam>
 public abstract class BaseInClusterCacheGrain<TValue>
   : BaseGrain, IBaseInClusterCacheGrain<TValue>
   where TValue : notnull
@@ -43,18 +47,19 @@ public abstract class BaseInClusterCacheGrain<TValue>
   private Task RemoveInternalAsync(CancellationToken ct)
   {
     CacheEntry = null; // Remove the cache entry
-    DeactivateOnIdle(); // Deactivate the grain after removing the value
+    ResetDeactivation(); // Reset deactivation to default behavior
     return Task.CompletedTask;
   }
 
-  public virtual Task<(bool, TValue?)> TryGetAsync(CancellationToken ct)
+  public virtual async Task<(bool, TValue?)> TryGetAsync(CancellationToken ct)
   {
     if (CacheEntry?.TryGetValue(TimeProviderFunc, out var value, out var expiresIn) == true)
     {
       DelayDeactivation(expiresIn.Value);
-      return Task.FromResult<(bool, TValue?)>((true, value));
+      return (true, value);
     }
-    return Task.FromResult<(bool, TValue?)>((false, default));
+    await RemoveInternalAsync(ct);
+    return (false, default);
   }
 
   public virtual Task<(bool, TValue?)> TryPeekAsync(CancellationToken ct)

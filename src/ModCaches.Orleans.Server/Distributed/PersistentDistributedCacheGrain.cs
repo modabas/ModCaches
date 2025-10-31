@@ -5,18 +5,15 @@ using ModCaches.Orleans.Server.Common;
 
 namespace ModCaches.Orleans.Server.Distributed;
 
-internal class PersistentDistributedCacheGrain : Grain, IPersistentDistributedCacheGrain
+internal class PersistentDistributedCacheGrain : BaseDistributedCacheGrain, IPersistentDistributedCacheGrain
 {
-  private CacheEntry<ImmutableArray<byte>>? _cacheEntry;
-  private readonly Func<DateTimeOffset> _timeProviderFunc;
   private bool _stateCleared = false;
-
-  private IPersistentState<DistributedCacheState> _persistentState;
+  private readonly IPersistentState<DistributedCacheState> _persistentState;
 
   public PersistentDistributedCacheGrain(TimeProvider timeProvider,
     [PersistentState(nameof(PersistentDistributedCacheGrain))] IPersistentState<DistributedCacheState> persistentState)
+    : base(timeProvider)
   {
-    _timeProviderFunc = () => timeProvider.GetUtcNow();
     _persistentState = persistentState;
   }
 
@@ -39,7 +36,7 @@ internal class PersistentDistributedCacheGrain : Grain, IPersistentDistributedCa
     if (!_stateCleared)
     {
       if (_cacheEntry is null ||
-        !_cacheEntry.TryGetValue(_timeProviderFunc, out _, out _))
+        !_cacheEntry.TryPeekValue(_timeProviderFunc, out _, out _))
       {
         await ClearStateAsync(cancellationToken);
       }
@@ -47,60 +44,60 @@ internal class PersistentDistributedCacheGrain : Grain, IPersistentDistributedCa
     await base.OnDeactivateAsync(reason, cancellationToken);
   }
 
-  public async Task<ImmutableArray<byte>?> GetAsync(CancellationToken ct)
+  public override async Task<ImmutableArray<byte>?> GetAsync(CancellationToken ct)
   {
-    if (_cacheEntry?.TryGetValue(_timeProviderFunc, out var value, out var expiresIn) == true)
+    var ret = await base.GetAsync(ct);
+    if (ret is null)
     {
-      DelayDeactivation(expiresIn.Value);
-      await WriteStateAsync(ct);
-      return value;
+      await ClearStateAsync(ct);
     }
-    await RemoveAsync(ct);
-    return null;
+    else
+    {
+      await WriteStateAsync(ct);
+    }
+    return ret;
   }
 
-  public async Task SetAsync(ImmutableArray<byte> value, CacheEntryOptions options, CancellationToken ct)
+  public override async Task SetAsync(ImmutableArray<byte> value, CacheEntryOptions options, CancellationToken ct)
   {
-    _cacheEntry = new CacheEntry<ImmutableArray<byte>>(value, options, _timeProviderFunc);
-    // Delay deactivation to ensure it remains active while it has a valid cache entry
-    if (_cacheEntry.TryGetExpiresIn(_timeProviderFunc, out var expiresIn))
-    {
-      DelayDeactivation(expiresIn.Value);
-    }
+    await base.SetAsync(value, options, ct);
     await WriteStateAsync(ct);
   }
 
-  public async Task RemoveAsync(CancellationToken ct)
+  public override async Task RemoveAsync(CancellationToken ct)
   {
-    _cacheEntry = null; // Remove the cache entry
-    DeactivateOnIdle(); // Deactivate the grain after removing the value
+    await base.RemoveAsync(ct);
     await ClearStateAsync(ct);
   }
 
-  public async Task RefreshAsync(CancellationToken ct)
+  public override async Task<bool> RefreshAsync(CancellationToken ct)
   {
-    if (_cacheEntry is null ||
-      !_cacheEntry.TryGetValue(_timeProviderFunc, out _, out var expiresIn))
+    var ret = await base.RefreshAsync(ct);
+    if (ret)
     {
-      await RemoveAsync(ct);
-      return;
+      await WriteStateAsync(ct);
     }
-    // Delay deactivation to ensure it remains active while it has a valid cache entry
-    DelayDeactivation(expiresIn.Value);
-    await WriteStateAsync(ct);
-    return;
+    else
+    {
+      await ClearStateAsync(ct);
+    }
+    return ret;
   }
 
   private async Task WriteStateAsync(CancellationToken ct)
   {
-    _persistentState.State = _cacheEntry!.ToState();
-    await _persistentState.WriteStateAsync(ct);
-    _stateCleared = false;
+    //This is the expected case where we have a valid cache entry to write
+    if (_cacheEntry is not null)
+    {
+      _persistentState.State = _cacheEntry.ToState();
+      await _persistentState.WriteStateAsync(ct);
+      _stateCleared = false;
+    }
   }
 
   private async Task ClearStateAsync(CancellationToken ct)
   {
-    if (_persistentState.RecordExists)
+    if (!_stateCleared && _persistentState.RecordExists)
     {
       await _persistentState.ClearStateAsync(ct);
     }

@@ -1,0 +1,64 @@
+﻿using System.Collections.Immutable;
+using ModCaches.Orleans.Abstractions.Common;
+using ModCaches.Orleans.Abstractions.Distributed;
+using ModCaches.Orleans.Server.Common;
+
+namespace ModCaches.Orleans.Server.Distributed;
+
+internal abstract class BaseDistributedCacheGrain : BaseGrain, IBaseDistributedCacheGrain
+{
+  protected CacheEntry<ImmutableArray<byte>>? _cacheEntry;
+  protected readonly Func<DateTimeOffset> _timeProviderFunc;
+
+  public BaseDistributedCacheGrain(TimeProvider timeProvider)
+  {
+    _timeProviderFunc = () => timeProvider.GetUtcNow();
+  }
+
+  public virtual async Task<ImmutableArray<byte>?> GetAsync(CancellationToken ct)
+  {
+    if (_cacheEntry?.TryGetValue(_timeProviderFunc, out var value, out var expiresIn) == true)
+    {
+      DelayDeactivation(expiresIn.Value);
+      return value;
+    }
+    await RemoveInternalAsync(ct);
+    return null;
+  }
+
+  public virtual Task SetAsync(ImmutableArray<byte> value, CacheEntryOptions options, CancellationToken ct)
+  {
+    _cacheEntry = new CacheEntry<ImmutableArray<byte>>(value, options, _timeProviderFunc);
+    // Delay deactivation to ensure it remains active while it has a valid cache entry
+    if (_cacheEntry.TryGetExpiresIn(_timeProviderFunc, out var expiresIn))
+    {
+      DelayDeactivation(expiresIn.Value);
+    }
+    return Task.CompletedTask;
+  }
+
+  public virtual Task RemoveAsync(CancellationToken ct)
+  {
+    return RemoveInternalAsync(ct);
+  }
+
+  public virtual async Task<bool> RefreshAsync(CancellationToken ct)
+  {
+    if (_cacheEntry is null ||
+      !_cacheEntry.TryGetValue(_timeProviderFunc, out _, out var expiresIn))
+    {
+      await RemoveInternalAsync(ct);
+      return false;
+    }
+    // Delay deactivation to ensure it remains active while it has a valid cache entry
+    DelayDeactivation(expiresIn.Value);
+    return true;
+  }
+
+  private Task RemoveInternalAsync(CancellationToken ct)
+  {
+    _cacheEntry = null; // Remove the cache entry
+    ResetDeactivation(); // Reset deactivation to default behavior
+    return Task.CompletedTask;
+  }
+}

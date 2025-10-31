@@ -11,28 +11,27 @@ public abstract class PersistentInClusterCacheGrain<TValue>
   where TValue : notnull
 {
   private bool _stateCleared = false;
-
-  internal IPersistentState<InClusterCacheState<TValue>> PersistentState { get; set; }
+  private readonly IPersistentState<InClusterCacheState<TValue>> _persistentState;
 
   public PersistentInClusterCacheGrain(IServiceProvider serviceProvider,
     IPersistentState<InClusterCacheState<TValue>> persistentState)
     : base(serviceProvider)
   {
-    PersistentState = persistentState;
+    _persistentState = persistentState;
   }
 
   public override async Task OnActivateAsync(CancellationToken cancellationToken)
   {
     await base.OnActivateAsync(cancellationToken);
-    if (PersistentState.RecordExists &&
-      PersistentState.State.Value is not null &&
-      PersistentState.State.LastAccessed > DateTimeOffset.MinValue)
+    if (_persistentState.RecordExists &&
+      _persistentState.State.Value is not null &&
+      _persistentState.State.LastAccessed > DateTimeOffset.MinValue)
     {
       CacheEntry = new CacheEntry<TValue>(
-        PersistentState.State.Value,
-        PersistentState.State.AbsoluteExpiration,
-        PersistentState.State.SlidingExpiration,
-        PersistentState.State.LastAccessed);
+        _persistentState.State.Value,
+        _persistentState.State.AbsoluteExpiration,
+        _persistentState.State.SlidingExpiration,
+        _persistentState.State.LastAccessed);
     }
   }
 
@@ -41,7 +40,7 @@ public abstract class PersistentInClusterCacheGrain<TValue>
     if (!_stateCleared)
     {
       if (CacheEntry is null ||
-        !CacheEntry.TryGetValue(TimeProviderFunc, out _, out _))
+        !CacheEntry.TryPeekValue(TimeProviderFunc, out _, out _))
       {
         await ClearStateAsync(cancellationToken);
       }
@@ -112,16 +111,20 @@ public abstract class PersistentInClusterCacheGrain<TValue>
 
   private async Task WriteStateAsync(CancellationToken ct)
   {
-    PersistentState.State = CacheEntry!.ToState();
-    await PersistentState.WriteStateAsync(ct);
-    _stateCleared = false;
+    //This is the expected case where we have a valid cache entry to write
+    if (CacheEntry is not null)
+    {
+      _persistentState.State = CacheEntry.ToState();
+      await _persistentState.WriteStateAsync(ct);
+      _stateCleared = false;
+    }
   }
 
   private async Task ClearStateAsync(CancellationToken ct)
   {
-    if (PersistentState.RecordExists)
+    if (!_stateCleared && _persistentState.RecordExists)
     {
-      await PersistentState.ClearStateAsync(ct);
+      await _persistentState.ClearStateAsync(ct);
     }
     _stateCleared = true;
   }
@@ -138,26 +141,27 @@ public abstract class PersistentInClusterCacheGrain<TValue, TCreateArgs>
   where TCreateArgs : notnull
 {
   private bool _stateCleared = false;
-  internal IPersistentState<InClusterCacheState<TValue>> PersistentState { get; set; }
+  private readonly IPersistentState<InClusterCacheState<TValue>> _persistentState;
+
   public PersistentInClusterCacheGrain(IServiceProvider serviceProvider,
     IPersistentState<InClusterCacheState<TValue>> persistentState)
     : base(serviceProvider)
   {
-    PersistentState = persistentState;
+    _persistentState = persistentState;
   }
 
   public override async Task OnActivateAsync(CancellationToken cancellationToken)
   {
     await base.OnActivateAsync(cancellationToken);
-    if (PersistentState.RecordExists &&
-      PersistentState.State.Value is not null &&
-      PersistentState.State.LastAccessed > DateTimeOffset.MinValue)
+    if (_persistentState.RecordExists &&
+      _persistentState.State.Value is not null &&
+      _persistentState.State.LastAccessed > DateTimeOffset.MinValue)
     {
       CacheEntry = new CacheEntry<TValue>(
-        PersistentState.State.Value,
-        PersistentState.State.AbsoluteExpiration,
-        PersistentState.State.SlidingExpiration,
-        PersistentState.State.LastAccessed);
+        _persistentState.State.Value,
+        _persistentState.State.AbsoluteExpiration,
+        _persistentState.State.SlidingExpiration,
+        _persistentState.State.LastAccessed);
     }
   }
 
@@ -166,7 +170,7 @@ public abstract class PersistentInClusterCacheGrain<TValue, TCreateArgs>
     if (!_stateCleared)
     {
       if (CacheEntry is null ||
-        !CacheEntry.TryGetValue(TimeProviderFunc, out _, out _))
+        !CacheEntry.TryPeekValue(TimeProviderFunc, out _, out _))
       {
         await ClearStateAsync(cancellationToken);
       }
@@ -239,16 +243,20 @@ public abstract class PersistentInClusterCacheGrain<TValue, TCreateArgs>
 
   private async Task WriteStateAsync(CancellationToken ct)
   {
-    PersistentState.State = CacheEntry!.ToState();
-    await PersistentState.WriteStateAsync(ct);
-    _stateCleared = false;
+    //This is the expected case where we have a valid cache entry to write
+    if (CacheEntry is not null)
+    {
+      _persistentState.State = CacheEntry.ToState();
+      await _persistentState.WriteStateAsync(ct);
+      _stateCleared = false;
+    }
   }
 
   private async Task ClearStateAsync(CancellationToken ct)
   {
-    if (PersistentState.RecordExists)
+    if (!_stateCleared && _persistentState.RecordExists)
     {
-      await PersistentState.ClearStateAsync(ct);
+      await _persistentState.ClearStateAsync(ct);
     }
     _stateCleared = true;
   }

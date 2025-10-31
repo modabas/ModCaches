@@ -15,7 +15,7 @@ public interface IInClusterCacheGrain<TValue, TCreateArgs> : IBaseInClusterCache
   /// <param name="createArgs">Arguments to be passed to value generation method.</param>
   /// <param name="ct">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
   /// <param name="options">The cache options for the value.</param>
-  /// <returns>The data, either from cache or the underlying data service.</returns>
+  /// <returns>The data, either from cache or the underlying value generation method.</returns>
   Task<TValue> GetOrCreateAsync(
     TCreateArgs? createArgs,
     CancellationToken ct,
@@ -27,7 +27,7 @@ public interface IInClusterCacheGrain<TValue, TCreateArgs> : IBaseInClusterCache
   /// <param name="createArgs">Arguments to be passed to value generation method.</param>
   /// <param name="ct">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
   /// <param name="options">The cache options for the value.</param>
-  /// <returns>The data from the underlying value generation service.</returns>
+  /// <returns>The data from the underlying value generation method.</returns>
   Task<TValue> CreateAsync(
     TCreateArgs? createArgs,
     CancellationToken ct,
@@ -46,7 +46,7 @@ public interface IInClusterCacheGrain<TValue> : IBaseInClusterCacheGrain<TValue>
   /// </summary>
   /// <param name="ct">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
   /// <param name="options">The cache options for the value.</param>
-  /// <returns>The data, either from cache or the underlying data service.</returns>
+  /// <returns>The data, either from cache or the underlying value generation method.</returns>
   Task<TValue> GetOrCreateAsync(
     CancellationToken ct,
     InClusterCacheEntryOptions? options = null);
@@ -56,7 +56,7 @@ public interface IInClusterCacheGrain<TValue> : IBaseInClusterCacheGrain<TValue>
   /// </summary>
   /// <param name="ct">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
   /// <param name="options">The cache options for the value.</param>
-  /// <returns>The data from the underlying value generation service.</returns>
+  /// <returns>The data from the underlying value generation method.</returns>
   Task<TValue> CreateAsync(
     CancellationToken ct,
     InClusterCacheEntryOptions? options = null);
