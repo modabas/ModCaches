@@ -51,7 +51,8 @@ public class PersistentDistributedCacheGrainTests
     var data = ImmutableArray.Create<byte>(1, 2, 3, 4);
     var options = new CacheEntryOptions
     {
-      AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5)
+      AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5),
+      SlidingExpiration = TimeSpan.FromMinutes(2)
     };
 
     await grain.SetAsync(data, options, CancellationToken.None);
@@ -59,10 +60,15 @@ public class PersistentDistributedCacheGrainTests
     var state = await GetStateAsync(grainId);
     state.Should().NotBeNull();
     state.State.Value.Should().Equal(data);
+    var lastAccessed = state.State.LastAccessed;
 
     var fetched = await grain.GetAsync(CancellationToken.None);
     fetched.Should().NotBeNull();
     fetched.Value.Should().Equal(data);
+    var stateAfterGet = await GetStateAsync(grainId);
+    stateAfterGet.Should().NotBeNull();
+    stateAfterGet.State.Value.Should().Equal(data);
+    stateAfterGet.State.LastAccessed.Should().BeAfter(lastAccessed);
   }
 
   [Fact]
@@ -104,20 +110,22 @@ public class PersistentDistributedCacheGrainTests
 
     var options = new CacheEntryOptions
     {
-      AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(5)
+      SlidingExpiration = TimeSpan.FromSeconds(5)
     };
 
     await grain.SetAsync(data, options, CancellationToken.None);
-
-    // call refresh; since not expired it should remain available
-    await grain.RefreshAsync(CancellationToken.None);
-
-    var fetched = await grain.GetAsync(CancellationToken.None);
-    fetched.Should().NotBeNull();
-    fetched.Value.Should().Equal(data);
-
     var state = await GetStateAsync(grainId);
     state.Should().NotBeNull();
+    state.RecordExists.Should().BeTrue();
+    var lastAccessed = state.State.LastAccessed;
+
+    // call refresh; since not expired it should remain available
+    var ret = await grain.RefreshAsync(CancellationToken.None);
+    ret.Should().BeTrue();
+    state = await GetStateAsync(grainId);
+    state.Should().NotBeNull();
+    state.RecordExists.Should().BeTrue();
+    state.State.LastAccessed.Should().BeAfter(lastAccessed);
     state.State.Value.Should().Equal(data);
   }
 
