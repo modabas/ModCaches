@@ -169,6 +169,36 @@ public class PersistentInClusterCacheTestGrainWithCreateArgsTests
   }
 
   [Fact]
+  public async Task RefreshAsync_Removes_WhenExpiredAsync()
+  {
+    var grainId = GetGrainId("Refresh_Removes_WhenExpired");
+    var grain = _fixture.Cluster.GrainFactory.GetGrain<IPersistentInClusterCacheTestGrainWithCreateArgs>(grainId);
+
+    var options = new InClusterCacheEntryOptions
+    {
+      AbsoluteExpirationRelativeToNow = TimeSpan.FromMilliseconds(50)
+    };
+
+    await grain.SetAsync(new InClusterTestCacheState() { Data = "refresh-test" }, CancellationToken.None, options);
+
+    // Wait for the entry to expire
+    await Task.Delay(150);
+
+    // Refresh should detect expiration and remove the entry
+    var refreshed = await grain.RefreshAsync(CancellationToken.None);
+    refreshed.Should().BeFalse();
+
+    var (found, value) = await grain.TryGetAsync(CancellationToken.None);
+    found.Should().BeFalse();
+    value.Should().BeNull();
+
+    var state = await GetStateAsync(grainId);
+    state.Should().NotBeNull();
+    state.RecordExists.Should().BeFalse();
+    state.State.LastAccessed.Should().Be(DateTimeOffset.MinValue);
+  }
+
+  [Fact]
   public async Task PeekAsync_DoesNotExtendSlidingLifetimeAsync()
   {
     var grainId = GetGrainId("Peek_DoesNotExtend");
