@@ -7,33 +7,33 @@ namespace ModCaches.Orleans.Server.Distributed;
 
 internal abstract class BaseDistributedCacheGrain : BaseGrain, IBaseDistributedCacheGrain
 {
-  protected CacheEntry<ImmutableArray<byte>>? _cacheEntry;
-  protected readonly Func<DateTimeOffset> _timeProviderFunc;
+  protected CacheEntry<ImmutableArray<byte>>? CacheEntry { get; set; }
+  protected Func<DateTimeOffset> TimeProviderFunc { get; init; }
 
   protected bool HasSlidingExpiration =>
-    _cacheEntry?.HasSlidingExpiration ?? false;
+    CacheEntry?.HasSlidingExpiration ?? false;
 
   public BaseDistributedCacheGrain(TimeProvider timeProvider)
   {
-    _timeProviderFunc = () => timeProvider.GetUtcNow();
+    TimeProviderFunc = () => timeProvider.GetUtcNow();
   }
 
-  public virtual async Task<ImmutableArray<byte>?> GetAsync(CancellationToken ct)
+  public virtual Task<ImmutableArray<byte>?> GetAsync(CancellationToken ct)
   {
-    if (_cacheEntry?.TryGetValue(_timeProviderFunc, out var value, out var expiresIn) == true)
+    if (CacheEntry?.TryGetValue(TimeProviderFunc, out var value, out var expiresIn) == true)
     {
       DelayDeactivation(expiresIn.Value);
-      return value;
+      return Task.FromResult<ImmutableArray<byte>?>(value);
     }
-    await RemoveInternalAsync(ct);
-    return null;
+    RemoveInternal();
+    return Task.FromResult<ImmutableArray<byte>?>(null);
   }
 
   public virtual Task SetAsync(ImmutableArray<byte> value, CacheEntryOptions options, CancellationToken ct)
   {
-    _cacheEntry = new CacheEntry<ImmutableArray<byte>>(value, options, _timeProviderFunc);
+    CacheEntry = new CacheEntry<ImmutableArray<byte>>(value, options, TimeProviderFunc);
     // Delay deactivation to ensure it remains active while it has a valid cache entry
-    if (_cacheEntry.TryGetExpiresIn(_timeProviderFunc, out var expiresIn))
+    if (CacheEntry.TryGetExpiresIn(TimeProviderFunc, out var expiresIn))
     {
       DelayDeactivation(expiresIn.Value);
     }
@@ -42,26 +42,27 @@ internal abstract class BaseDistributedCacheGrain : BaseGrain, IBaseDistributedC
 
   public virtual Task RemoveAsync(CancellationToken ct)
   {
-    return RemoveInternalAsync(ct);
+    RemoveInternal();
+    return Task.CompletedTask;
   }
 
-  public virtual async Task<bool> RefreshAsync(CancellationToken ct)
+  public virtual Task<bool> RefreshAsync(CancellationToken ct)
   {
-    if (_cacheEntry is null ||
-      !_cacheEntry.TryGetValue(_timeProviderFunc, out _, out var expiresIn))
+    if (CacheEntry is null ||
+      !CacheEntry.TryGetValue(TimeProviderFunc, out _, out var expiresIn))
     {
-      await RemoveInternalAsync(ct);
-      return false;
+      RemoveInternal();
+      return Task.FromResult(false);
     }
     // Delay deactivation to ensure it remains active while it has a valid cache entry
     DelayDeactivation(expiresIn.Value);
-    return true;
+    return Task.FromResult(true);
   }
 
-  private Task RemoveInternalAsync(CancellationToken ct)
+  private void RemoveInternal()
   {
-    _cacheEntry = null; // Remove the cache entry
+    CacheEntry = null; // Remove the cache entry
     ResetDeactivation(); // Reset deactivation to default behavior
-    return Task.CompletedTask;
+    return;
   }
 }

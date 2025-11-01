@@ -8,7 +8,7 @@ namespace ModCaches.Orleans.Server.Tests.InCluster;
 public class PersistentInClusterCacheTestGrainWithCreateArgsTests
 {
   private readonly ClusterFixture _fixture;
-  private const string _defaultData = "persistent in cluster cache";
+  private const string DefaultData = "persistent in cluster cache";
 
   public PersistentInClusterCacheTestGrainWithCreateArgsTests(ClusterFixture fixture)
   {
@@ -40,7 +40,7 @@ public class PersistentInClusterCacheTestGrainWithCreateArgsTests
     var grainId = GetGrainId("GetOrCreate_ReturnsGeneratedValue");
     var grain = _fixture.Cluster.GrainFactory.GetGrain<IPersistentInClusterCacheTestGrainWithCreateArgs>(grainId);
     var result = await grain.GetOrCreateAsync(2, CancellationToken.None);
-    result.Data.Should().Be($"{_defaultData} 2");
+    result.Data.Should().Be($"{DefaultData} 2");
   }
 
   [Fact]
@@ -50,17 +50,17 @@ public class PersistentInClusterCacheTestGrainWithCreateArgsTests
     var grain = _fixture.Cluster.GrainFactory.GetGrain<IPersistentInClusterCacheTestGrainWithCreateArgs>(grainId);
     // Force creation
     var created = await grain.CreateAsync(3, CancellationToken.None);
-    created.Data.Should().Be($"{_defaultData} 3");
+    created.Data.Should().Be($"{DefaultData} 3");
     var state = await GetStateAsync(grainId);
     state.Should().NotBeNull();
-    state.State.Value.Data.Should().Be($"{_defaultData} 3");
+    state.State.Value.Data.Should().Be($"{DefaultData} 3");
 
     // Then ensure subsequent GetOrCreate returns value (cached)
     var fetched = await grain.GetOrCreateAsync(4, CancellationToken.None);
-    fetched.Data.Should().Be($"{_defaultData} 3");
+    fetched.Data.Should().Be($"{DefaultData} 3");
     state = await GetStateAsync(grainId);
     state.Should().NotBeNull();
-    state.State.Value.Data.Should().Be($"{_defaultData} 3");
+    state.State.Value.Data.Should().Be($"{DefaultData} 3");
   }
 
   [Fact]
@@ -212,7 +212,7 @@ public class PersistentInClusterCacheTestGrainWithCreateArgsTests
       AbsoluteExpirationRelativeToNow = TimeSpan.FromMilliseconds(100)
     };
     var value = await grain.GetOrCreateAsync(5, CancellationToken.None, options);
-    value.Data.Should().Be($"{_defaultData} 5");
+    value.Data.Should().Be($"{DefaultData} 5");
 
     // Wait for expiration (use a little buffer)
     await Task.Delay(TimeSpan.FromMilliseconds(200));
@@ -288,15 +288,15 @@ public class PersistentInClusterCacheTestGrainWithCreateArgsTests
 
     var state = await GetStateAsync(grainId);
     state.Should().NotBeNull();
-    state.State.Value.Data.Should().Be($"{_defaultData} 8");
+    state.State.Value.Data.Should().Be($"{DefaultData} 8");
     var lastAccessed = state.State.LastAccessed;
 
     var fetched = await grain.GetOrCreateAsync(9, CancellationToken.None, options);
     fetched.Should().NotBeNull();
-    fetched.Data.Should().Be($"{_defaultData} 8");
+    fetched.Data.Should().Be($"{DefaultData} 8");
     var stateAfterGet = await GetStateAsync(grainId);
     stateAfterGet.Should().NotBeNull();
-    stateAfterGet.State.Value.Data.Should().Be($"{_defaultData} 8");
+    stateAfterGet.State.Value.Data.Should().Be($"{DefaultData} 8");
     stateAfterGet.State.LastAccessed.Should().Be(lastAccessed);
   }
 
@@ -315,13 +315,13 @@ public class PersistentInClusterCacheTestGrainWithCreateArgsTests
 
     var state = await GetStateAsync(grainId);
     state.Should().NotBeNull();
-    state.State.Value.Data.Should().Be($"{_defaultData} 10");
+    state.State.Value.Data.Should().Be($"{DefaultData} 10");
     var lastAccessed = state.State.LastAccessed;
 
     await grain.RefreshAsync(CancellationToken.None);
     var stateAfterRefresh = await GetStateAsync(grainId);
     stateAfterRefresh.Should().NotBeNull();
-    stateAfterRefresh.State.Value.Data.Should().Be($"{_defaultData} 10");
+    stateAfterRefresh.State.Value.Data.Should().Be($"{DefaultData} 10");
     stateAfterRefresh.State.LastAccessed.Should().Be(lastAccessed);
   }
 
@@ -340,16 +340,16 @@ public class PersistentInClusterCacheTestGrainWithCreateArgsTests
 
     var state = await GetStateAsync(grainId);
     state.Should().NotBeNull();
-    state.State.Value.Data.Should().Be($"{_defaultData} 11");
+    state.State.Value.Data.Should().Be($"{DefaultData} 11");
     var lastAccessed = state.State.LastAccessed;
 
     var (isFetched, fetched) = await grain.TryGetAsync(CancellationToken.None);
     isFetched.Should().BeTrue();
     fetched.Should().NotBeNull();
-    fetched.Data.Should().Be($"{_defaultData} 11");
+    fetched.Data.Should().Be($"{DefaultData} 11");
     var stateAfterGet = await GetStateAsync(grainId);
     stateAfterGet.Should().NotBeNull();
-    stateAfterGet.State.Value.Data.Should().Be($"{_defaultData} 11");
+    stateAfterGet.State.Value.Data.Should().Be($"{DefaultData} 11");
     stateAfterGet.State.LastAccessed.Should().Be(lastAccessed);
   }
 
@@ -369,15 +369,15 @@ public class PersistentInClusterCacheTestGrainWithCreateArgsTests
 
     var state = await GetStateAsync(grainId);
     state.Should().NotBeNull();
-    state.State.Value.Data.Should().Be($"{_defaultData} 8");
+    state.State.Value.Data.Should().Be($"{DefaultData} 8");
     var lastAccessed = state.State.LastAccessed;
 
     var fetched = await grain.GetOrCreateAsync(9, CancellationToken.None, options);
     fetched.Should().NotBeNull();
-    fetched.Data.Should().Be($"{_defaultData} 8");
+    fetched.Data.Should().Be($"{DefaultData} 8");
     var stateAfterGet = await GetStateAsync(grainId);
     stateAfterGet.Should().NotBeNull();
-    stateAfterGet.State.Value.Data.Should().Be($"{_defaultData} 8");
+    stateAfterGet.State.Value.Data.Should().Be($"{DefaultData} 8");
     stateAfterGet.State.LastAccessed.Should().BeAfter(lastAccessed);
   }
 
@@ -397,13 +397,13 @@ public class PersistentInClusterCacheTestGrainWithCreateArgsTests
 
     var state = await GetStateAsync(grainId);
     state.Should().NotBeNull();
-    state.State.Value.Data.Should().Be($"{_defaultData} 10");
+    state.State.Value.Data.Should().Be($"{DefaultData} 10");
     var lastAccessed = state.State.LastAccessed;
 
     await grain.RefreshAsync(CancellationToken.None);
     var stateAfterRefresh = await GetStateAsync(grainId);
     stateAfterRefresh.Should().NotBeNull();
-    stateAfterRefresh.State.Value.Data.Should().Be($"{_defaultData} 10");
+    stateAfterRefresh.State.Value.Data.Should().Be($"{DefaultData} 10");
     stateAfterRefresh.State.LastAccessed.Should().BeAfter(lastAccessed);
   }
 
@@ -423,16 +423,16 @@ public class PersistentInClusterCacheTestGrainWithCreateArgsTests
 
     var state = await GetStateAsync(grainId);
     state.Should().NotBeNull();
-    state.State.Value.Data.Should().Be($"{_defaultData} 11");
+    state.State.Value.Data.Should().Be($"{DefaultData} 11");
     var lastAccessed = state.State.LastAccessed;
 
     var (isFetched, fetched) = await grain.TryGetAsync(CancellationToken.None);
     isFetched.Should().BeTrue();
     fetched.Should().NotBeNull();
-    fetched.Data.Should().Be($"{_defaultData} 11");
+    fetched.Data.Should().Be($"{DefaultData} 11");
     var stateAfterGet = await GetStateAsync(grainId);
     stateAfterGet.Should().NotBeNull();
-    stateAfterGet.State.Value.Data.Should().Be($"{_defaultData} 11");
+    stateAfterGet.State.Value.Data.Should().Be($"{DefaultData} 11");
     stateAfterGet.State.LastAccessed.Should().BeAfter(lastAccessed);
   }
 }
