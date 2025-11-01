@@ -10,6 +10,8 @@ internal class CacheEntry<T> where T : notnull
   private readonly TimeSpan? _slidingExpiration;
   private DateTimeOffset _lastAccessed;
 
+  public bool HasSlidingExpiration => _slidingExpiration.HasValue;
+
   public CacheEntry(T value,
     CacheEntryOptions options,
     Func<DateTimeOffset> timeProviderFunc)

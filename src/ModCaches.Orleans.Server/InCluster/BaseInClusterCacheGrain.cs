@@ -18,6 +18,9 @@ public abstract class BaseInClusterCacheGrain<TValue>
 
   internal IOptions<InClusterCacheEntryOptions> DefaultOptions { get; }
 
+  internal bool HasSlidingExpiration =>
+    CacheEntry?.HasSlidingExpiration ?? false;
+
   public BaseInClusterCacheGrain(IServiceProvider serviceProvider)
   {
     var timeProvider = serviceProvider.GetService<TimeProvider>() ?? TimeProvider.System;
@@ -28,38 +31,39 @@ public abstract class BaseInClusterCacheGrain<TValue>
 
   public virtual Task RemoveAsync(CancellationToken ct)
   {
-    return RemoveInternalAsync(ct);
+    RemoveInternal();
+    return Task.CompletedTask;
   }
 
-  public virtual async Task<bool> RefreshAsync(CancellationToken ct)
+  public virtual Task<bool> RefreshAsync(CancellationToken ct)
   {
     if (CacheEntry is null ||
       !CacheEntry.TryGetValue(TimeProviderFunc, out _, out var expiresIn))
     {
-      await RemoveInternalAsync(ct);
-      return false;
+      RemoveInternal();
+      return Task.FromResult(false);
     }
     // Delay deactivation to ensure it remains active while it has a valid cache entry
     DelayDeactivation(expiresIn.Value);
-    return true;
+    return Task.FromResult(true);
   }
 
-  private Task RemoveInternalAsync(CancellationToken ct)
+  private void RemoveInternal()
   {
     CacheEntry = null; // Remove the cache entry
     ResetDeactivation(); // Reset deactivation to default behavior
-    return Task.CompletedTask;
+    return;
   }
 
-  public virtual async Task<(bool, TValue?)> TryGetAsync(CancellationToken ct)
+  public virtual Task<(bool, TValue?)> TryGetAsync(CancellationToken ct)
   {
     if (CacheEntry?.TryGetValue(TimeProviderFunc, out var value, out var expiresIn) == true)
     {
       DelayDeactivation(expiresIn.Value);
-      return (true, value);
+      return Task.FromResult<(bool, TValue?)>((true, value));
     }
-    await RemoveInternalAsync(ct);
-    return (false, default);
+    RemoveInternal();
+    return Task.FromResult<(bool, TValue?)>((false, default));
   }
 
   public virtual Task<(bool, TValue?)> TryPeekAsync(CancellationToken ct)

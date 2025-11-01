@@ -1,4 +1,5 @@
-﻿using AwesomeAssertions;
+﻿using System.Collections.Immutable;
+using AwesomeAssertions;
 using ModCaches.Orleans.Server.InCluster;
 
 namespace ModCaches.Orleans.Server.Tests.InCluster;
@@ -7,7 +8,7 @@ namespace ModCaches.Orleans.Server.Tests.InCluster;
 public class PersistentInClusterCacheTestGrainTests
 {
   private readonly ClusterFixture _fixture;
-  private const string _defaultData = "persistent in cluster cache";
+  private const string DefaultData = "persistent in cluster cache";
 
   public PersistentInClusterCacheTestGrainTests(ClusterFixture fixture)
   {
@@ -39,7 +40,7 @@ public class PersistentInClusterCacheTestGrainTests
     var grainId = GetGrainId("GetOrCreate_ReturnsGeneratedValue");
     var grain = _fixture.Cluster.GrainFactory.GetGrain<IPersistentInClusterCacheTestGrain>(grainId);
     var result = await grain.GetOrCreateAsync(CancellationToken.None);
-    result.Data.Should().Be(_defaultData);
+    result.Data.Should().Be(DefaultData);
   }
 
   [Fact]
@@ -49,17 +50,17 @@ public class PersistentInClusterCacheTestGrainTests
     var grain = _fixture.Cluster.GrainFactory.GetGrain<IPersistentInClusterCacheTestGrain>(grainId);
     // Force creation
     var created = await grain.CreateAsync(CancellationToken.None);
-    created.Data.Should().Be(_defaultData);
+    created.Data.Should().Be(DefaultData);
     var state = await GetStateAsync(grainId);
     state.Should().NotBeNull();
-    state.State.Value.Data.Should().Be(_defaultData);
+    state.State.Value.Data.Should().Be(DefaultData);
 
     // Then ensure subsequent GetOrCreate returns value (cached)
     var fetched = await grain.GetOrCreateAsync(CancellationToken.None);
-    fetched.Data.Should().Be(_defaultData);
+    fetched.Data.Should().Be(DefaultData);
     state = await GetStateAsync(grainId);
     state.Should().NotBeNull();
-    state.State.Value.Data.Should().Be(_defaultData);
+    state.State.Value.Data.Should().Be(DefaultData);
   }
 
   [Fact]
@@ -168,6 +169,36 @@ public class PersistentInClusterCacheTestGrainTests
   }
 
   [Fact]
+  public async Task RefreshAsync_Removes_WhenExpiredAsync()
+  {
+    var grainId = GetGrainId("Refresh_Removes_WhenExpired");
+    var grain = _fixture.Cluster.GrainFactory.GetGrain<IPersistentInClusterCacheTestGrain>(grainId);
+
+    var options = new InClusterCacheEntryOptions
+    {
+      AbsoluteExpirationRelativeToNow = TimeSpan.FromMilliseconds(50)
+    };
+
+    await grain.SetAsync(new InClusterTestCacheState() { Data = "refresh-test" }, CancellationToken.None, options);
+
+    // Wait for the entry to expire
+    await Task.Delay(150);
+
+    // Refresh should detect expiration and remove the entry
+    var refreshed = await grain.RefreshAsync(CancellationToken.None);
+    refreshed.Should().BeFalse();
+
+    var (found, value) = await grain.TryGetAsync(CancellationToken.None);
+    found.Should().BeFalse();
+    value.Should().BeNull();
+
+    var state = await GetStateAsync(grainId);
+    state.Should().NotBeNull();
+    state.RecordExists.Should().BeFalse();
+    state.State.LastAccessed.Should().Be(DateTimeOffset.MinValue);
+  }
+
+  [Fact]
   public async Task PeekAsync_DoesNotExtendSlidingLifetimeAsync()
   {
     var grainId = GetGrainId("Peek_DoesNotExtend");
@@ -211,7 +242,7 @@ public class PersistentInClusterCacheTestGrainTests
       AbsoluteExpirationRelativeToNow = TimeSpan.FromMilliseconds(100)
     };
     var value = await grain.GetOrCreateAsync(CancellationToken.None, options);
-    value.Data.Should().Be(_defaultData);
+    value.Data.Should().Be(DefaultData);
 
     // Wait for expiration (use a little buffer)
     await Task.Delay(TimeSpan.FromMilliseconds(200));
@@ -270,5 +301,168 @@ public class PersistentInClusterCacheTestGrainTests
     var state = await GetStateAsync(grainId);
     state.Should().NotBeNull();
     state.State.Value.Data.Should().Be("valid-data");
+  }
+
+  [Fact]
+  public async Task State_IsNotSavedAfterGet_IfDoesntHaveSlidingExpirationAsync()
+  {
+    var grainId = GetGrainId("State_IsNotSavedAfterGet_IfDoesntHaveSlidingExpiration");
+    var grain = _fixture.Cluster.GrainFactory.GetGrain<IPersistentInClusterCacheTestGrain>(grainId);
+    var data = ImmutableArray.Create<byte>(1, 2, 3, 4);
+    var options = new InClusterCacheEntryOptions
+    {
+      AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5),
+    };
+
+    await grain.GetOrCreateAsync(CancellationToken.None, options);
+
+    var state = await GetStateAsync(grainId);
+    state.Should().NotBeNull();
+    state.State.Value.Data.Should().Be(DefaultData);
+    var lastAccessed = state.State.LastAccessed;
+
+    var fetched = await grain.GetOrCreateAsync(CancellationToken.None, options);
+    fetched.Should().NotBeNull();
+    fetched.Data.Should().Be(DefaultData);
+    var stateAfterGet = await GetStateAsync(grainId);
+    stateAfterGet.Should().NotBeNull();
+    stateAfterGet.State.Value.Data.Should().Be(DefaultData);
+    stateAfterGet.State.LastAccessed.Should().Be(lastAccessed);
+  }
+
+  [Fact]
+  public async Task State_IsNotSavedAfterRefresh_IfDoesntHaveSlidingExpirationAsync()
+  {
+    var grainId = GetGrainId("State_IsNotSavedAfterRefresh_IfDoesntHaveSlidingExpiration");
+    var grain = _fixture.Cluster.GrainFactory.GetGrain<IPersistentInClusterCacheTestGrain>(grainId);
+    var data = ImmutableArray.Create<byte>(1, 2, 3, 4);
+    var options = new InClusterCacheEntryOptions
+    {
+      AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5),
+    };
+
+    await grain.GetOrCreateAsync(CancellationToken.None, options);
+
+    var state = await GetStateAsync(grainId);
+    state.Should().NotBeNull();
+    state.State.Value.Data.Should().Be(DefaultData);
+    var lastAccessed = state.State.LastAccessed;
+
+    await grain.RefreshAsync(CancellationToken.None);
+    var stateAfterRefresh = await GetStateAsync(grainId);
+    stateAfterRefresh.Should().NotBeNull();
+    stateAfterRefresh.State.Value.Data.Should().Be(DefaultData);
+    stateAfterRefresh.State.LastAccessed.Should().Be(lastAccessed);
+  }
+
+  [Fact]
+  public async Task State_IsNotSavedAfterTryGet_IfDoesntHaveSlidingExpirationAsync()
+  {
+    var grainId = GetGrainId("State_IsNotSavedAfterTryGet_IfDoesntHaveSlidingExpiration");
+    var grain = _fixture.Cluster.GrainFactory.GetGrain<IPersistentInClusterCacheTestGrain>(grainId);
+    var data = ImmutableArray.Create<byte>(1, 2, 3, 4);
+    var options = new InClusterCacheEntryOptions
+    {
+      AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5),
+    };
+
+    await grain.GetOrCreateAsync(CancellationToken.None, options);
+
+    var state = await GetStateAsync(grainId);
+    state.Should().NotBeNull();
+    state.State.Value.Data.Should().Be(DefaultData);
+    var lastAccessed = state.State.LastAccessed;
+
+    var (isFetched, fetched) = await grain.TryGetAsync(CancellationToken.None);
+    isFetched.Should().BeTrue();
+    fetched.Should().NotBeNull();
+    fetched.Data.Should().Be(DefaultData);
+    var stateAfterGet = await GetStateAsync(grainId);
+    stateAfterGet.Should().NotBeNull();
+    stateAfterGet.State.Value.Data.Should().Be(DefaultData);
+    stateAfterGet.State.LastAccessed.Should().Be(lastAccessed);
+  }
+
+  [Fact]
+  public async Task State_IsSavedAfterGet_IfHasSlidingExpirationAsync()
+  {
+    var grainId = GetGrainId("State_IsSavedAfterGet_IfHasSlidingExpiration");
+    var grain = _fixture.Cluster.GrainFactory.GetGrain<IPersistentInClusterCacheTestGrain>(grainId);
+    var data = ImmutableArray.Create<byte>(1, 2, 3, 4);
+    var options = new InClusterCacheEntryOptions
+    {
+      AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5),
+      SlidingExpiration = TimeSpan.FromMinutes(2)
+    };
+
+    await grain.GetOrCreateAsync(CancellationToken.None, options);
+
+    var state = await GetStateAsync(grainId);
+    state.Should().NotBeNull();
+    state.State.Value.Data.Should().Be(DefaultData);
+    var lastAccessed = state.State.LastAccessed;
+
+    var fetched = await grain.GetOrCreateAsync(CancellationToken.None, options);
+    fetched.Should().NotBeNull();
+    fetched.Data.Should().Be(DefaultData);
+    var stateAfterGet = await GetStateAsync(grainId);
+    stateAfterGet.Should().NotBeNull();
+    stateAfterGet.State.Value.Data.Should().Be(DefaultData);
+    stateAfterGet.State.LastAccessed.Should().BeAfter(lastAccessed);
+  }
+
+  [Fact]
+  public async Task State_IsSavedAfterRefresh_IfHasSlidingExpirationAsync()
+  {
+    var grainId = GetGrainId("State_IsSavedAfterRefresh_IfHasSlidingExpiration");
+    var grain = _fixture.Cluster.GrainFactory.GetGrain<IPersistentInClusterCacheTestGrain>(grainId);
+    var data = ImmutableArray.Create<byte>(1, 2, 3, 4);
+    var options = new InClusterCacheEntryOptions
+    {
+      AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5),
+      SlidingExpiration = TimeSpan.FromMinutes(2)
+    };
+
+    await grain.GetOrCreateAsync(CancellationToken.None, options);
+
+    var state = await GetStateAsync(grainId);
+    state.Should().NotBeNull();
+    state.State.Value.Data.Should().Be(DefaultData);
+    var lastAccessed = state.State.LastAccessed;
+
+    await grain.RefreshAsync(CancellationToken.None);
+    var stateAfterRefresh = await GetStateAsync(grainId);
+    stateAfterRefresh.Should().NotBeNull();
+    stateAfterRefresh.State.Value.Data.Should().Be(DefaultData);
+    stateAfterRefresh.State.LastAccessed.Should().BeAfter(lastAccessed);
+  }
+
+  [Fact]
+  public async Task State_IsSavedAfterTryGet_IfHasSlidingExpirationAsync()
+  {
+    var grainId = GetGrainId("State_IsSavedAfterTryGet_IfHasSlidingExpiration");
+    var grain = _fixture.Cluster.GrainFactory.GetGrain<IPersistentInClusterCacheTestGrain>(grainId);
+    var data = ImmutableArray.Create<byte>(1, 2, 3, 4);
+    var options = new InClusterCacheEntryOptions
+    {
+      AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5),
+      SlidingExpiration = TimeSpan.FromMinutes(2)
+    };
+
+    await grain.GetOrCreateAsync(CancellationToken.None, options);
+
+    var state = await GetStateAsync(grainId);
+    state.Should().NotBeNull();
+    state.State.Value.Data.Should().Be(DefaultData);
+    var lastAccessed = state.State.LastAccessed;
+
+    var (isFetched, fetched) = await grain.TryGetAsync(CancellationToken.None);
+    isFetched.Should().BeTrue();
+    fetched.Should().NotBeNull();
+    fetched.Data.Should().Be(DefaultData);
+    var stateAfterGet = await GetStateAsync(grainId);
+    stateAfterGet.Should().NotBeNull();
+    stateAfterGet.State.Value.Data.Should().Be(DefaultData);
+    stateAfterGet.State.LastAccessed.Should().BeAfter(lastAccessed);
   }
 }

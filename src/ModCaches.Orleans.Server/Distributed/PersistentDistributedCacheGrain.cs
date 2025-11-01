@@ -23,7 +23,7 @@ internal class PersistentDistributedCacheGrain : BaseDistributedCacheGrain, IPer
     if (_persistentState.RecordExists &&
       _persistentState.State.LastAccessed > DateTimeOffset.MinValue)
     {
-      _cacheEntry = new CacheEntry<ImmutableArray<byte>>(
+      CacheEntry = new CacheEntry<ImmutableArray<byte>>(
         _persistentState.State.Value,
         _persistentState.State.AbsoluteExpiration,
         _persistentState.State.SlidingExpiration,
@@ -35,8 +35,8 @@ internal class PersistentDistributedCacheGrain : BaseDistributedCacheGrain, IPer
   {
     if (!_stateCleared)
     {
-      if (_cacheEntry is null ||
-        !_cacheEntry.TryPeekValue(_timeProviderFunc, out _, out _))
+      if (CacheEntry is null ||
+        !CacheEntry.TryPeekValue(TimeProviderFunc, out _, out _))
       {
         await ClearStateAsync(cancellationToken);
       }
@@ -53,7 +53,11 @@ internal class PersistentDistributedCacheGrain : BaseDistributedCacheGrain, IPer
     }
     else
     {
-      await WriteStateAsync(ct);
+      // Only write state if we have sliding expiration, as absolute expiration does not change on access
+      if (HasSlidingExpiration)
+      {
+        await WriteStateAsync(ct);
+      }
     }
     return ret;
   }
@@ -75,7 +79,11 @@ internal class PersistentDistributedCacheGrain : BaseDistributedCacheGrain, IPer
     var ret = await base.RefreshAsync(ct);
     if (ret)
     {
-      await WriteStateAsync(ct);
+      // Only write state if we have sliding expiration, as absolute expiration does not change on access
+      if (HasSlidingExpiration)
+      {
+        await WriteStateAsync(ct);
+      }
     }
     else
     {
@@ -87,9 +95,9 @@ internal class PersistentDistributedCacheGrain : BaseDistributedCacheGrain, IPer
   private async Task WriteStateAsync(CancellationToken ct)
   {
     //This is the expected case where we have a valid cache entry to write
-    if (_cacheEntry is not null)
+    if (CacheEntry is not null)
     {
-      _persistentState.State = _cacheEntry.ToState();
+      _persistentState.State = CacheEntry.ToState();
       await _persistentState.WriteStateAsync(ct);
       _stateCleared = false;
     }
