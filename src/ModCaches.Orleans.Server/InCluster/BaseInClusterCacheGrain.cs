@@ -5,7 +5,8 @@ using ModCaches.Orleans.Server.Common;
 namespace ModCaches.Orleans.Server.InCluster;
 
 /// <summary>
-/// Intended to be used as an internal base class for in-cluster cache grain implementations like volatile and persistent in-cluster cache grains.
+/// Intended to be used as an internal base class for in-cluster cache grain implementations like volatile and persistent in-cluster cache grains. 
+/// Don't use directly, use derived classes instead.
 /// </summary>
 /// <typeparam name="TValue"></typeparam>
 public abstract class BaseInClusterCacheGrain<TValue>
@@ -21,7 +22,11 @@ public abstract class BaseInClusterCacheGrain<TValue>
   internal bool HasSlidingExpiration =>
     CacheEntry?.HasSlidingExpiration ?? false;
 
-  public BaseInClusterCacheGrain(IServiceProvider serviceProvider)
+  /// <summary>
+  /// Marked as internal to prevent direct usage. Use derived classes instead.
+  /// </summary>
+  /// <param name="serviceProvider"></param>
+  internal BaseInClusterCacheGrain(IServiceProvider serviceProvider)
   {
     var timeProvider = serviceProvider.GetService<TimeProvider>() ?? TimeProvider.System;
     TimeProviderFunc = () => timeProvider.GetUtcNow();

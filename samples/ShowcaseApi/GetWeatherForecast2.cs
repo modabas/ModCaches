@@ -23,22 +23,10 @@ internal class WeatherForecastCacheGrain :
   VolatileInClusterCacheGrain<WeatherForecastCacheItem[], WeatherForecastCacheArgs>,
   IWeatherForecastCacheGrain
 {
-  private static readonly string[] _summaries =
-  [
-    "Freezing",
-    "Bracing",
-    "Chilly",
-    "Cool",
-    "Mild",
-    "Warm",
-    "Balmy",
-    "Hot",
-    "Sweltering",
-    "Scorching"
-  ];
+  private static readonly string[] _summaries = ["Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"];
 
   public WeatherForecastCacheGrain(IServiceProvider serviceProvider)
-    : base(serviceProvider)
+    : base(serviceProvider) 
   {
   }
 
