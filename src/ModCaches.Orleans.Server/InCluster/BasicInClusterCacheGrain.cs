@@ -51,7 +51,7 @@ public abstract class BasicInClusterCacheGrain<TValue>
     CancellationToken ct,
     CacheGrainEntryOptions? options = null)
   {
-    var entryOptions = options ?? DefaultOptions.Value;
+    var entryOptions = options ?? DefaultEntryOptions;
     (var value, entryOptions) = await GenerateValueAndOptionsAsync(entryOptions, ct);
     CacheEntry = new CacheEntry<TValue>(
       value,
@@ -141,7 +141,7 @@ public abstract class BasicInClusterCacheGrain<TValue, TCreateArgs>
     CancellationToken ct,
     CacheGrainEntryOptions? options = null)
   {
-    var entryOptions = options ?? DefaultOptions.Value;
+    var entryOptions = options ?? DefaultEntryOptions;
     (var value, entryOptions) = await GenerateValueAndOptionsAsync(createArgs, entryOptions, ct);
     CacheEntry = new CacheEntry<TValue>(
       value,

@@ -8,15 +8,15 @@ public static class ServiceCollectionExtensions
   /// Adds in-cluster cache grains related services.
   /// </summary>
   /// <param name="services"></param>
-  /// <param name="setupAction">Action to configure default <see cref="CacheGrainEntryOptions"/>.</param>
+  /// <param name="setupAction">Action to configure default <see cref="InClusterCacheOptions"/>.</param>
   /// <returns></returns>
   public static IServiceCollection AddOrleansInClusterCache(
     this IServiceCollection services,
-    Action<CacheGrainEntryOptions>? setupAction = null)
+    Action<InClusterCacheOptions>? setupAction = null)
   {
     services.TryAddSingleton(TimeProvider.System);
-    Action<CacheGrainEntryOptions> defaultSetupAction = setupAction is null
-      ? (options) => options = new CacheGrainEntryOptions()
+    Action<InClusterCacheOptions> defaultSetupAction = setupAction is null
+      ? (options) => options = new InClusterCacheOptions()
       : (options) => setupAction(options);
     services.Configure(defaultSetupAction);
     return services;

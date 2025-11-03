@@ -58,7 +58,7 @@ public class ServiceCollectionExtensionsTests
     });
 
     using var provider = services.BuildServiceProvider();
-    var options = provider.GetRequiredService<IOptions<CacheGrainEntryOptions>>().Value;
+    var options = provider.GetRequiredService<IOptions<InClusterCacheOptions>>().Value;
 
     // Assert
     options.AbsoluteExpirationRelativeToNow.Should().Be(expectedAbsRelToNow);
