@@ -6,25 +6,25 @@ namespace ModCaches.Orleans.Server.InCluster;
 /// Abstract class to implement an in-cluster cache grain that keeps data in memory (volatile).
 /// </summary>
 /// <typeparam name="TValue">Type of the cache data.</typeparam>
-public abstract class VolatileInClusterCacheGrain<TValue>
-  : BasicInClusterCacheGrain<TValue>, IInClusterCacheGrain<TValue>
+public abstract class VolatileCacheGrain<TValue>
+  : BasicInClusterCacheGrain<TValue>, ICacheGrain<TValue>
   where TValue : notnull
 {
-  public VolatileInClusterCacheGrain(IServiceProvider serviceProvider)
+  public VolatileCacheGrain(IServiceProvider serviceProvider)
     : base(serviceProvider)
   {
   }
 
   public sealed override Task<TValue> GetOrCreateAsync(
     CancellationToken ct,
-    InClusterCacheEntryOptions? options = null)
+    CacheGrainEntryOptions? options = null)
   {
     return base.GetOrCreateAsync(ct, options);
   }
 
   public sealed override Task<TValue> CreateAsync(
     CancellationToken ct,
-    InClusterCacheEntryOptions? options = null)
+    CacheGrainEntryOptions? options = null)
   {
     return base.CreateAsync(ct, options);
   }
@@ -39,7 +39,7 @@ public abstract class VolatileInClusterCacheGrain<TValue>
     return base.RemoveAsync(ct);
   }
 
-  public sealed override Task SetAsync(TValue value, CancellationToken ct, InClusterCacheEntryOptions? options = null)
+  public sealed override Task SetAsync(TValue value, CancellationToken ct, CacheGrainEntryOptions? options = null)
   {
     return base.SetAsync(value, ct, options);
   }
@@ -60,12 +60,12 @@ public abstract class VolatileInClusterCacheGrain<TValue>
 /// </summary>
 /// <typeparam name="TValue">Type of the cache data.</typeparam>
 /// <typeparam name="TCreateArgs">Type of argument to be used during cache value generation.</typeparam>
-public abstract class VolatileInClusterCacheGrain<TValue, TCreateArgs>
-  : BasicInClusterCacheGrain<TValue, TCreateArgs>, IInClusterCacheGrain<TValue, TCreateArgs>
+public abstract class VolatileCacheGrain<TValue, TCreateArgs>
+  : BasicInClusterCacheGrain<TValue, TCreateArgs>, ICacheGrain<TValue, TCreateArgs>
   where TValue : notnull
   where TCreateArgs : notnull
 {
-  public VolatileInClusterCacheGrain(IServiceProvider serviceProvider)
+  public VolatileCacheGrain(IServiceProvider serviceProvider)
     : base(serviceProvider)
   {
   }
@@ -73,7 +73,7 @@ public abstract class VolatileInClusterCacheGrain<TValue, TCreateArgs>
   public sealed override Task<TValue> GetOrCreateAsync(
     TCreateArgs? createArgs,
     CancellationToken ct,
-    InClusterCacheEntryOptions? options = null)
+    CacheGrainEntryOptions? options = null)
   {
     return base.GetOrCreateAsync(createArgs, ct, options);
   }
@@ -81,7 +81,7 @@ public abstract class VolatileInClusterCacheGrain<TValue, TCreateArgs>
   public sealed override Task<TValue> CreateAsync(
     TCreateArgs? createArgs,
     CancellationToken ct,
-    InClusterCacheEntryOptions? options = null)
+    CacheGrainEntryOptions? options = null)
   {
     return base.CreateAsync(createArgs, ct, options);
   }
@@ -96,7 +96,7 @@ public abstract class VolatileInClusterCacheGrain<TValue, TCreateArgs>
     return base.RemoveAsync(ct);
   }
 
-  public sealed override Task SetAsync(TValue value, CancellationToken ct, InClusterCacheEntryOptions? options = null)
+  public sealed override Task SetAsync(TValue value, CancellationToken ct, CacheGrainEntryOptions? options = null)
   {
     return base.SetAsync(value, ct, options);
   }

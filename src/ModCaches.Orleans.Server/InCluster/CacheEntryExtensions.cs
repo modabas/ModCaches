@@ -3,7 +3,7 @@
 namespace ModCaches.Orleans.Server.InCluster;
 internal static class CacheEntryExtensions
 {
-  public static InClusterCacheState<TValue> ToState<TValue>(this CacheEntry<TValue> cacheEntry)
+  public static CacheState<TValue> ToState<TValue>(this CacheEntry<TValue> cacheEntry)
     where TValue : notnull
   {
     var entryData = cacheEntry.GetStoredData();

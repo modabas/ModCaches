@@ -5,7 +5,7 @@
 /// </summary>
 /// <typeparam name="TValue">Type of the cache data.</typeparam>
 /// <typeparam name="TCreateArgs">Type of argument to be used during cache value generation.</typeparam>
-public interface IInClusterCacheGrain<TValue, TCreateArgs> : IBaseInClusterCacheGrain<TValue>
+public interface ICacheGrain<TValue, TCreateArgs> : IBaseInClusterCacheGrain<TValue>
   where TValue : notnull
   where TCreateArgs : notnull
 {
@@ -19,7 +19,7 @@ public interface IInClusterCacheGrain<TValue, TCreateArgs> : IBaseInClusterCache
   Task<TValue> GetOrCreateAsync(
     TCreateArgs? createArgs,
     CancellationToken ct,
-    InClusterCacheEntryOptions? options = null);
+    CacheGrainEntryOptions? options = null);
 
   /// <summary>
   /// Asynchronously generates a new entry using implemented value generation method.
@@ -31,14 +31,14 @@ public interface IInClusterCacheGrain<TValue, TCreateArgs> : IBaseInClusterCache
   Task<TValue> CreateAsync(
     TCreateArgs? createArgs,
     CancellationToken ct,
-    InClusterCacheEntryOptions? options = null);
+    CacheGrainEntryOptions? options = null);
 }
 
 /// <summary>
 /// Represents an in-cluster cache grain.
 /// </summary>
 /// <typeparam name="TValue">Type of the cache data.</typeparam>
-public interface IInClusterCacheGrain<TValue> : IBaseInClusterCacheGrain<TValue>
+public interface ICacheGrain<TValue> : IBaseInClusterCacheGrain<TValue>
   where TValue : notnull
 {
   /// <summary>
@@ -49,7 +49,7 @@ public interface IInClusterCacheGrain<TValue> : IBaseInClusterCacheGrain<TValue>
   /// <returns>The data, either from cache or the underlying value generation method.</returns>
   Task<TValue> GetOrCreateAsync(
     CancellationToken ct,
-    InClusterCacheEntryOptions? options = null);
+    CacheGrainEntryOptions? options = null);
 
   /// <summary>
   /// Asynchronously generates a new entry using implemented value generation method.
@@ -59,5 +59,5 @@ public interface IInClusterCacheGrain<TValue> : IBaseInClusterCacheGrain<TValue>
   /// <returns>The data from the underlying value generation method.</returns>
   Task<TValue> CreateAsync(
     CancellationToken ct,
-    InClusterCacheEntryOptions? options = null);
+    CacheGrainEntryOptions? options = null);
 }

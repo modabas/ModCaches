@@ -4,7 +4,7 @@ using ModEndpoints.Core;
 namespace ShowcaseApi;
 
 [GenerateSerializer]
-internal struct WeatherForecastCacheItem
+internal struct WeatherForecastCacheValue
 {
   [Id(0)]
   public DateOnly Date { get; init; }
@@ -17,10 +17,10 @@ internal struct WeatherForecastCacheItem
 [GenerateSerializer]
 internal record WeatherForecastCacheArgs(int DayCount);
 
-internal interface IWeatherForecastCacheGrain : IInClusterCacheGrain<WeatherForecastCacheItem[], WeatherForecastCacheArgs>;
+internal interface IWeatherForecastCacheGrain : ICacheGrain<WeatherForecastCacheValue[], WeatherForecastCacheArgs>;
 
 internal class WeatherForecastCacheGrain :
-  VolatileInClusterCacheGrain<WeatherForecastCacheItem[], WeatherForecastCacheArgs>,
+  VolatileCacheGrain<WeatherForecastCacheValue[], WeatherForecastCacheArgs>,
   IWeatherForecastCacheGrain
 {
   private static readonly string[] _summaries = ["Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"];
@@ -30,16 +30,16 @@ internal class WeatherForecastCacheGrain :
   {
   }
 
-  protected override async Task<WeatherForecastCacheItem[]> GenerateValueAsync(
+  protected override async Task<WeatherForecastCacheValue[]> GenerateValueAsync(
     WeatherForecastCacheArgs? args,
-    InClusterCacheEntryOptions options,
+    CacheGrainEntryOptions options,
     CancellationToken ct)
   {
     var dayCount = args?.DayCount ?? 5;
     // Simulate a long-running operation
     await Task.Delay(5000, ct);
     return (Enumerable.Range(1, dayCount).Select(index =>
-      new WeatherForecastCacheItem
+      new WeatherForecastCacheValue
       {
         Date = DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
         TemperatureC = Random.Shared.Next(-20, 55),

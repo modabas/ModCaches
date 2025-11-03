@@ -1,10 +1,14 @@
 ﻿namespace ModCaches.Orleans.Server.InCluster;
 
+/// <summary>
+/// Holds the persistent state for an in-cluster cache grain.
+/// </summary>
+/// <typeparam name="TValue"></typeparam>
 [GenerateSerializer]
-public class InClusterCacheState<T> where T : notnull
+public class CacheState<TValue> where TValue : notnull
 {
   [Id(0)]
-  public required T Value { get; set; }
+  public required TValue Value { get; set; }
   [Id(1)]
   public DateTimeOffset? AbsoluteExpiration { get; set; }
   [Id(2)]

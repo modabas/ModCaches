@@ -1,7 +1,7 @@
 ﻿namespace ModCaches.Orleans.Server.InCluster;
 
 /// <summary>
-/// Represents an in-cluster cache grain.
+/// Represents base methods of an in-cluster cache grain.
 /// </summary>
 /// <typeparam name="TValue">Type of the cache data.</typeparam>
 public interface IBaseInClusterCacheGrain<TValue> : IGrainWithStringKey
@@ -45,5 +45,5 @@ public interface IBaseInClusterCacheGrain<TValue> : IGrainWithStringKey
   Task SetAsync(
     TValue value,
     CancellationToken ct,
-    InClusterCacheEntryOptions? options = null);
+    CacheGrainEntryOptions? options = null);
 }
