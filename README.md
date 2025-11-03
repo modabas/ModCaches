@@ -7,7 +7,7 @@
 
 - Extended Distributed Cache, a wrapper around IDistributedCache to simplify usage of distributed cache implementations and provide in-process cache stampede protection,
 - Microsoft Orleans IDistributedCache implementations, both volatile and persisted, along with services to use from an Orleans client application or within Orleans server,
-- Microsoft Orleans in-cluster cache grain implementations, both volatile and persisted, that leverages Orleans' built-in capabilities for concurrency and serialization. Encapsulates cache value generation and caching in one unit and provides easy to use methods to interact with.
+- Microsoft Orleans in-cluster abstract cache grain implementations, both volatile and persisted, that leverages Orleans' built-in capabilities for concurrency and serialization. Encapsulates cache value generation and caching in one unit and provides easy to use methods to interact with.
 
 ## Documentation
 
