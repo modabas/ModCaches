@@ -7,6 +7,13 @@ namespace ShowcaseApi;
 internal struct WeatherForecastCacheValue
 {
   [Id(0)]
+  public WeatherForecastCacheValueItem[] Items { get; init; }
+}
+
+[GenerateSerializer]
+internal struct WeatherForecastCacheValueItem
+{
+  [Id(0)]
   public DateOnly Date { get; init; }
   [Id(1)]
   public int TemperatureC { get; init; }
@@ -17,10 +24,10 @@ internal struct WeatherForecastCacheValue
 [GenerateSerializer]
 internal record WeatherForecastCacheArgs(int DayCount);
 
-internal interface IWeatherForecastCacheGrain : ICacheGrain<WeatherForecastCacheValue[], WeatherForecastCacheArgs>;
+internal interface IWeatherForecastCacheGrain : ICacheGrain<WeatherForecastCacheValue, WeatherForecastCacheArgs>;
 
 internal class WeatherForecastCacheGrain :
-  VolatileCacheGrain<WeatherForecastCacheValue[], WeatherForecastCacheArgs>,
+  VolatileCacheGrain<WeatherForecastCacheValue, WeatherForecastCacheArgs>,
   IWeatherForecastCacheGrain
 {
   private static readonly string[] _summaries = ["Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"];
@@ -30,7 +37,7 @@ internal class WeatherForecastCacheGrain :
   {
   }
 
-  protected override async Task<WeatherForecastCacheValue[]> GenerateValueAsync(
+  protected override async Task<WeatherForecastCacheValue> GenerateValueAsync(
     WeatherForecastCacheArgs? args,
     CacheGrainEntryOptions options,
     CancellationToken ct)
@@ -38,13 +45,15 @@ internal class WeatherForecastCacheGrain :
     var dayCount = args?.DayCount ?? 5;
     // Simulate a long-running operation
     await Task.Delay(5000, ct);
-    return (Enumerable.Range(1, dayCount).Select(index =>
-      new WeatherForecastCacheValue
+    return new WeatherForecastCacheValue()
+    {
+      Items = Enumerable.Range(1, dayCount).Select(index => new WeatherForecastCacheValueItem()
       {
         Date = DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
         TemperatureC = Random.Shared.Next(-20, 55),
         Summary = _summaries[Random.Shared.Next(_summaries.Length)]
-      }).ToArray());
+      }).ToArray()
+    };
   }
 }
 
@@ -64,8 +73,9 @@ internal class GetWeatherForecast2(IGrainFactory grainFactory) : MinimalEndpoint
     var args = new WeatherForecastCacheArgs(7);
 
     return (await grainFactory
-        .GetGrain<IWeatherForecastCacheGrain>("weatherforecast")
-        .GetOrCreateAsync(args, ct))
+      .GetGrain<IWeatherForecastCacheGrain>("weatherforecast")
+      .GetOrCreateAsync(args, ct))
+      .Items
       .Select(x => new WeatherForecast(
         Date: x.Date,
         TemperatureC: x.TemperatureC,
