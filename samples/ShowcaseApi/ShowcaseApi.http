@@ -4,3 +4,8 @@ GET {{ShowcaseApi_HostAddress}}/weatherforecast/
 Accept: application/json
 
 ###
+
+GET {{ShowcaseApi_HostAddress}}/weatherforecast2/
+Accept: application/json
+
+###

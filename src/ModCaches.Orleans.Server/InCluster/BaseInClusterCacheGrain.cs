@@ -5,7 +5,8 @@ using ModCaches.Orleans.Server.Common;
 namespace ModCaches.Orleans.Server.InCluster;
 
 /// <summary>
-/// Intended to be used as an internal base class for in-cluster cache grain implementations like volatile and persistent in-cluster cache grains.
+/// Intended to be used as an internal base class for in-cluster cache grain implementations like volatile and persistent in-cluster cache grains. 
+/// Don't use directly, use derived classes instead.
 /// </summary>
 /// <typeparam name="TValue"></typeparam>
 public abstract class BaseInClusterCacheGrain<TValue>
@@ -16,17 +17,22 @@ public abstract class BaseInClusterCacheGrain<TValue>
 
   internal Func<DateTimeOffset> TimeProviderFunc { get; }
 
-  internal IOptions<InClusterCacheEntryOptions> DefaultOptions { get; }
+  internal CacheGrainEntryOptions DefaultEntryOptions { get; }
 
   internal bool HasSlidingExpiration =>
     CacheEntry?.HasSlidingExpiration ?? false;
 
-  public BaseInClusterCacheGrain(IServiceProvider serviceProvider)
+  /// <summary>
+  /// Marked as internal to prevent direct usage. Use derived classes instead.
+  /// </summary>
+  /// <param name="serviceProvider"></param>
+  internal BaseInClusterCacheGrain(IServiceProvider serviceProvider)
   {
     var timeProvider = serviceProvider.GetService<TimeProvider>() ?? TimeProvider.System;
     TimeProviderFunc = () => timeProvider.GetUtcNow();
-    DefaultOptions = serviceProvider.GetService<IOptions<InClusterCacheEntryOptions>>() ??
-      Options.Create(new InClusterCacheEntryOptions());
+    var defaultOptions = serviceProvider.GetService<IOptions<InClusterCacheOptions>>() ??
+      Options.Create(new InClusterCacheOptions());
+    DefaultEntryOptions = defaultOptions.Value.ToCacheGrainEntryOptions();
   }
 
   public virtual Task RemoveAsync(CancellationToken ct)
@@ -78,9 +84,9 @@ public abstract class BaseInClusterCacheGrain<TValue>
   public virtual Task SetAsync(
     TValue value,
     CancellationToken ct,
-    InClusterCacheEntryOptions? options = null)
+    CacheGrainEntryOptions? options = null)
   {
-    var entryOptions = options ?? DefaultOptions.Value;
+    var entryOptions = options ?? DefaultEntryOptions;
     CacheEntry = new CacheEntry<TValue>(
       value,
       entryOptions.ToOrleansCacheEntryOptions(),

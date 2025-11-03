@@ -5,32 +5,32 @@ using ModCaches.Orleans.Server.InCluster;
 namespace ModCaches.Orleans.Server.Tests.InCluster;
 
 [Collection(ClusterCollection.Name)]
-public class PersistentInClusterCacheTestGrainTests
+public class PersistentCacheTestGrainTests
 {
   private readonly ClusterFixture _fixture;
   private const string DefaultData = "persistent in cluster cache";
 
-  public PersistentInClusterCacheTestGrainTests(ClusterFixture fixture)
+  public PersistentCacheTestGrainTests(ClusterFixture fixture)
   {
     _fixture = fixture;
   }
 
   private GrainId GetGrainId(string key)
   {
-    return OrleansHelpers.GetGrainIdFactory(_fixture).CreateGrainId<IPersistentInClusterCacheTestGrain>(key);
+    return OrleansHelpers.GetGrainIdFactory(_fixture).CreateGrainId<IPersistentCacheTestGrain>(key);
   }
 
-  private async Task<GrainState<InClusterCacheState<InClusterTestCacheState>>> GetStateAsync(GrainId grainId)
+  private async Task<GrainState<CacheState<CacheTestValue>>> GetStateAsync(GrainId grainId)
   {
-    GrainState<InClusterCacheState<InClusterTestCacheState>> state = new();
-    await OrleansHelpers.GetDefaultGrainStorage(_fixture).ReadStateAsync(nameof(PersistentInClusterCacheTestGrain), grainId, state);
+    GrainState<CacheState<CacheTestValue>> state = new();
+    await OrleansHelpers.GetDefaultGrainStorage(_fixture).ReadStateAsync(nameof(PersistentCacheTestGrain), grainId, state);
     return state;
   }
 
-  private async Task<GrainState<InClusterCacheState<InClusterTestCacheState>>> SetStateAsync(GrainId grainId, InClusterCacheState<InClusterTestCacheState> cacheState)
+  private async Task<GrainState<CacheState<CacheTestValue>>> SetStateAsync(GrainId grainId, CacheState<CacheTestValue> cacheState)
   {
-    GrainState<InClusterCacheState<InClusterTestCacheState>> state = new(cacheState);
-    await OrleansHelpers.GetDefaultGrainStorage(_fixture).WriteStateAsync(nameof(PersistentInClusterCacheTestGrain), grainId, state);
+    GrainState<CacheState<CacheTestValue>> state = new(cacheState);
+    await OrleansHelpers.GetDefaultGrainStorage(_fixture).WriteStateAsync(nameof(PersistentCacheTestGrain), grainId, state);
     return state;
   }
 
@@ -38,7 +38,7 @@ public class PersistentInClusterCacheTestGrainTests
   public async Task GetOrCreateAsync_ReturnsGeneratedValue_WhenNotSetAsync()
   {
     var grainId = GetGrainId("GetOrCreate_ReturnsGeneratedValue");
-    var grain = _fixture.Cluster.GrainFactory.GetGrain<IPersistentInClusterCacheTestGrain>(grainId);
+    var grain = _fixture.Cluster.GrainFactory.GetGrain<IPersistentCacheTestGrain>(grainId);
     var result = await grain.GetOrCreateAsync(CancellationToken.None);
     result.Data.Should().Be(DefaultData);
   }
@@ -47,7 +47,7 @@ public class PersistentInClusterCacheTestGrainTests
   public async Task CreateAsync_Then_GetOrCreateAsync_ReturnsValueAsync()
   {
     var grainId = GetGrainId("Create_Then_GetOrCreate");
-    var grain = _fixture.Cluster.GrainFactory.GetGrain<IPersistentInClusterCacheTestGrain>(grainId);
+    var grain = _fixture.Cluster.GrainFactory.GetGrain<IPersistentCacheTestGrain>(grainId);
     // Force creation
     var created = await grain.CreateAsync(CancellationToken.None);
     created.Data.Should().Be(DefaultData);
@@ -67,8 +67,8 @@ public class PersistentInClusterCacheTestGrainTests
   public async Task SetAsync_Then_TryGetAsync_ReturnsValueAsync()
   {
     var grainId = GetGrainId("Set_Then_TryGet");
-    var grain = _fixture.Cluster.GrainFactory.GetGrain<IPersistentInClusterCacheTestGrain>(grainId);
-    await grain.SetAsync(new InClusterTestCacheState() { Data = "custom-value" }, CancellationToken.None, null);
+    var grain = _fixture.Cluster.GrainFactory.GetGrain<IPersistentCacheTestGrain>(grainId);
+    await grain.SetAsync(new CacheTestValue() { Data = "custom-value" }, CancellationToken.None, null);
 
     var (found, value) = await grain.TryGetAsync(CancellationToken.None);
     found.Should().BeTrue();
@@ -83,8 +83,8 @@ public class PersistentInClusterCacheTestGrainTests
   public async Task RemoveAsync_RemovesValueSoTryGetReturnsNullAsync()
   {
     var grainId = GetGrainId("Remove_RemovesValue");
-    var grain = _fixture.Cluster.GrainFactory.GetGrain<IPersistentInClusterCacheTestGrain>(grainId);
-    await grain.SetAsync(new InClusterTestCacheState() { Data = "to-be-removed" }, CancellationToken.None, null);
+    var grain = _fixture.Cluster.GrainFactory.GetGrain<IPersistentCacheTestGrain>(grainId);
+    await grain.SetAsync(new CacheTestValue() { Data = "to-be-removed" }, CancellationToken.None, null);
 
     // ensure set
     var (foundBefore, _) = await grain.TryGetAsync(CancellationToken.None);
@@ -109,13 +109,13 @@ public class PersistentInClusterCacheTestGrainTests
   public async Task RefreshAsync_ExtendsSlidingLifetime_WhenNotExpiredAsync()
   {
     var grainId = GetGrainId("Refresh_Extends");
-    var grain = _fixture.Cluster.GrainFactory.GetGrain<IPersistentInClusterCacheTestGrain>(grainId);
-    var options = new InClusterCacheEntryOptions
+    var grain = _fixture.Cluster.GrainFactory.GetGrain<IPersistentCacheTestGrain>(grainId);
+    var options = new CacheGrainEntryOptions
     {
       SlidingExpiration = TimeSpan.FromMilliseconds(750)
     };
 
-    await grain.SetAsync(new InClusterTestCacheState() { Data = "refresh-test" }, CancellationToken.None, options);
+    await grain.SetAsync(new CacheTestValue() { Data = "refresh-test" }, CancellationToken.None, options);
 
     // Wait a bit but not until expiration
     await Task.Delay(TimeSpan.FromMilliseconds(500));
@@ -140,13 +140,13 @@ public class PersistentInClusterCacheTestGrainTests
   public async Task RefreshAsync_DoesNotExtendAbsoluteLifetime_WhenNotExpiredAsync()
   {
     var grainId = GetGrainId("Refresh_DoesNotExtend");
-    var grain = _fixture.Cluster.GrainFactory.GetGrain<IPersistentInClusterCacheTestGrain>(grainId);
-    var options = new InClusterCacheEntryOptions
+    var grain = _fixture.Cluster.GrainFactory.GetGrain<IPersistentCacheTestGrain>(grainId);
+    var options = new CacheGrainEntryOptions
     {
       AbsoluteExpirationRelativeToNow = TimeSpan.FromMilliseconds(750)
     };
 
-    await grain.SetAsync(new InClusterTestCacheState() { Data = "refresh-test" }, CancellationToken.None, options);
+    await grain.SetAsync(new CacheTestValue() { Data = "refresh-test" }, CancellationToken.None, options);
 
     // Wait a bit but not until expiration
     await Task.Delay(TimeSpan.FromMilliseconds(500));
@@ -172,14 +172,14 @@ public class PersistentInClusterCacheTestGrainTests
   public async Task RefreshAsync_Removes_WhenExpiredAsync()
   {
     var grainId = GetGrainId("Refresh_Removes_WhenExpired");
-    var grain = _fixture.Cluster.GrainFactory.GetGrain<IPersistentInClusterCacheTestGrain>(grainId);
+    var grain = _fixture.Cluster.GrainFactory.GetGrain<IPersistentCacheTestGrain>(grainId);
 
-    var options = new InClusterCacheEntryOptions
+    var options = new CacheGrainEntryOptions
     {
       AbsoluteExpirationRelativeToNow = TimeSpan.FromMilliseconds(50)
     };
 
-    await grain.SetAsync(new InClusterTestCacheState() { Data = "refresh-test" }, CancellationToken.None, options);
+    await grain.SetAsync(new CacheTestValue() { Data = "refresh-test" }, CancellationToken.None, options);
 
     // Wait for the entry to expire
     await Task.Delay(150);
@@ -202,13 +202,13 @@ public class PersistentInClusterCacheTestGrainTests
   public async Task PeekAsync_DoesNotExtendSlidingLifetimeAsync()
   {
     var grainId = GetGrainId("Peek_DoesNotExtend");
-    var grain = _fixture.Cluster.GrainFactory.GetGrain<IPersistentInClusterCacheTestGrain>(grainId);
-    var options = new InClusterCacheEntryOptions
+    var grain = _fixture.Cluster.GrainFactory.GetGrain<IPersistentCacheTestGrain>(grainId);
+    var options = new CacheGrainEntryOptions
     {
       SlidingExpiration = TimeSpan.FromMilliseconds(750)
     };
 
-    await grain.SetAsync(new InClusterTestCacheState() { Data = "peek-test" }, CancellationToken.None, options);
+    await grain.SetAsync(new CacheTestValue() { Data = "peek-test" }, CancellationToken.None, options);
 
     // Wait a bit but not until expiration
     await Task.Delay(TimeSpan.FromMilliseconds(500));
@@ -236,8 +236,8 @@ public class PersistentInClusterCacheTestGrainTests
   public async Task CachedValue_Expires_AfterAbsoluteExpirationRelativeToNowAsync()
   {
     var grainId = GetGrainId("Expires_After_AbsoluteExpirationRelativeToNow");
-    var grain = _fixture.Cluster.GrainFactory.GetGrain<IPersistentInClusterCacheTestGrain>(grainId);
-    var options = new InClusterCacheEntryOptions
+    var grain = _fixture.Cluster.GrainFactory.GetGrain<IPersistentCacheTestGrain>(grainId);
+    var options = new CacheGrainEntryOptions
     {
       AbsoluteExpirationRelativeToNow = TimeSpan.FromMilliseconds(100)
     };
@@ -261,15 +261,15 @@ public class PersistentInClusterCacheTestGrainTests
   public async Task OnActivate_Removes_StaleStateAsync()
   {
     var grainId = GetGrainId("OnActivate_Removes_StaleState");
-    InClusterTestCacheState data = new() { Data = "stale-data" };
-    var cacheState = new InClusterCacheState<InClusterTestCacheState>
+    CacheTestValue data = new() { Data = "stale-data" };
+    var cacheState = new CacheState<CacheTestValue>
     {
       Value = data,
       AbsoluteExpiration = DateTimeOffset.UtcNow.AddMilliseconds(-500),
       LastAccessed = DateTimeOffset.UtcNow.AddMilliseconds(-1000)
     };
     await SetStateAsync(grainId, cacheState);
-    var grain = _fixture.Cluster.GrainFactory.GetGrain<IPersistentInClusterCacheTestGrain>(grainId);
+    var grain = _fixture.Cluster.GrainFactory.GetGrain<IPersistentCacheTestGrain>(grainId);
 
     var (foundAfter, valueAfter) = await grain.TryGetAsync(CancellationToken.None);
     foundAfter.Should().BeFalse();
@@ -284,15 +284,15 @@ public class PersistentInClusterCacheTestGrainTests
   public async Task OnActivate_Keeps_ValidStateAsync()
   {
     var grainId = GetGrainId("OnActivate_Keeps_ValidState");
-    InClusterTestCacheState data = new() { Data = "valid-data" };
-    var cacheState = new InClusterCacheState<InClusterTestCacheState>
+    CacheTestValue data = new() { Data = "valid-data" };
+    var cacheState = new CacheState<CacheTestValue>
     {
       Value = data,
       AbsoluteExpiration = DateTimeOffset.UtcNow.AddSeconds(3600),
       LastAccessed = DateTimeOffset.UtcNow.AddMilliseconds(-1000)
     };
     await SetStateAsync(grainId, cacheState);
-    var grain = _fixture.Cluster.GrainFactory.GetGrain<IPersistentInClusterCacheTestGrain>(grainId);
+    var grain = _fixture.Cluster.GrainFactory.GetGrain<IPersistentCacheTestGrain>(grainId);
 
     var (found, value) = await grain.TryGetAsync(CancellationToken.None);
     found.Should().BeTrue();
@@ -307,9 +307,9 @@ public class PersistentInClusterCacheTestGrainTests
   public async Task State_IsNotSavedAfterGet_IfDoesntHaveSlidingExpirationAsync()
   {
     var grainId = GetGrainId("State_IsNotSavedAfterGet_IfDoesntHaveSlidingExpiration");
-    var grain = _fixture.Cluster.GrainFactory.GetGrain<IPersistentInClusterCacheTestGrain>(grainId);
+    var grain = _fixture.Cluster.GrainFactory.GetGrain<IPersistentCacheTestGrain>(grainId);
     var data = ImmutableArray.Create<byte>(1, 2, 3, 4);
-    var options = new InClusterCacheEntryOptions
+    var options = new CacheGrainEntryOptions
     {
       AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5),
     };
@@ -334,9 +334,9 @@ public class PersistentInClusterCacheTestGrainTests
   public async Task State_IsNotSavedAfterRefresh_IfDoesntHaveSlidingExpirationAsync()
   {
     var grainId = GetGrainId("State_IsNotSavedAfterRefresh_IfDoesntHaveSlidingExpiration");
-    var grain = _fixture.Cluster.GrainFactory.GetGrain<IPersistentInClusterCacheTestGrain>(grainId);
+    var grain = _fixture.Cluster.GrainFactory.GetGrain<IPersistentCacheTestGrain>(grainId);
     var data = ImmutableArray.Create<byte>(1, 2, 3, 4);
-    var options = new InClusterCacheEntryOptions
+    var options = new CacheGrainEntryOptions
     {
       AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5),
     };
@@ -359,9 +359,9 @@ public class PersistentInClusterCacheTestGrainTests
   public async Task State_IsNotSavedAfterTryGet_IfDoesntHaveSlidingExpirationAsync()
   {
     var grainId = GetGrainId("State_IsNotSavedAfterTryGet_IfDoesntHaveSlidingExpiration");
-    var grain = _fixture.Cluster.GrainFactory.GetGrain<IPersistentInClusterCacheTestGrain>(grainId);
+    var grain = _fixture.Cluster.GrainFactory.GetGrain<IPersistentCacheTestGrain>(grainId);
     var data = ImmutableArray.Create<byte>(1, 2, 3, 4);
-    var options = new InClusterCacheEntryOptions
+    var options = new CacheGrainEntryOptions
     {
       AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5),
     };
@@ -387,9 +387,9 @@ public class PersistentInClusterCacheTestGrainTests
   public async Task State_IsSavedAfterGet_IfHasSlidingExpirationAsync()
   {
     var grainId = GetGrainId("State_IsSavedAfterGet_IfHasSlidingExpiration");
-    var grain = _fixture.Cluster.GrainFactory.GetGrain<IPersistentInClusterCacheTestGrain>(grainId);
+    var grain = _fixture.Cluster.GrainFactory.GetGrain<IPersistentCacheTestGrain>(grainId);
     var data = ImmutableArray.Create<byte>(1, 2, 3, 4);
-    var options = new InClusterCacheEntryOptions
+    var options = new CacheGrainEntryOptions
     {
       AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5),
       SlidingExpiration = TimeSpan.FromMinutes(2)
@@ -415,9 +415,9 @@ public class PersistentInClusterCacheTestGrainTests
   public async Task State_IsSavedAfterRefresh_IfHasSlidingExpirationAsync()
   {
     var grainId = GetGrainId("State_IsSavedAfterRefresh_IfHasSlidingExpiration");
-    var grain = _fixture.Cluster.GrainFactory.GetGrain<IPersistentInClusterCacheTestGrain>(grainId);
+    var grain = _fixture.Cluster.GrainFactory.GetGrain<IPersistentCacheTestGrain>(grainId);
     var data = ImmutableArray.Create<byte>(1, 2, 3, 4);
-    var options = new InClusterCacheEntryOptions
+    var options = new CacheGrainEntryOptions
     {
       AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5),
       SlidingExpiration = TimeSpan.FromMinutes(2)
@@ -441,9 +441,9 @@ public class PersistentInClusterCacheTestGrainTests
   public async Task State_IsSavedAfterTryGet_IfHasSlidingExpirationAsync()
   {
     var grainId = GetGrainId("State_IsSavedAfterTryGet_IfHasSlidingExpiration");
-    var grain = _fixture.Cluster.GrainFactory.GetGrain<IPersistentInClusterCacheTestGrain>(grainId);
+    var grain = _fixture.Cluster.GrainFactory.GetGrain<IPersistentCacheTestGrain>(grainId);
     var data = ImmutableArray.Create<byte>(1, 2, 3, 4);
-    var options = new InClusterCacheEntryOptions
+    var options = new CacheGrainEntryOptions
     {
       AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5),
       SlidingExpiration = TimeSpan.FromMinutes(2)

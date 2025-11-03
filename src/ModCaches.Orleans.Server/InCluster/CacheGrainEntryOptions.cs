@@ -4,7 +4,7 @@
 /// Provides the cache options for the cache entry in an in-cluster cache grain.
 /// </summary>
 [GenerateSerializer]
-public class InClusterCacheEntryOptions
+public class CacheGrainEntryOptions
 {
   /// <summary>
   /// Gets or sets an absolute expiration date for the cache entry.

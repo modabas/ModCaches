@@ -30,27 +30,27 @@ builder.Services.AddOrleansInClusterCache(options =>
 });
 ```
 
-> **Note**: `Action<InClusterCacheEntryOptions>? setupAction` parameter is optional and is used to configure default InClusterCacheEntryOptions value.
+> **Note**: `Action<InClusterCacheOptions>? setupAction` parameter is optional and is used to configure default options.
 
 ## 🧩 Implementation
 
-Caching a value within InCluster cache grains require inheriting one of the abstract base cache grains and implementing necessary GenerateValueAsync method. Type of the base cache grains are:
+Caching a value within in-cluster cache grains require inheriting one of the abstract base cache grains and implementing necessary GenerateValueAsync method. Type of the base cache grains are:
 
-- `VolatileInClusterCacheGrain<TValue>` or `VolatileInClusterCacheGrain<TValue, TCreateArgs>` for storing data in memory,
-- `PersistentInClusterCacheGrain<TValue>` or `PersistentInClusterCacheGrain<TValue, TCreateArgs>` for also persisting it as grain state,
+- `VolatileCacheGrain<TValue>` or `VolatileCacheGrain<TValue, TCreateArgs>` for storing data in memory,
+- `PersistentCacheGrain<TValue>` or `PersistentCacheGrain<TValue, TCreateArgs>` for also persisting it as grain state,
 
-> **Note**: Creating a marker interface inheriting `IInClusterCacheGrain<TValue>` or `IInClusterCacheGrain<TValue, TCreateArgs>` is helpful to organize and call grains.
+> **Note**: Creating a marker interface inheriting `ICacheGrain<TValue>` or `ICacheGrain<TValue, TCreateArgs>` is helpful to organize and call grains.
 
 > **Note**: Persistent cache requires a configured grain storage on Microsoft Orleans server.
 
-Sample below inherits `VolatileInClusterCacheGrain<TValue, TCreateArgs>` and uses marker interface `IWeatherForecastCacheGrain`:
+Sample below inherits `VolatileCacheGrain<TValue, TCreateArgs>` and uses marker interface `IWeatherForecastCacheGrain`:
 ``` csharp
 //marker interface
-internal interface IWeatherForecastCacheGrain : IInClusterCacheGrain<WeatherForecastCacheItem[], WeatherForecastCacheArgs>;
+internal interface IWeatherForecastCacheGrain : ICacheGrain<WeatherForecastCacheValue, WeatherForecastCacheArgs>;
 
 //grain implementation
 internal class WeatherForecastCacheGrain :
-  VolatileInClusterCacheGrain<WeatherForecastCacheItem[], WeatherForecastCacheArgs>,
+  VolatileCacheGrain<WeatherForecastCacheValue, WeatherForecastCacheArgs>,
   IWeatherForecastCacheGrain
 {
   private static readonly string[] _summaries = ["Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"];
@@ -60,29 +60,35 @@ internal class WeatherForecastCacheGrain :
   {
   }
 
-  protected override async Task<WeatherForecastCacheItem[]> GenerateValueAsync(
+  protected override async Task<WeatherForecastCacheValue> GenerateValueAsync(
     WeatherForecastCacheArgs? args,
-    InClusterCacheEntryOptions options,
+    CacheGrainEntryOptions options,
     CancellationToken ct)
   {
-    //Create cache value
-    //Invoked when GetOrCreate or Create methods are called
-
     var dayCount = args?.DayCount ?? 5;
     // Simulate a long-running operation
     await Task.Delay(5000, ct);
-    return (Enumerable.Range(1, dayCount).Select(index =>
-      new WeatherForecastCacheItem
+    return new WeatherForecastCacheValue()
+    {
+      Items = Enumerable.Range(1, dayCount).Select(index => new WeatherForecastCacheValueItem()
       {
         Date = DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
         TemperatureC = Random.Shared.Next(-20, 55),
         Summary = _summaries[Random.Shared.Next(_summaries.Length)]
-      }).ToArray());
+      }).ToArray()
+    };
   }
 }
 
 [GenerateSerializer]
-internal struct WeatherForecastCacheItem
+internal struct WeatherForecastCacheValue
+{
+  [Id(0)]
+  public WeatherForecastCacheValueItem[] Items { get; init; }
+}
+
+[GenerateSerializer]
+internal struct WeatherForecastCacheValueItem
 {
   [Id(0)]
   public DateOnly Date { get; init; }
@@ -96,28 +102,28 @@ internal struct WeatherForecastCacheItem
 internal record WeatherForecastCacheArgs(int DayCount);
 ```
 
-Creating same cache grain with persistence requires implementation of `PersistentInClusterCacheGrain<TValue, TCreateArgs>` instead:
+Creating same cache grain with persistence requires implementation of `PersistentCacheGrain<TValue, TCreateArgs>` instead:
 ``` csharp
 //marker interface (same as above)
-internal interface IWeatherForecastCacheGrain : IInClusterCacheGrain<WeatherForecastCacheItem[], WeatherForecastCacheArgs>;
+internal interface IWeatherForecastCacheGrain : ICacheGrain<WeatherForecastCacheValue, WeatherForecastCacheArgs>;
 
 //grain implementation
 internal class WeatherForecastCacheGrain :
-  PersistentInClusterCacheGrain<WeatherForecastCacheItem[], WeatherForecastCacheArgs>,
+  PersistentCacheGrain<WeatherForecastCacheValue, WeatherForecastCacheArgs>,
   IWeatherForecastCacheGrain
 {
   private static readonly string[] _summaries = ["Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"];
 
   public WeatherForecastCacheGrain(
     IServiceProvider serviceProvider, 
-    [PersistentState(nameof(WeatherForecastCacheGrain))]IPersistentState<InClusterCacheState<WeatherForecastCacheItem[]>> persistentState)
+    [PersistentState(nameof(WeatherForecastCacheGrain))]IPersistentState<CacheState<WeatherForecastCacheValue>> persistentState)
     : base(serviceProvider, persistentState)
   {
   }
 
-  protected override async Task<WeatherForecastCacheItem[]> GenerateValueAsync(
+  protected override async Task<WeatherForecastCacheValue> GenerateValueAsync(
     WeatherForecastCacheArgs? args,
-    InClusterCacheEntryOptions options,
+    CacheGrainEntryOptions options,
     CancellationToken ct)
   {
     //Create cache value
