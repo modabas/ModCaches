@@ -81,14 +81,14 @@ public abstract class BaseInClusterCacheGrain<TValue>
     return Task.FromResult<(bool, TValue?)>((false, default));
   }
 
-  public virtual Task SetAsync(
+  public virtual async Task SetAsync(
     TValue value,
     CancellationToken ct,
     CacheGrainEntryOptions? options = null)
   {
-    var entryOptions = options ?? DefaultEntryOptions;
+    var (entryValue, entryOptions) = await ProcessValueAndOptionsAsync(value, options ?? DefaultEntryOptions, ct);
     CacheEntry = new CacheEntry<TValue>(
-      value,
+      entryValue,
       entryOptions.ToOrleansCacheEntryOptions(),
       TimeProviderFunc);
     // Delay deactivation to ensure it remains active while it has a valid cache entry
@@ -96,6 +96,18 @@ public abstract class BaseInClusterCacheGrain<TValue>
     {
       DelayDeactivation(expiresIn.Value);
     }
-    return Task.CompletedTask;
+    return;
+  }
+
+  /// <summary>
+  /// Used by SetAsync method before setting cache value. Can be used to process/override cache value and options.
+  /// </summary>
+  /// <param name="value">The value to set in the cache.</param>
+  /// <param name="options">The cache options for the value.</param>
+  /// <param name="ct">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
+  /// <returns>A tuple, data to be cached and cache options that will be used for the cache item.</returns>
+  protected virtual Task<(TValue, CacheGrainEntryOptions)> ProcessValueAndOptionsAsync(TValue value, CacheGrainEntryOptions options, CancellationToken ct)
+  {
+    return Task.FromResult((value, options));
   }
 }

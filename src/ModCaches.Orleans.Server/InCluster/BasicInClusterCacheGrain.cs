@@ -66,7 +66,7 @@ public abstract class BasicInClusterCacheGrain<TValue>
   }
 
   /// <summary>
-  /// Wrapper method over GenerateValueAsync method. Can be used to override cache options for the value.
+  /// Wrapper method over GenerateValueAsync method used by GetOrCreateAsync and CreateAsync methods while creating a new cache value. Can be used to override cache options for the value.
   /// </summary>
   /// <param name="options">The cache options for the value.</param>
   /// <param name="ct">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
@@ -156,7 +156,7 @@ public abstract class BasicInClusterCacheGrain<TValue, TCreateArgs>
   }
 
   /// <summary>
-  /// Wrapper method over GenerateValueAsync method. Can be used to override cache options for the value.
+  /// Wrapper method over GenerateValueAsync method used by GetOrCreateAsync and CreateAsync methods while creating a new cache value. Can be used to override cache options for the value.
   /// </summary>
   /// <param name="args">Additional arguments to be used for value generation.</param>
   /// <param name="options">The cache options for the value.</param>
