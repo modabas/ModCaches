@@ -176,9 +176,9 @@ protected override async Task<(WeatherForecastCacheValue, CacheGrainEntryOptions
 ```
 
 ### Processing value and options during set value operation
-When setting a cache value directly via `SetAsync` method, the value and options can be processed/modified by overriding `ProcessValueAndOptionsAsync` method.
+When setting a cache value directly via `SetAsync` method, the value and options parameters passed to the method can be processed/modified by overriding `PreprocessSetAsync` method.
 ``` csharp
-protected override async Task<(WeatherForecastCacheValue, CacheGrainEntryOptions)> ProcessValueAndOptionsAsync(
+protected override async Task<(WeatherForecastCacheValue, CacheGrainEntryOptions)> PreprocessSetAsync(
     WeatherForecastCacheValue value,
     CacheGrainEntryOptions options,
     CancellationToken ct)

@@ -86,7 +86,7 @@ public abstract class BaseInClusterCacheGrain<TValue>
     CancellationToken ct,
     CacheGrainEntryOptions? options = null)
   {
-    var (entryValue, entryOptions) = await ProcessValueAndOptionsAsync(value, options ?? DefaultEntryOptions, ct);
+    var (entryValue, entryOptions) = await PreprocessSetAsync(value, options ?? DefaultEntryOptions, ct);
     CacheEntry = new CacheEntry<TValue>(
       entryValue,
       entryOptions.ToOrleansCacheEntryOptions(),
@@ -106,7 +106,7 @@ public abstract class BaseInClusterCacheGrain<TValue>
   /// <param name="options">The cache options for the value.</param>
   /// <param name="ct">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
   /// <returns>A tuple, data to be cached and cache options that will be used for the cache item.</returns>
-  protected virtual Task<(TValue, CacheGrainEntryOptions)> ProcessValueAndOptionsAsync(TValue value, CacheGrainEntryOptions options, CancellationToken ct)
+  protected virtual Task<(TValue, CacheGrainEntryOptions)> PreprocessSetAsync(TValue value, CacheGrainEntryOptions options, CancellationToken ct)
   {
     return Task.FromResult((value, options));
   }
