@@ -31,7 +31,7 @@ public class ServiceCollectionExtensionsTests
     // Act
     services.AddOrleansInClusterCache();
     using var provider = services.BuildServiceProvider();
-    var options = provider.GetRequiredService<IOptions<CacheGrainEntryOptions>>().Value;
+    var options = provider.GetRequiredService<IOptions<InClusterCacheOptions>>().Value;
 
     // Assert - default lambda in the production code does not mutate the options instance,
     // so all properties should remain null.
