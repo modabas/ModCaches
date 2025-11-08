@@ -28,16 +28,16 @@ public abstract class BasicInClusterCacheGrain<TValue>
     return ret.Value;
   }
 
-  internal async Task<(bool Created, TValue Value)> GetOrCreateInternalAsync(
+  internal async Task<(bool IsCreated, TValue Value)> GetOrCreateInternalAsync(
     CancellationToken ct,
     CacheGrainEntryOptions? options = null)
   {
     if (CacheEntry?.TryGetValue(TimeProviderFunc, out var value, out var expiresIn) == true)
     {
       DelayDeactivation(expiresIn.Value);
-      return (Created: false, Value: value);
+      return (IsCreated: false, Value: value);
     }
-    return (Created: true, Value: await CreateInternalAsync(ct, options));
+    return (IsCreated: true, Value: await CreateInternalAsync(ct, options));
   }
 
   public virtual Task<TValue> CreateAsync(
@@ -102,7 +102,7 @@ public abstract class BasicInClusterCacheGrain<TValue, TCreateArgs>
     return value;
   }
 
-  internal async Task<(bool, TValue)> GetOrCreateInternalAsync(
+  internal async Task<(bool IsCreated, TValue Value)> GetOrCreateInternalAsync(
     TCreateArgs? createArgs,
     CancellationToken ct,
     CacheGrainEntryOptions? options = null)
@@ -110,9 +110,9 @@ public abstract class BasicInClusterCacheGrain<TValue, TCreateArgs>
     if (CacheEntry?.TryGetValue(TimeProviderFunc, out var value, out var expiresIn) == true)
     {
       DelayDeactivation(expiresIn.Value);
-      return (false, value);
+      return (IsCreated: false, Value: value);
     }
-    return (true, await CreateInternalAsync(createArgs, ct, options));
+    return (IsCreated: true, Value: await CreateInternalAsync(createArgs, ct, options));
   }
 
   public virtual Task<TValue> CreateAsync(

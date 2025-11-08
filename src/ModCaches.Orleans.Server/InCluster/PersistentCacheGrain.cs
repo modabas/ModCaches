@@ -53,7 +53,7 @@ public abstract class PersistentCacheGrain<TValue>
     CacheGrainEntryOptions? options = null)
   {
     var ret = await base.GetOrCreateInternalAsync(ct, options);
-    if (ret.Created || HasSlidingExpiration)
+    if (ret.IsCreated || HasSlidingExpiration)
     {
       await WriteStateAsync(ct);
     }
@@ -106,7 +106,7 @@ public abstract class PersistentCacheGrain<TValue>
   public sealed override async Task<TryGetResult<TValue>> TryGetAsync(CancellationToken ct)
   {
     var ret = await base.TryGetAsync(ct);
-    if (ret.Found)
+    if (ret.IsFound)
     {
       // Only write state if we have sliding expiration, as absolute expiration does not change on access
       if (HasSlidingExpiration)
@@ -195,12 +195,12 @@ public abstract class PersistentCacheGrain<TValue, TCreateArgs>
     CancellationToken ct,
     CacheGrainEntryOptions? options = null)
   {
-    var (created, value) = await base.GetOrCreateInternalAsync(createArgs, ct, options);
-    if (created || HasSlidingExpiration)
+    var ret = await base.GetOrCreateInternalAsync(createArgs, ct, options);
+    if (ret.IsCreated || HasSlidingExpiration)
     {
       await WriteStateAsync(ct);
     }
-    return value;
+    return ret.Value;
   }
 
   public sealed override async Task<TValue> CreateAsync(
@@ -250,7 +250,7 @@ public abstract class PersistentCacheGrain<TValue, TCreateArgs>
   public sealed override async Task<TryGetResult<TValue>> TryGetAsync(CancellationToken ct)
   {
     var ret = await base.TryGetAsync(ct);
-    if (ret.Found)
+    if (ret.IsFound)
     {
       // Only write state if we have sliding expiration, as absolute expiration does not change on access
       if (HasSlidingExpiration)

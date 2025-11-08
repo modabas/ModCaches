@@ -2,6 +2,6 @@
 
 [GenerateSerializer]
 public record TryPeekResult<TValue>(
-  bool Found,
+  bool IsFound,
   TValue? Value)
   where TValue : notnull;
