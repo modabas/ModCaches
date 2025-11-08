@@ -37,17 +37,17 @@ public abstract class VolatileCacheGrain<TValue>
     return base.RemoveAsync(ct);
   }
 
-  public sealed override Task SetAsync(TValue value, CancellationToken ct, CacheGrainEntryOptions? options = null)
+  public sealed override Task<TValue> SetAsync(TValue value, CancellationToken ct, CacheGrainEntryOptions? options = null)
   {
     return base.SetAsync(value, ct, options);
   }
 
-  public sealed override Task<(bool, TValue?)> TryGetAsync(CancellationToken ct)
+  public sealed override Task<TryGetResult<TValue>> TryGetAsync(CancellationToken ct)
   {
     return base.TryGetAsync(ct);
   }
 
-  public sealed override Task<(bool, TValue?)> TryPeekAsync(CancellationToken ct)
+  public sealed override Task<TryPeekResult<TValue>> TryPeekAsync(CancellationToken ct)
   {
     return base.TryPeekAsync(ct);
   }
@@ -94,17 +94,17 @@ public abstract class VolatileCacheGrain<TValue, TCreateArgs>
     return base.RemoveAsync(ct);
   }
 
-  public sealed override Task SetAsync(TValue value, CancellationToken ct, CacheGrainEntryOptions? options = null)
+  public sealed override Task<TValue> SetAsync(TValue value, CancellationToken ct, CacheGrainEntryOptions? options = null)
   {
     return base.SetAsync(value, ct, options);
   }
 
-  public sealed override Task<(bool, TValue?)> TryGetAsync(CancellationToken ct)
+  public sealed override Task<TryGetResult<TValue>> TryGetAsync(CancellationToken ct)
   {
     return base.TryGetAsync(ct);
   }
 
-  public sealed override Task<(bool, TValue?)> TryPeekAsync(CancellationToken ct)
+  public sealed override Task<TryPeekResult<TValue>> TryPeekAsync(CancellationToken ct)
   {
     return base.TryPeekAsync(ct);
   }

@@ -9,8 +9,8 @@ internal class VolatileCacheTestGrainWithCreateArgs : VolatileCacheGrain<string,
   {
   }
 
-  protected override Task<string> GenerateValueAsync(int args, CacheGrainEntryOptions options, CancellationToken ct)
+  protected override Task<GenerateEntryResult<string>> GenerateEntryAsync(int args, CacheGrainEntryOptions options, CancellationToken ct)
   {
-    return Task.FromResult($"volatile in cluster cache {args}");
+    return Task.FromResult(new GenerateEntryResult<string>(Value: $"volatile in cluster cache {args}", Options: options));
   }
 }

@@ -67,9 +67,11 @@ public class VolatileCacheTestGrainTests
   {
     var grain = _fixture.Cluster.GrainFactory.GetGrain<IVolatileCacheTestGrain>("Refresh_Extends");
     var options = new CacheGrainEntryOptions
-    {
-      SlidingExpiration = TimeSpan.FromMilliseconds(750)
-    };
+    (
+        AbsoluteExpiration: default,
+        AbsoluteExpirationRelativeToNow: default,
+        SlidingExpiration: TimeSpan.FromMilliseconds(750)
+    );
 
     await grain.SetAsync("refresh-test", CancellationToken.None, options);
 
@@ -93,9 +95,11 @@ public class VolatileCacheTestGrainTests
   {
     var grain = _fixture.Cluster.GrainFactory.GetGrain<IVolatileCacheTestGrain>("Refresh_DoesNotExtend");
     var options = new CacheGrainEntryOptions
-    {
-      AbsoluteExpirationRelativeToNow = TimeSpan.FromMilliseconds(750)
-    };
+    (
+        AbsoluteExpiration: default,
+        AbsoluteExpirationRelativeToNow: TimeSpan.FromMilliseconds(750),
+        SlidingExpiration: default
+    );
 
     await grain.SetAsync("refresh-test", CancellationToken.None, options);
 
@@ -119,9 +123,11 @@ public class VolatileCacheTestGrainTests
   {
     var grain = _fixture.Cluster.GrainFactory.GetGrain<IVolatileCacheTestGrain>("Peek_DoesNotExtend");
     var options = new CacheGrainEntryOptions
-    {
-      SlidingExpiration = TimeSpan.FromMilliseconds(750)
-    };
+    (
+        AbsoluteExpiration: default,
+        AbsoluteExpirationRelativeToNow: default,
+        SlidingExpiration: TimeSpan.FromMilliseconds(750)
+    );
 
     await grain.SetAsync("peek-test", CancellationToken.None, options);
 
@@ -146,9 +152,11 @@ public class VolatileCacheTestGrainTests
   {
     var grain = _fixture.Cluster.GrainFactory.GetGrain<IVolatileCacheTestGrain>("Expires_After_AbsoluteExpirationRelativeToNow");
     var options = new CacheGrainEntryOptions
-    {
-      AbsoluteExpirationRelativeToNow = TimeSpan.FromMilliseconds(100)
-    };
+    (
+        AbsoluteExpiration: default,
+        AbsoluteExpirationRelativeToNow: TimeSpan.FromMilliseconds(100),
+        SlidingExpiration: default
+    );
     var value = await grain.GetOrCreateAsync(CancellationToken.None, options);
     value.Should().Be("volatile in cluster cache");
 

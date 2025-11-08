@@ -22,6 +22,12 @@ public abstract class BaseInClusterCacheGrain<TValue>
   internal bool HasSlidingExpiration =>
     CacheEntry?.HasSlidingExpiration ?? false;
 
+  private static readonly TryPeekResult<TValue> _emptyTryPeekResult =
+    new(false, default);
+
+  private static readonly TryGetResult<TValue> _emptyTryGetResult =
+    new(false, default);
+
   /// <summary>
   /// Marked as internal to prevent direct usage. Use derived classes instead.
   /// </summary>
@@ -61,42 +67,42 @@ public abstract class BaseInClusterCacheGrain<TValue>
     return;
   }
 
-  public virtual Task<(bool, TValue?)> TryGetAsync(CancellationToken ct)
+  public virtual Task<TryGetResult<TValue>> TryGetAsync(CancellationToken ct)
   {
     if (CacheEntry?.TryGetValue(TimeProviderFunc, out var value, out var expiresIn) == true)
     {
       DelayDeactivation(expiresIn.Value);
-      return Task.FromResult<(bool, TValue?)>((true, value));
+      return Task.FromResult(new TryGetResult<TValue>(true, value));
     }
     RemoveInternal();
-    return Task.FromResult<(bool, TValue?)>((false, default));
+    return Task.FromResult(_emptyTryGetResult);
   }
 
-  public virtual Task<(bool, TValue?)> TryPeekAsync(CancellationToken ct)
+  public virtual Task<TryPeekResult<TValue>> TryPeekAsync(CancellationToken ct)
   {
     if (CacheEntry?.TryPeekValue(TimeProviderFunc, out var value, out _) == true)
     {
-      return Task.FromResult<(bool, TValue?)>((true, value));
+      return Task.FromResult(new TryPeekResult<TValue>(true, value));
     }
-    return Task.FromResult<(bool, TValue?)>((false, default));
+    return Task.FromResult(_emptyTryPeekResult);
   }
 
-  public virtual async Task SetAsync(
+  public virtual async Task<TValue> SetAsync(
     TValue value,
     CancellationToken ct,
     CacheGrainEntryOptions? options = null)
   {
-    var (entryValue, entryOptions) = await PreprocessSetAsync(value, options ?? DefaultEntryOptions, ct);
+    var entry = await PreprocessSetAsync(value, options ?? DefaultEntryOptions, ct);
     CacheEntry = new CacheEntry<TValue>(
-      entryValue,
-      entryOptions.ToOrleansCacheEntryOptions(),
+      entry.Value,
+      entry.Options.ToOrleansCacheEntryOptions(),
       TimeProviderFunc);
     // Delay deactivation to ensure it remains active while it has a valid cache entry
     if (CacheEntry.TryGetExpiresIn(TimeProviderFunc, out var expiresIn))
     {
       DelayDeactivation(expiresIn.Value);
     }
-    return;
+    return entry.Value;
   }
 
   /// <summary>
@@ -105,9 +111,9 @@ public abstract class BaseInClusterCacheGrain<TValue>
   /// <param name="value">The value to set in the cache.</param>
   /// <param name="options">The cache options for the value.</param>
   /// <param name="ct">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
-  /// <returns>A tuple, data to be cached and cache options that will be used for the cache item.</returns>
-  protected virtual Task<(TValue, CacheGrainEntryOptions)> PreprocessSetAsync(TValue value, CacheGrainEntryOptions options, CancellationToken ct)
+  /// <returns>A record containing value to be cached and cache options that will be used for the cache item.</returns>
+  protected virtual Task<PreprocessSetResult<TValue>> PreprocessSetAsync(TValue value, CacheGrainEntryOptions options, CancellationToken ct)
   {
-    return Task.FromResult((value, options));
+    return Task.FromResult(new PreprocessSetResult<TValue>(Value: value, Options: options));
   }
 }

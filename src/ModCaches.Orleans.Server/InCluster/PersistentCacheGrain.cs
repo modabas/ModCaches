@@ -52,12 +52,12 @@ public abstract class PersistentCacheGrain<TValue>
     CancellationToken ct,
     CacheGrainEntryOptions? options = null)
   {
-    var (created, value) = await base.GetOrCreateInternalAsync(ct, options);
-    if (created || HasSlidingExpiration)
+    var ret = await base.GetOrCreateInternalAsync(ct, options);
+    if (ret.Created || HasSlidingExpiration)
     {
       await WriteStateAsync(ct);
     }
-    return value;
+    return ret.Value;
   }
 
   public sealed override async Task<TValue> CreateAsync(
@@ -93,19 +93,20 @@ public abstract class PersistentCacheGrain<TValue>
     await ClearStateAsync(ct);
   }
 
-  public sealed override async Task SetAsync(
+  public sealed override async Task<TValue> SetAsync(
     TValue value,
     CancellationToken ct,
     CacheGrainEntryOptions? options = null)
   {
-    await base.SetAsync(value, ct, options);
+    var ret = await base.SetAsync(value, ct, options);
     await WriteStateAsync(ct);
+    return ret;
   }
 
-  public sealed override async Task<(bool, TValue?)> TryGetAsync(CancellationToken ct)
+  public sealed override async Task<TryGetResult<TValue>> TryGetAsync(CancellationToken ct)
   {
     var ret = await base.TryGetAsync(ct);
-    if (ret.Item1)
+    if (ret.Found)
     {
       // Only write state if we have sliding expiration, as absolute expiration does not change on access
       if (HasSlidingExpiration)
@@ -236,19 +237,20 @@ public abstract class PersistentCacheGrain<TValue, TCreateArgs>
     await ClearStateAsync(ct);
   }
 
-  public sealed override async Task SetAsync(
+  public sealed override async Task<TValue> SetAsync(
     TValue value,
     CancellationToken ct,
     CacheGrainEntryOptions? options = null)
   {
-    await base.SetAsync(value, ct, options);
+    var ret = await base.SetAsync(value, ct, options);
     await WriteStateAsync(ct);
+    return ret;
   }
 
-  public sealed override async Task<(bool, TValue?)> TryGetAsync(CancellationToken ct)
+  public sealed override async Task<TryGetResult<TValue>> TryGetAsync(CancellationToken ct)
   {
     var ret = await base.TryGetAsync(ct);
-    if (ret.Item1)
+    if (ret.Found)
     {
       // Only write state if we have sliding expiration, as absolute expiration does not change on access
       if (HasSlidingExpiration)

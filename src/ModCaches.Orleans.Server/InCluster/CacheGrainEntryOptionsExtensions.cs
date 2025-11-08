@@ -5,11 +5,6 @@ internal static class CacheGrainEntryOptionsExtensions
 {
   public static CacheEntryOptions ToOrleansCacheEntryOptions(this CacheGrainEntryOptions options)
   {
-    return new CacheEntryOptions
-    {
-      AbsoluteExpiration = options.AbsoluteExpiration,
-      AbsoluteExpirationRelativeToNow = options.AbsoluteExpirationRelativeToNow,
-      SlidingExpiration = options.SlidingExpiration
-    };
+    return new CacheEntryOptions(options.AbsoluteExpiration, options.AbsoluteExpirationRelativeToNow, options.SlidingExpiration);
   }
 }

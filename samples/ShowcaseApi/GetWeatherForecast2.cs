@@ -37,7 +37,7 @@ internal class WeatherForecastCacheGrain :
   {
   }
 
-  protected override async Task<WeatherForecastCacheValue> GenerateValueAsync(
+  protected override async Task<GenerateEntryResult<WeatherForecastCacheValue>> GenerateEntryAsync(
     WeatherForecastCacheArgs? args,
     CacheGrainEntryOptions options,
     CancellationToken ct)
@@ -45,7 +45,7 @@ internal class WeatherForecastCacheGrain :
     var dayCount = args?.DayCount ?? 5;
     // Simulate a long-running operation
     await Task.Delay(5000, ct);
-    return new WeatherForecastCacheValue()
+    var value = new WeatherForecastCacheValue()
     {
       Items = Enumerable.Range(1, dayCount).Select(index => new WeatherForecastCacheValueItem()
       {
@@ -54,6 +54,7 @@ internal class WeatherForecastCacheGrain :
         Summary = _summaries[Random.Shared.Next(_summaries.Length)]
       }).ToArray()
     };
+    return new GenerateEntryResult<WeatherForecastCacheValue>(Value: value, Options: options);
   }
 }
 

@@ -25,15 +25,15 @@ public interface IBaseInClusterCacheGrain<TValue> : IGrainWithStringKey
   /// Asynchronously tries to get the cached value associated if it exists, resetting its sliding expiration timeout (if any).
   /// </summary>
   /// <param name="ct">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
-  /// <returns>A tuple, either "true" and the data from cache if found or "false" and a default value if not found.</returns>
-  Task<(bool, TValue?)> TryGetAsync(CancellationToken ct);
+  /// <returns>A record containing either Found: "true" and Value: the data from cache, on cache hit, or Found: "false" and Value: a default value, on cache miss.</returns>
+  Task<TryGetResult<TValue>> TryGetAsync(CancellationToken ct);
 
   /// <summary>
   /// Asynchronously tries to get the cached value associated if it exists, without resetting its sliding expiration timeout (if any).
   /// </summary>
   /// <param name="ct">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
-  /// <returns>A tuple, either "true" and the data from cache if found or "false" and a default value if not found.</returns>
-  Task<(bool, TValue?)> TryPeekAsync(CancellationToken ct);
+  /// <returns>A record containing either Found: "true" and Value: the data from cache, on cache hit, or Found: "false" and Value: a default value, on cache miss.</returns>
+  Task<TryPeekResult<TValue>> TryPeekAsync(CancellationToken ct);
 
   /// <summary>
   /// Sets the cached value.
@@ -41,8 +41,8 @@ public interface IBaseInClusterCacheGrain<TValue> : IGrainWithStringKey
   /// <param name="value">The value to set in the cache.</param>
   /// <param name="ct">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
   /// <param name="options">The cache options for the value.</param>
-  /// <returns>The <see cref="Task"/> that represents the asynchronous operation.</returns>
-  Task SetAsync(
+  /// <returns>Cached value.</returns>
+  Task<TValue> SetAsync(
     TValue value,
     CancellationToken ct,
     CacheGrainEntryOptions? options = null);

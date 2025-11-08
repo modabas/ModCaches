@@ -24,20 +24,20 @@ public abstract class BasicInClusterCacheGrain<TValue>
     CancellationToken ct,
     CacheGrainEntryOptions? options = null)
   {
-    var (_, value) = await GetOrCreateInternalAsync(ct, options);
-    return value;
+    var ret = await GetOrCreateInternalAsync(ct, options);
+    return ret.Value;
   }
 
-  internal async Task<(bool, TValue)> GetOrCreateInternalAsync(
+  internal async Task<(bool Created, TValue Value)> GetOrCreateInternalAsync(
     CancellationToken ct,
     CacheGrainEntryOptions? options = null)
   {
     if (CacheEntry?.TryGetValue(TimeProviderFunc, out var value, out var expiresIn) == true)
     {
       DelayDeactivation(expiresIn.Value);
-      return (false, value);
+      return (Created: false, Value: value);
     }
-    return (true, await CreateInternalAsync(ct, options));
+    return (Created: true, Value: await CreateInternalAsync(ct, options));
   }
 
   public virtual Task<TValue> CreateAsync(
@@ -51,39 +51,26 @@ public abstract class BasicInClusterCacheGrain<TValue>
     CancellationToken ct,
     CacheGrainEntryOptions? options = null)
   {
-    var entryOptions = options ?? DefaultEntryOptions;
-    (var value, entryOptions) = await GenerateValueAndOptionsAsync(entryOptions, ct);
+    var entry = await GenerateEntryAsync(options ?? DefaultEntryOptions, ct);
     CacheEntry = new CacheEntry<TValue>(
-      value,
-      entryOptions.ToOrleansCacheEntryOptions(),
+      entry.Value,
+      entry.Options.ToOrleansCacheEntryOptions(),
       TimeProviderFunc);
     // Delay deactivation to ensure it remains active while it has a valid cache entry
     if (CacheEntry.TryGetExpiresIn(TimeProviderFunc, out var expiresIn))
     {
       DelayDeactivation(expiresIn.Value);
     }
-    return value;
+    return entry.Value;
   }
 
   /// <summary>
-  /// Wrapper method over GenerateValueAsync method used by GetOrCreateAsync and CreateAsync methods while creating a new cache value. Can be used to override cache options for the value.
+  /// Value generation method used by GetOrCreateAsync and CreateAsync methods while creating a new cache value. Also can be used to override input cache options.
   /// </summary>
   /// <param name="options">The cache options for the value.</param>
   /// <param name="ct">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
-  /// <returns>A tuple, data to be cached and cache options that will be used for the cache item.</returns>
-  protected virtual async Task<(TValue, CacheGrainEntryOptions)> GenerateValueAndOptionsAsync(CacheGrainEntryOptions options, CancellationToken ct)
-  {
-    var value = await GenerateValueAsync(options, ct);
-    return (value, options);
-  }
-
-  /// <summary>
-  /// Value generation method used by GetOrCreateAsync and CreateAsync methods while creating a new cache value.
-  /// </summary>
-  /// <param name="options">The cache options for the value.</param>
-  /// <param name="ct">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
-  /// <returns>Data to be cached.</returns>
-  protected abstract Task<TValue> GenerateValueAsync(CacheGrainEntryOptions options, CancellationToken ct);
+  /// <returns>A record containing data to be cached and options to be used for caching.</returns>
+  protected abstract Task<GenerateEntryResult<TValue>> GenerateEntryAsync(CacheGrainEntryOptions options, CancellationToken ct);
 }
 
 /// <summary>
@@ -141,39 +128,25 @@ public abstract class BasicInClusterCacheGrain<TValue, TCreateArgs>
     CancellationToken ct,
     CacheGrainEntryOptions? options = null)
   {
-    var entryOptions = options ?? DefaultEntryOptions;
-    (var value, entryOptions) = await GenerateValueAndOptionsAsync(createArgs, entryOptions, ct);
+    var entry = await GenerateEntryAsync(createArgs, options ?? DefaultEntryOptions, ct);
     CacheEntry = new CacheEntry<TValue>(
-      value,
-      entryOptions.ToOrleansCacheEntryOptions(),
+      entry.Value,
+      entry.Options.ToOrleansCacheEntryOptions(),
       TimeProviderFunc);
     // Delay deactivation to ensure it remains active while it has a valid cache entry
     if (CacheEntry.TryGetExpiresIn(TimeProviderFunc, out var expiresIn))
     {
       DelayDeactivation(expiresIn.Value);
     }
-    return value;
+    return entry.Value;
   }
 
   /// <summary>
-  /// Wrapper method over GenerateValueAsync method used by GetOrCreateAsync and CreateAsync methods while creating a new cache value. Can be used to override cache options for the value.
+  /// Value generation method used by GetOrCreateAsync and CreateAsync methods while creating a new cache value. Also can be used to override input cache options.
   /// </summary>
   /// <param name="args">Additional arguments to be used for value generation.</param>
   /// <param name="options">The cache options for the value.</param>
   /// <param name="ct">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
-  /// <returns>A tuple, data to be cached and cache options that will be used for the cache item.</returns>
-  protected virtual async Task<(TValue, CacheGrainEntryOptions)> GenerateValueAndOptionsAsync(TCreateArgs? args, CacheGrainEntryOptions options, CancellationToken ct)
-  {
-    var value = await GenerateValueAsync(args, options, ct);
-    return (value, options);
-  }
-
-  /// <summary>
-  /// Value generation method used by GetOrCreateAsync and CreateAsync methods while creating a new cache value.
-  /// </summary>
-  /// <param name="args">Additional arguments to be used for value generation.</param>
-  /// <param name="options">The cache options for the value.</param>
-  /// <param name="ct">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
-  /// <returns>Data to be cached.</returns>
-  protected abstract Task<TValue> GenerateValueAsync(TCreateArgs? args, CacheGrainEntryOptions options, CancellationToken ct);
+  /// <returns>A record containing data to be cached and options to be used for caching.</returns>
+  protected abstract Task<GenerateEntryResult<TValue>> GenerateEntryAsync(TCreateArgs? args, CacheGrainEntryOptions options, CancellationToken ct);
 }

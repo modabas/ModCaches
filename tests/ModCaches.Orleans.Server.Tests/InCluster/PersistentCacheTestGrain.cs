@@ -11,8 +11,8 @@ internal class PersistentCacheTestGrain : PersistentCacheGrain<CacheTestValue>, 
   {
   }
 
-  protected override Task<CacheTestValue> GenerateValueAsync(CacheGrainEntryOptions options, CancellationToken ct)
+  protected override Task<GenerateEntryResult<CacheTestValue>> GenerateEntryAsync(CacheGrainEntryOptions options, CancellationToken ct)
   {
-    return Task.FromResult(new CacheTestValue() { Data = "persistent in cluster cache" });
+    return Task.FromResult(new GenerateEntryResult<CacheTestValue>(new CacheTestValue() { Data = "persistent in cluster cache" }, options));
   }
 }
