@@ -2,5 +2,5 @@
 
 public record GenerateEntryResult<TValue>(
   TValue Value,
-  CacheGrainEntryOptions Options) 
+  CacheGrainEntryOptions Options)
   where TValue : notnull;
