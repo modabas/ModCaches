@@ -113,12 +113,65 @@ internal struct WeatherForecastCacheValueItem
 internal record WeatherForecastCacheArgs(int DayCount);
 ```
 
-Creating same cache grain with state-persistence requires implementation of `PersistentCacheGrain<TValue, TCreateArgs>` instead:
+To utilize write-through cache pattern, add necessary `IWriteThroughCacheGrain<TValue>` interface to marker interface, then override and implement `WriteThroughAsync` method in cache grain class:
+``` csharp
+//marker interface
+internal interface IWeatherForecastCacheGrain : 
+    IReadThroughCacheGrain<WeatherForecastCacheValue, WeatherForecastCacheArgs>,
+    IWriteThroughCacheGrain<WeatherForecastCacheValue>;
+
+//grain implementation
+internal class WeatherForecastCacheGrain :
+  VolatileCacheGrain<WeatherForecastCacheValue, WeatherForecastCacheArgs>,
+  IWeatherForecastCacheGrain
+{
+  private static readonly string[] _summaries = ["Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"];
+
+  public WeatherForecastCacheGrain(IServiceProvider serviceProvider)
+    : base(serviceProvider)
+  {
+  }
+
+  protected override async Task<WriteThroughResult<WeatherForecastCacheValue>> WriteThroughAsync(
+    WeatherForecastCacheValue value,
+    CacheGrainEntryOptions options,
+    CancellationToken ct)
+  {
+    // Write to an external data source
+    // e.g., await _database.SaveAsync(value, ct);
+    
+    return new WriteThroughResult<WeatherForecastCacheValue>(Value: value, Options: options);
+  }
+
+  protected override async Task<ReadThroughResult<WeatherForecastCacheValue>> ReadThroughAsync(
+    WeatherForecastCacheArgs? args,
+    CacheGrainEntryOptions options,
+    CancellationToken ct)
+  {
+    var dayCount = args?.DayCount ?? 5;
+    // Simulate a long-running operation
+    await Task.Delay(5000, ct);
+    var value = new WeatherForecastCacheValue()
+    {
+      Items = Enumerable.Range(1, dayCount).Select(index => new WeatherForecastCacheValueItem()
+      {
+        Date = DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
+        TemperatureC = Random.Shared.Next(-20, 55),
+        Summary = _summaries[Random.Shared.Next(_summaries.Length)]
+      }).ToArray()
+    };
+    return new ReadThroughResult<WeatherForecastCacheValue>(Value: value, Options: options);
+  }
+}
+```
+
+
+Creating similar cache grain but with state-persistence requires implementation of `PersistentCacheGrain<TValue, TCreateArgs>` instead:
 
 > **Note**: Persistent cache requires a configured grain storage on Microsoft Orleans server.
 
 ``` csharp
-//marker interface (same as above)
+//marker interface (same as original)
 internal interface IWeatherForecastCacheGrain : IReadThroughCacheGrain<WeatherForecastCacheValue, WeatherForecastCacheArgs>;
 
 //grain implementation
@@ -159,7 +212,7 @@ In-Cluster cache grains expose a couple of methods to interact with:
     5. `RemoveAsync` method — clear cache value
 - `IReadThroughCacheGrain<TValue>` and `IReadThroughCacheGrain<TValue, TCreateArgs>` methods:
     1. `GetOrCreateAsync` method — fetch a cached value or create one via underlying `ReadThroughAsync` method if cached value is not found/has expired,
-    2. `CreateAsync` method — create one via GenerateValue method,
+    2. `CreateAsync` method — create a cache value via `ReadThroughAsync` method and fetch it,
     3. Methods inherited from `ICacheGrain<TValue>`
 - `IWriteThroughCacheGrain<TValue>` methods:
     1. `SetAndWriteAsync` method — write value via underlying `WriteThroughAsync` method and update cache with the written value.
