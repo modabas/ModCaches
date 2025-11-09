@@ -147,7 +147,7 @@ internal class WeatherForecastCacheGrain :
 }
 ```
 
-## 🧩 How To Use
+## 🧩 How To Call Implemented Cache Grains
 
 In-Cluster cache grains expose a couple of methods to interact with:
 
