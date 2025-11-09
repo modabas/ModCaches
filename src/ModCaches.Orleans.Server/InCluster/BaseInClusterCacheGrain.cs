@@ -9,7 +9,7 @@ namespace ModCaches.Orleans.Server.InCluster;
 /// Don't use directly, use derived classes instead.
 /// </summary>
 /// <typeparam name="TValue"></typeparam>
-public abstract class BaseInClusterCacheGrain<TValue> : 
+public abstract class BaseInClusterCacheGrain<TValue> :
   BaseGrain,
   ICacheGrain<TValue>,
   IWriteThroughCacheGrain<TValue>

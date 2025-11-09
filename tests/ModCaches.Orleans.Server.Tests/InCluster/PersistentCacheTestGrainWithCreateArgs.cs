@@ -1,10 +1,9 @@
 ﻿using ModCaches.Orleans.Server.InCluster;
-using NSubstitute;
 
 namespace ModCaches.Orleans.Server.Tests.InCluster;
 
 internal interface IPersistentCacheTestGrainWithCreateArgs :
-  IReadThroughCacheGrain<CacheTestValue ,int>,
+  IReadThroughCacheGrain<CacheTestValue, int>,
   ICacheGrain<CacheTestValue>,
   IWriteThroughCacheGrain<CacheTestValue>;
 internal class PersistentCacheTestGrainWithCreateArgs : PersistentCacheGrain<CacheTestValue, int>, IPersistentCacheTestGrainWithCreateArgs
