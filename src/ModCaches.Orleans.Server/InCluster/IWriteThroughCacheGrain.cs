@@ -1,6 +1,6 @@
 ﻿namespace ModCaches.Orleans.Server.InCluster;
 
-public interface IWriteThroughCacheGrain<TValue> : IBaseCacheGrain<TValue>
+public interface IWriteThroughCacheGrain<TValue> : ICacheGrain<TValue>
   where TValue : notnull
 {
   /// <summary>

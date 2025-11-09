@@ -4,7 +4,7 @@ namespace ModCaches.Orleans.Server.Tests.InCluster;
 
 internal interface IPersistentCacheTestGrain :
   IReadThroughCacheGrain<CacheTestValue>,
-  ICacheAsideCacheGrain<CacheTestValue>,
+  ICacheGrain<CacheTestValue>,
   IWriteThroughCacheGrain<CacheTestValue>;
 internal class PersistentCacheTestGrain : PersistentCacheGrain<CacheTestValue>, IPersistentCacheTestGrain
 {
@@ -17,5 +17,10 @@ internal class PersistentCacheTestGrain : PersistentCacheGrain<CacheTestValue>, 
   protected override Task<ReadThroughResult<CacheTestValue>> ReadThroughAsync(CacheGrainEntryOptions options, CancellationToken ct)
   {
     return Task.FromResult(new ReadThroughResult<CacheTestValue>(new CacheTestValue() { Data = "persistent in cluster cache" }, options));
+  }
+
+  protected override Task<WriteThroughResult<CacheTestValue>> WriteThroughAsync(CacheTestValue value, CacheGrainEntryOptions options, CancellationToken ct)
+  {
+    return Task.FromResult(new WriteThroughResult<CacheTestValue>(new CacheTestValue() { Data = "write-through persistent in cluster cache" }, options));
   }
 }

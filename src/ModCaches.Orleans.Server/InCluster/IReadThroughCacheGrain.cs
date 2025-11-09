@@ -5,7 +5,7 @@
 /// </summary>
 /// <typeparam name="TValue">Type of the cache data.</typeparam>
 /// <typeparam name="TCreateArgs">Type of argument to be used during cache value generation.</typeparam>
-public interface IReadThroughCacheGrain<TValue, TCreateArgs> : IBaseCacheGrain<TValue>
+public interface IReadThroughCacheGrain<TValue, TCreateArgs> : ICacheGrain<TValue>
   where TValue : notnull
   where TCreateArgs : notnull
 {
@@ -38,7 +38,7 @@ public interface IReadThroughCacheGrain<TValue, TCreateArgs> : IBaseCacheGrain<T
 /// Represents an in-cluster cache grain that implements read-through caching strategy.
 /// </summary>
 /// <typeparam name="TValue">Type of the cache data.</typeparam>
-public interface IReadThroughCacheGrain<TValue> : IBaseCacheGrain<TValue>
+public interface IReadThroughCacheGrain<TValue> : ICacheGrain<TValue>
   where TValue : notnull
 {
   /// <summary>

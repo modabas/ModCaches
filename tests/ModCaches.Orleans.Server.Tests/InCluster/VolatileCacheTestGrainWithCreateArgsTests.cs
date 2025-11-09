@@ -14,6 +14,15 @@ public class VolatileCacheTestGrainWithCreateArgsTests
   }
 
   [Fact]
+  public async Task SetAndWriteAsync_ReturnsWrittenValueAsync()
+  {
+    var defaultData = "default-data";
+    var grain = _fixture.Cluster.GrainFactory.GetGrain<IVolatileCacheTestGrainWithCreateArgs>("SetAndWriteAsync_ReturnsWrittenValue");
+    var result = await grain.SetAndWriteAsync(defaultData, CancellationToken.None);
+    result.Should().Be("write-through " + defaultData);
+  }
+
+  [Fact]
   public async Task GetOrCreateAsync_ReturnsGeneratedValue_WhenNotSetAsync()
   {
     var grain = _fixture.Cluster.GrainFactory.GetGrain<IVolatileCacheTestGrainWithCreateArgs>("GetOrCreate_ReturnsGeneratedValue");

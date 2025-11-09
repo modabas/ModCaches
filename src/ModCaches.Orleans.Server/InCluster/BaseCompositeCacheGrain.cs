@@ -7,7 +7,7 @@ namespace ModCaches.Orleans.Server.InCluster;
 /// Don't use directly, use derived classes instead.
 /// </summary>
 /// <typeparam name="TValue">Type of the cache data.</typeparam>
-public abstract class BasicInClusterCacheGrain<TValue>
+public abstract class BaseCompositeCacheGrain<TValue>
   : BaseInClusterCacheGrain<TValue>, IReadThroughCacheGrain<TValue>
   where TValue : notnull
 {
@@ -15,7 +15,7 @@ public abstract class BasicInClusterCacheGrain<TValue>
   /// Marked as internal to prevent direct usage. Use derived classes instead.
   /// </summary>
   /// <param name="serviceProvider"></param>
-  internal BasicInClusterCacheGrain(IServiceProvider serviceProvider)
+  internal BaseCompositeCacheGrain(IServiceProvider serviceProvider)
     : base(serviceProvider)
   {
   }
@@ -70,7 +70,10 @@ public abstract class BasicInClusterCacheGrain<TValue>
   /// <param name="options">The cache options for the value.</param>
   /// <param name="ct">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
   /// <returns>A record containing data to be cached and options to be used for caching.</returns>
-  protected abstract Task<ReadThroughResult<TValue>> ReadThroughAsync(CacheGrainEntryOptions options, CancellationToken ct);
+  protected virtual Task<ReadThroughResult<TValue>> ReadThroughAsync(CacheGrainEntryOptions options, CancellationToken ct)
+  {
+    throw new NotImplementedException("Override and implement ReadThroughAsync method in order to use read-through caching strategy.");
+  }
 }
 
 /// <summary>
@@ -79,7 +82,7 @@ public abstract class BasicInClusterCacheGrain<TValue>
 /// </summary>
 /// <typeparam name="TValue">Type of the cache data.</typeparam>
 /// <typeparam name="TCreateArgs">Type of argument to be used during cache value generation.</typeparam>
-public abstract class BasicInClusterCacheGrain<TValue, TCreateArgs>
+public abstract class BaseCompositeCacheGrain<TValue, TCreateArgs>
   : BaseInClusterCacheGrain<TValue>, IReadThroughCacheGrain<TValue, TCreateArgs>
   where TValue : notnull
   where TCreateArgs : notnull
@@ -88,7 +91,7 @@ public abstract class BasicInClusterCacheGrain<TValue, TCreateArgs>
   /// Marked as internal to prevent direct usage. Use derived classes instead.
   /// </summary>
   /// <param name="serviceProvider"></param>
-  internal BasicInClusterCacheGrain(IServiceProvider serviceProvider)
+  internal BaseCompositeCacheGrain(IServiceProvider serviceProvider)
     : base(serviceProvider)
   {
   }
@@ -148,5 +151,8 @@ public abstract class BasicInClusterCacheGrain<TValue, TCreateArgs>
   /// <param name="options">The cache options for the value.</param>
   /// <param name="ct">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
   /// <returns>A record containing data to be cached and options to be used for caching.</returns>
-  protected abstract Task<ReadThroughResult<TValue>> ReadThroughAsync(TCreateArgs? args, CacheGrainEntryOptions options, CancellationToken ct);
+  protected virtual Task<ReadThroughResult<TValue>> ReadThroughAsync(TCreateArgs? args, CacheGrainEntryOptions options, CancellationToken ct)
+  {
+    throw new NotImplementedException("Override and implement ReadThroughAsync method in order to use read-through caching strategy.");
+  }
 }

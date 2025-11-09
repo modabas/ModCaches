@@ -11,9 +11,8 @@ namespace ModCaches.Orleans.Server.InCluster;
 /// <typeparam name="TValue"></typeparam>
 public abstract class BaseInClusterCacheGrain<TValue> : 
   BaseGrain,
-  ICacheAsideCacheGrain<TValue>,
-  IWriteThroughCacheGrain<TValue>,
-  IWriteAroundCacheGrain<TValue>
+  ICacheGrain<TValue>,
+  IWriteThroughCacheGrain<TValue>
   where TValue : notnull
 {
   internal CacheEntry<TValue>? CacheEntry { get; set; }
@@ -90,34 +89,22 @@ public abstract class BaseInClusterCacheGrain<TValue> :
     return Task.FromResult(_emptyTryPeekResult);
   }
 
-  public virtual async Task<TValue> SetAsync(
+  public virtual Task<TValue> SetAsync(
     TValue value,
     CancellationToken ct,
     CacheGrainEntryOptions? options = null)
   {
-    var entry = await PreprocessSetAsync(value, options ?? DefaultEntryOptions, ct);
+    var entryOptions = options ?? DefaultEntryOptions;
     CacheEntry = new CacheEntry<TValue>(
-      entry.Value,
-      entry.Options.ToOrleansCacheEntryOptions(),
+      value,
+      entryOptions.ToOrleansCacheEntryOptions(),
       TimeProviderFunc);
     // Delay deactivation to ensure it remains active while it has a valid cache entry
     if (CacheEntry.TryGetExpiresIn(TimeProviderFunc, out var expiresIn))
     {
       DelayDeactivation(expiresIn.Value);
     }
-    return entry.Value;
-  }
-
-  /// <summary>
-  /// Used by SetAsync method before setting cache value. Can be used to process/override cache value and options.
-  /// </summary>
-  /// <param name="value">The value to set in the cache.</param>
-  /// <param name="options">The cache options for the value.</param>
-  /// <param name="ct">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
-  /// <returns>A record containing value to be cached and cache options that will be used for the cache item.</returns>
-  protected virtual Task<PreprocessSetResult<TValue>> PreprocessSetAsync(TValue value, CacheGrainEntryOptions options, CancellationToken ct)
-  {
-    return Task.FromResult(new PreprocessSetResult<TValue>(Value: value, Options: options));
+    return Task.FromResult(value);
   }
 
   public virtual async Task<TValue> SetAndWriteAsync(

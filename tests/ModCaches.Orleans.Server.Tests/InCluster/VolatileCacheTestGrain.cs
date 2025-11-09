@@ -4,7 +4,7 @@ namespace ModCaches.Orleans.Server.Tests.InCluster;
 
 internal interface IVolatileCacheTestGrain :
   IReadThroughCacheGrain<string>,
-  ICacheAsideCacheGrain<string>,
+  ICacheGrain<string>,
   IWriteThroughCacheGrain<string>;
 
 internal class VolatileCacheTestGrain : VolatileCacheGrain<string>, IVolatileCacheTestGrain
@@ -17,4 +17,10 @@ internal class VolatileCacheTestGrain : VolatileCacheGrain<string>, IVolatileCac
   {
     return Task.FromResult(new ReadThroughResult<string>("volatile in cluster cache", options));
   }
+
+  protected override Task<WriteThroughResult<string>> WriteThroughAsync(string value, CacheGrainEntryOptions options, CancellationToken ct)
+  {
+    return Task.FromResult(new WriteThroughResult<string>($"write-through {value}", options));
+  }
+
 }

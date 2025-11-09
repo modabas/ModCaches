@@ -35,6 +35,15 @@ public class PersistentCacheTestGrainTests
   }
 
   [Fact]
+  public async Task SetAndWriteAsync_ReturnsWrittenValueAsync()
+  {
+    var grainId = GetGrainId("SetAndWriteAsync_ReturnsWrittenValue");
+    var grain = _fixture.Cluster.GrainFactory.GetGrain<IPersistentCacheTestGrain>(grainId);
+    var result = await grain.SetAndWriteAsync(new CacheTestValue() { Data = DefaultData }, CancellationToken.None);
+    result.Data.Should().Be("write-through " + DefaultData);
+  }
+
+  [Fact]
   public async Task GetOrCreateAsync_ReturnsGeneratedValue_WhenNotSetAsync()
   {
     var grainId = GetGrainId("GetOrCreate_ReturnsGeneratedValue");
