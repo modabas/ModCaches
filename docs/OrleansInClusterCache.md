@@ -6,7 +6,7 @@ Abstract Microsoft Orleans grain implementations to cache data in memory (volati
 
 - Utilizes Orleans' built in features like request scheduling for cache stampede protection and serialization for passing cache data around,
 - Simplifies architecture of a Microsoft Orleans project that needs a caching layer by providing it within Orleans itself, eliminating the need for a seperate caching server,
-- Combines cache value creating factory method in the cache grain implementation, collecting all related business logic into a single unit,
+- Supports Cache-Aside, Read-Through, Write-Around and Write-Through caching strategies.
 
 ## 🛠️ Getting Started
 
@@ -34,21 +34,29 @@ builder.Services.AddOrleansInClusterCache(options =>
 
 ## 🧩 Implementation
 
-To cache a value using in-cluster cache grains, inherit one of the abstract base cache grain types and implement the required `GenerateEntryAsync` method, which returns the generated value and optionally updated cache options (or the original options if no changes are needed).
+Implementing in-cluster cache grains is straightforward. However, it's important to choose the appropriate caching strategy based on your application's requirements. The available strategies are:
+- **Cache-Aside**: The application code is responsible for checking the cache before fetching data from the source. If the data is not in the cache, it fetches it from the source and then stores it in the cache.
+- **Read-Through**: The cache itself is responsible for fetching data from the source when a cache miss occurs. The application code simply requests data from the cache, and the cache handles the retrieval and storage.
+- **Write-Around**: The application code writes data directly to the source, bypassing the cache. The cache is only updated when data is read.
+- **Write-Through**: The application code writes data to both the cache and the source simultaneously, ensuring that the cache is always up-to-date.
 
-Type of the base cache grains which can be inherited are:
+
+To cache a value using in-cluster cache grains, start by creating a marker interface inheriting one or more of the following interfaces based on the caching strategy you want to use:
+- `ICacheGrain<TValue>` for Cache-Aside and Write-Around strategy,
+- `IReadThroughCacheGrain<TValue>` or `IReadThroughCacheGrain<TValue, TCreateArgs>` for Read-Through strategy, (includes `ICacheGrain<TValue>`)
+- `IWriteThroughCacheGrain<TValue>` for Write-Through strategy, (includes `ICacheGrain<TValue>`)
+
+Then create a cache grain implementation inheriting one of the abstract base cache grain types and your marker interface:
 
 - `VolatileCacheGrain<TValue>` or `VolatileCacheGrain<TValue, TCreateArgs>` for storing data in memory,
 - `PersistentCacheGrain<TValue>` or `PersistentCacheGrain<TValue, TCreateArgs>` for also persisting it as grain state,
 
-> **Note**: Creating a marker interface inheriting `ICacheGrain<TValue>` or `ICacheGrain<TValue, TCreateArgs>` is helpful to organize and call grains.
+> **Note**: Read-Through cache grains require implementation of `ReadThroughAsync` method to create cache entries when not found/expired. Write-Through cache grains require implementation of `WriteThroughAsync` method to handle write operations. Default implementations of these methods throw `NotImplementedException`.
 
-> **Note**: Persistent cache requires a configured grain storage on Microsoft Orleans server.
-
-Sample below inherits `VolatileCacheGrain<TValue, TCreateArgs>` and uses marker interface `IWeatherForecastCacheGrain`:
+Sample below implements read-through cache pattern, by inheriting `VolatileCacheGrain<TValue, TCreateArgs>` and by using marker interface `IWeatherForecastCacheGrain`:
 ``` csharp
 //marker interface
-internal interface IWeatherForecastCacheGrain : ICacheGrain<WeatherForecastCacheValue, WeatherForecastCacheArgs>;
+internal interface IWeatherForecastCacheGrain : IReadThroughCacheGrain<WeatherForecastCacheValue, WeatherForecastCacheArgs>;
 
 //grain implementation
 internal class WeatherForecastCacheGrain :
@@ -62,7 +70,7 @@ internal class WeatherForecastCacheGrain :
   {
   }
 
-  protected override async Task<GenerateEntryResult<WeatherForecastCacheValue>> GenerateEntryAsync(
+  protected override async Task<ReadThroughResult<WeatherForecastCacheValue>> ReadThroughAsync(
     WeatherForecastCacheArgs? args,
     CacheGrainEntryOptions options,
     CancellationToken ct)
@@ -79,8 +87,7 @@ internal class WeatherForecastCacheGrain :
         Summary = _summaries[Random.Shared.Next(_summaries.Length)]
       }).ToArray()
     };
-    // Return the generated value along with any options adjustments if needed (original options can be returned as is)
-    return new GenerateEntryResult<WeatherForecastCacheValue>(Value: value, Options: options);
+    return new ReadThroughResult<WeatherForecastCacheValue>(Value: value, Options: options);
   }
 }
 
@@ -106,10 +113,13 @@ internal struct WeatherForecastCacheValueItem
 internal record WeatherForecastCacheArgs(int DayCount);
 ```
 
-Creating same cache grain with persistence requires implementation of `PersistentCacheGrain<TValue, TCreateArgs>` instead:
+Creating same cache grain with state-persistence requires implementation of `PersistentCacheGrain<TValue, TCreateArgs>` instead:
+
+> **Note**: Persistent cache requires a configured grain storage on Microsoft Orleans server.
+
 ``` csharp
 //marker interface (same as above)
-internal interface IWeatherForecastCacheGrain : ICacheGrain<WeatherForecastCacheValue, WeatherForecastCacheArgs>;
+internal interface IWeatherForecastCacheGrain : IReadThroughCacheGrain<WeatherForecastCacheValue, WeatherForecastCacheArgs>;
 
 //grain implementation
 internal class WeatherForecastCacheGrain :
@@ -125,7 +135,7 @@ internal class WeatherForecastCacheGrain :
   {
   }
 
-  protected override async Task<GenerateEntryResult<WeatherForecastCacheValue>> GenerateEntryAsync(
+  protected override async Task<ReadThroughResult<WeatherForecastCacheValue>> ReadThroughAsync(
     WeatherForecastCacheArgs? args,
     CacheGrainEntryOptions options,
     CancellationToken ct)
@@ -141,15 +151,21 @@ internal class WeatherForecastCacheGrain :
 
 In-Cluster cache grains expose a couple of methods to interact with:
 
-- `GetOrCreateAsync` method — fetch a cached value or create one via GenerateValue method if cached value is not found/has expired,
-- `CreateAsync` method — create one via GenerateValue method,
-- `SetAsync` method — store a value in cache and return stored value,
-- `TryGetAsync` method — fetch unexpired cached value if exists (updating last accessed time used for sliding expiration),
-- `TryPeekAsync` method — fetch unexpired cached value if exists (without updating last accessed time used for sliding expiration),
-- `RefreshAsync` method — update last accessed time used for sliding expiration if an unexpired cache value exists,
-- `RemoveAsync` method — clear cache value
+- `ICacheGrain<TValue>` methods:
+    1. `SetAsync` method — store a value in cache and return stored value,
+    2. `TryGetAsync` method — fetch unexpired cached value if exists (updating last accessed time used for sliding expiration),
+    3. `TryPeekAsync` method — fetch unexpired cached value if exists (without updating last accessed time used for sliding expiration),
+    4. `RefreshAsync` method — update last accessed time used for sliding expiration if an unexpired cache value exists,
+    5. `RemoveAsync` method — clear cache value
+- `IReadThroughCacheGrain<TValue>` and `IReadThroughCacheGrain<TValue, TCreateArgs>` methods:
+    1. `GetOrCreateAsync` method — fetch a cached value or create one via underlying `ReadThroughAsync` method if cached value is not found/has expired,
+    2. `CreateAsync` method — create one via GenerateValue method,
+    3. Methods inherited from `ICacheGrain<TValue>`
+- `IWriteThroughCacheGrain<TValue>` methods:
+    1. `SetAndWriteAsync` method — write value via underlying `WriteThroughAsync` method and update cache with the written value.
+    2. Methods inherited from `ICacheGrain<TValue>`
 
-So calling the `WeatherForecastCacheGrain` sample implemented above to get cache value would be:
+So calling the read-through `WeatherForecastCacheGrain` sample implemented above to get cache value would be:
 
 ``` csharp
 var args = new WeatherForecastCacheArgs(7);
@@ -159,21 +175,21 @@ await grainFactory.GetGrain<IWeatherForecastCacheGrain>("weatherforecast").GetOr
 
 ...where grainFactory is a Microsoft.Orleans `IGrainFactory` instance.
 
-### Overriding options during generate value operation
+### Overriding cache options input parameter during read-through operation
 
-If you need to adjust caching options based on the generated value within the `GenerateEntryAsync` method (for example, when the value includes a token with its own lifetime), simply return the updated options along with the value from `GenerateEntryAsync`:
+For a read-through cache, if you need to adjust caching options based on the generated value within the `ReadThroughAsync` method (for example, when the value includes a token with its own lifetime), simply return the updated options along with the value from `ReadThroughAsync`:
 
 ``` csharp
-  protected override async Task<GenerateEntryResult<WeatherForecastCacheValue>> GenerateEntryAsync(
+  protected override async Task<ReadThroughResult<WeatherForecastCacheValue>> ReadThroughAsync(
     WeatherForecastCacheArgs? args,
     CacheGrainEntryOptions options,
     CancellationToken ct)
 {
-    //generate cache entry value
+    //generate cache entry value, e.g. read from external service
     // var value = ...
 
     //modify options as needed
-    return new GenerateEntryResult<WeatherForecastCacheValue>(
+    return new ReadThroughResult<WeatherForecastCacheValue>(
         Value: value, 
         Options: new CacheGrainEntryOptions(
             AbsoluteExpiration: default,
@@ -182,10 +198,11 @@ If you need to adjust caching options based on the generated value within the `G
 }
 ```
 
-### Processing value and options during set value operation
-When setting a cache value directly via `SetAsync` method, the value and options parameters passed to the method can be processed/modified by overriding `PreprocessSetAsync` method.
+### Overriding value and cache options input parameters during write-through operation
+
+Similarly, for a write-through cache, it's possible to modify input value and options when setting a cache value via `SetAndWriteAsync` method, the value and options parameters passed to the method can be modified within the `WriteThroughAsync` method.
 ``` csharp
-protected override async Task<PreprocessSetResult<WeatherForecastCacheValue>> PreprocessSetAsync(
+protected override async Task<WriteThroughResult<WeatherForecastCacheValue>> WriteThroughAsync(
     WeatherForecastCacheValue value,
     CacheGrainEntryOptions options,
     CancellationToken ct)
@@ -193,7 +210,8 @@ protected override async Task<PreprocessSetResult<WeatherForecastCacheValue>> Pr
   //process options/value as needed
   //log, write to db, etc...
 
-  // return original or modified value/options to be used in the set operation
-  return new PreprocessSetResult<WeatherForecastCacheValue>(Value: value, Options: options);
+  // return original or modified value/options to be used in the set operation, e.g.: write to db introduced sequence id to value
+  // Value and Options returned here will be used to update the cache entry
+  return new WriteThroughResult<WeatherForecastCacheValue>(Value: value, Options: options);
 }
 ```
