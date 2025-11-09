@@ -24,7 +24,7 @@ internal struct WeatherForecastCacheValueItem
 [GenerateSerializer]
 internal record WeatherForecastCacheArgs(int DayCount);
 
-internal interface IWeatherForecastCacheGrain : ICacheGrain<WeatherForecastCacheValue, WeatherForecastCacheArgs>;
+internal interface IWeatherForecastCacheGrain : IReadThroughCacheGrain<WeatherForecastCacheValue, WeatherForecastCacheArgs>;
 
 internal class WeatherForecastCacheGrain :
   VolatileCacheGrain<WeatherForecastCacheValue, WeatherForecastCacheArgs>,
@@ -37,7 +37,7 @@ internal class WeatherForecastCacheGrain :
   {
   }
 
-  protected override async Task<GenerateEntryResult<WeatherForecastCacheValue>> GenerateEntryAsync(
+  protected override async Task<ReadThroughResult<WeatherForecastCacheValue>> ReadThroughAsync(
     WeatherForecastCacheArgs? args,
     CacheGrainEntryOptions options,
     CancellationToken ct)
@@ -54,7 +54,7 @@ internal class WeatherForecastCacheGrain :
         Summary = _summaries[Random.Shared.Next(_summaries.Length)]
       }).ToArray()
     };
-    return new GenerateEntryResult<WeatherForecastCacheValue>(Value: value, Options: options);
+    return new ReadThroughResult<WeatherForecastCacheValue>(Value: value, Options: options);
   }
 }
 

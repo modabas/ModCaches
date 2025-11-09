@@ -8,7 +8,7 @@ namespace ModCaches.Orleans.Server.InCluster;
 /// </summary>
 /// <typeparam name="TValue">Type of the cache data.</typeparam>
 public abstract class BasicInClusterCacheGrain<TValue>
-  : BaseInClusterCacheGrain<TValue>, ICacheGrain<TValue>
+  : BaseInClusterCacheGrain<TValue>, IReadThroughCacheGrain<TValue>
   where TValue : notnull
 {
   /// <summary>
@@ -51,7 +51,7 @@ public abstract class BasicInClusterCacheGrain<TValue>
     CancellationToken ct,
     CacheGrainEntryOptions? options = null)
   {
-    var entry = await GenerateEntryAsync(options ?? DefaultEntryOptions, ct);
+    var entry = await ReadThroughAsync(options ?? DefaultEntryOptions, ct);
     CacheEntry = new CacheEntry<TValue>(
       entry.Value,
       entry.Options.ToOrleansCacheEntryOptions(),
@@ -65,12 +65,12 @@ public abstract class BasicInClusterCacheGrain<TValue>
   }
 
   /// <summary>
-  /// Value generation method used by GetOrCreateAsync and CreateAsync methods while creating a new cache value. Also can be used to override input cache options.
+  /// Value generation method for read-through caching strategy, used by GetOrCreateAsync and CreateAsync methods while creating a new cache value. Also can be used to override input cache options.
   /// </summary>
   /// <param name="options">The cache options for the value.</param>
   /// <param name="ct">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
   /// <returns>A record containing data to be cached and options to be used for caching.</returns>
-  protected abstract Task<GenerateEntryResult<TValue>> GenerateEntryAsync(CacheGrainEntryOptions options, CancellationToken ct);
+  protected abstract Task<ReadThroughResult<TValue>> ReadThroughAsync(CacheGrainEntryOptions options, CancellationToken ct);
 }
 
 /// <summary>
@@ -80,7 +80,7 @@ public abstract class BasicInClusterCacheGrain<TValue>
 /// <typeparam name="TValue">Type of the cache data.</typeparam>
 /// <typeparam name="TCreateArgs">Type of argument to be used during cache value generation.</typeparam>
 public abstract class BasicInClusterCacheGrain<TValue, TCreateArgs>
-  : BaseInClusterCacheGrain<TValue>, ICacheGrain<TValue, TCreateArgs>
+  : BaseInClusterCacheGrain<TValue>, IReadThroughCacheGrain<TValue, TCreateArgs>
   where TValue : notnull
   where TCreateArgs : notnull
 {
@@ -128,7 +128,7 @@ public abstract class BasicInClusterCacheGrain<TValue, TCreateArgs>
     CancellationToken ct,
     CacheGrainEntryOptions? options = null)
   {
-    var entry = await GenerateEntryAsync(createArgs, options ?? DefaultEntryOptions, ct);
+    var entry = await ReadThroughAsync(createArgs, options ?? DefaultEntryOptions, ct);
     CacheEntry = new CacheEntry<TValue>(
       entry.Value,
       entry.Options.ToOrleansCacheEntryOptions(),
@@ -142,11 +142,11 @@ public abstract class BasicInClusterCacheGrain<TValue, TCreateArgs>
   }
 
   /// <summary>
-  /// Value generation method used by GetOrCreateAsync and CreateAsync methods while creating a new cache value. Also can be used to override input cache options.
+  /// Value generation method for read-through caching strategy, used by GetOrCreateAsync and CreateAsync methods while creating a new cache value. Also can be used to override input cache options.
   /// </summary>
   /// <param name="args">Additional arguments to be used for value generation.</param>
   /// <param name="options">The cache options for the value.</param>
   /// <param name="ct">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
   /// <returns>A record containing data to be cached and options to be used for caching.</returns>
-  protected abstract Task<GenerateEntryResult<TValue>> GenerateEntryAsync(TCreateArgs? args, CacheGrainEntryOptions options, CancellationToken ct);
+  protected abstract Task<ReadThroughResult<TValue>> ReadThroughAsync(TCreateArgs? args, CacheGrainEntryOptions options, CancellationToken ct);
 }

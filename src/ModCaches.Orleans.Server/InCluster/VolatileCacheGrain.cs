@@ -5,7 +5,7 @@
 /// </summary>
 /// <typeparam name="TValue">Type of the cache data.</typeparam>
 public abstract class VolatileCacheGrain<TValue>
-  : BasicInClusterCacheGrain<TValue>, ICacheGrain<TValue>
+  : BasicInClusterCacheGrain<TValue>
   where TValue : notnull
 {
   public VolatileCacheGrain(IServiceProvider serviceProvider)
@@ -42,6 +42,11 @@ public abstract class VolatileCacheGrain<TValue>
     return base.SetAsync(value, ct, options);
   }
 
+  public sealed override Task<TValue> SetAndWriteAsync(TValue value, CancellationToken ct, CacheGrainEntryOptions? options = null)
+  {
+    return base.SetAndWriteAsync(value, ct, options);
+  }
+
   public sealed override Task<TryGetResult<TValue>> TryGetAsync(CancellationToken ct)
   {
     return base.TryGetAsync(ct);
@@ -59,7 +64,7 @@ public abstract class VolatileCacheGrain<TValue>
 /// <typeparam name="TValue">Type of the cache data.</typeparam>
 /// <typeparam name="TCreateArgs">Type of argument to be used during cache value generation.</typeparam>
 public abstract class VolatileCacheGrain<TValue, TCreateArgs>
-  : BasicInClusterCacheGrain<TValue, TCreateArgs>, ICacheGrain<TValue, TCreateArgs>
+  : BasicInClusterCacheGrain<TValue, TCreateArgs>
   where TValue : notnull
   where TCreateArgs : notnull
 {
@@ -97,6 +102,11 @@ public abstract class VolatileCacheGrain<TValue, TCreateArgs>
   public sealed override Task<TValue> SetAsync(TValue value, CancellationToken ct, CacheGrainEntryOptions? options = null)
   {
     return base.SetAsync(value, ct, options);
+  }
+
+  public sealed override Task<TValue> SetAndWriteAsync(TValue value, CancellationToken ct, CacheGrainEntryOptions? options = null)
+  {
+    return base.SetAndWriteAsync(value, ct, options);
   }
 
   public sealed override Task<TryGetResult<TValue>> TryGetAsync(CancellationToken ct)

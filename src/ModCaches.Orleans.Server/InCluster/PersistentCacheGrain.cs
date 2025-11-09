@@ -7,7 +7,7 @@ namespace ModCaches.Orleans.Server.InCluster;
 /// </summary>
 /// <typeparam name="TValue">Type of the cache data.</typeparam>
 public abstract class PersistentCacheGrain<TValue>
-  : BasicInClusterCacheGrain<TValue>, ICacheGrain<TValue>
+  : BasicInClusterCacheGrain<TValue>
   where TValue : notnull
 {
   private bool _stateCleared = false;
@@ -103,6 +103,16 @@ public abstract class PersistentCacheGrain<TValue>
     return ret;
   }
 
+  public sealed override async Task<TValue> SetAndWriteAsync(
+    TValue value,
+    CancellationToken ct,
+    CacheGrainEntryOptions? options = null)
+  {
+    var ret = await base.SetAndWriteAsync(value, ct, options);
+    await WriteStateAsync(ct);
+    return ret;
+  }
+
   public sealed override async Task<TryGetResult<TValue>> TryGetAsync(CancellationToken ct)
   {
     var ret = await base.TryGetAsync(ct);
@@ -119,6 +129,11 @@ public abstract class PersistentCacheGrain<TValue>
       await ClearStateAsync(ct);
     }
     return ret;
+  }
+
+  public sealed override Task<TryPeekResult<TValue>> TryPeekAsync(CancellationToken ct)
+  {
+    return base.TryPeekAsync(ct);
   }
 
   private async Task WriteStateAsync(CancellationToken ct)
@@ -148,7 +163,7 @@ public abstract class PersistentCacheGrain<TValue>
 /// <typeparam name="TValue">Type of the cache data.</typeparam>
 /// <typeparam name="TCreateArgs">Type of argument to be used during cache value generation.</typeparam>
 public abstract class PersistentCacheGrain<TValue, TCreateArgs>
-  : BasicInClusterCacheGrain<TValue, TCreateArgs>, ICacheGrain<TValue, TCreateArgs>
+  : BasicInClusterCacheGrain<TValue, TCreateArgs>
   where TValue : notnull
   where TCreateArgs : notnull
 {
@@ -247,6 +262,16 @@ public abstract class PersistentCacheGrain<TValue, TCreateArgs>
     return ret;
   }
 
+  public sealed override async Task<TValue> SetAndWriteAsync(
+    TValue value,
+    CancellationToken ct,
+    CacheGrainEntryOptions? options = null)
+  {
+    var ret = await base.SetAndWriteAsync(value, ct, options);
+    await WriteStateAsync(ct);
+    return ret;
+  }
+
   public sealed override async Task<TryGetResult<TValue>> TryGetAsync(CancellationToken ct)
   {
     var ret = await base.TryGetAsync(ct);
@@ -263,6 +288,11 @@ public abstract class PersistentCacheGrain<TValue, TCreateArgs>
       await ClearStateAsync(ct);
     }
     return ret;
+  }
+
+  public sealed override Task<TryPeekResult<TValue>> TryPeekAsync(CancellationToken ct)
+  {
+    return base.TryPeekAsync(ct);
   }
 
   private async Task WriteStateAsync(CancellationToken ct)

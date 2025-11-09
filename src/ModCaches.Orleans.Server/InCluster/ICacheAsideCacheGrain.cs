@@ -4,23 +4,9 @@
 /// Represents base methods of an in-cluster cache grain.
 /// </summary>
 /// <typeparam name="TValue">Type of the cache data.</typeparam>
-public interface IBaseInClusterCacheGrain<TValue> : IGrainWithStringKey
+public interface ICacheAsideCacheGrain<TValue> : IBaseCacheGrain<TValue>
   where TValue : notnull
 {
-  /// <summary>
-  /// Refreshes the value in the cache, resetting its sliding expiration timeout (if any).
-  /// </summary>
-  /// <param name="ct">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
-  /// <returns>The <see cref="Task"/> that represents the asynchronous operation.</returns>
-  Task<bool> RefreshAsync(CancellationToken ct);
-
-  /// <summary>
-  /// Removes the cached value.
-  /// </summary>
-  /// <param name="ct">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
-  /// <returns>The <see cref="Task"/> that represents the asynchronous operation.</returns>
-  Task RemoveAsync(CancellationToken ct);
-
   /// <summary>
   /// Asynchronously tries to get the cached value associated if it exists, resetting its sliding expiration timeout (if any).
   /// </summary>

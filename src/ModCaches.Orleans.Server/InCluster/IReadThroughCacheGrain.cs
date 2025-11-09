@@ -1,11 +1,11 @@
 ﻿namespace ModCaches.Orleans.Server.InCluster;
 
 /// <summary>
-/// Represents an in-cluster cache grain.
+/// Represents an in-cluster cache grain that implements read-through caching strategy.
 /// </summary>
 /// <typeparam name="TValue">Type of the cache data.</typeparam>
 /// <typeparam name="TCreateArgs">Type of argument to be used during cache value generation.</typeparam>
-public interface ICacheGrain<TValue, TCreateArgs> : IBaseInClusterCacheGrain<TValue>
+public interface IReadThroughCacheGrain<TValue, TCreateArgs> : IBaseCacheGrain<TValue>
   where TValue : notnull
   where TCreateArgs : notnull
 {
@@ -35,10 +35,10 @@ public interface ICacheGrain<TValue, TCreateArgs> : IBaseInClusterCacheGrain<TVa
 }
 
 /// <summary>
-/// Represents an in-cluster cache grain.
+/// Represents an in-cluster cache grain that implements read-through caching strategy.
 /// </summary>
 /// <typeparam name="TValue">Type of the cache data.</typeparam>
-public interface ICacheGrain<TValue> : IBaseInClusterCacheGrain<TValue>
+public interface IReadThroughCacheGrain<TValue> : IBaseCacheGrain<TValue>
   where TValue : notnull
 {
   /// <summary>
