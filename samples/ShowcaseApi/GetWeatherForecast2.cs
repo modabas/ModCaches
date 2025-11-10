@@ -1,4 +1,5 @@
-﻿using ModCaches.Orleans.Server.InCluster;
+﻿using ModCaches.Orleans.Abstractions.Cluster;
+using ModCaches.Orleans.Server.Cluster;
 using ModEndpoints.Core;
 
 namespace ShowcaseApi;
