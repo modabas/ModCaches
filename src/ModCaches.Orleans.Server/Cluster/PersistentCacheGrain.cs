@@ -8,7 +8,7 @@ namespace ModCaches.Orleans.Server.Cluster;
 /// </summary>
 /// <typeparam name="TValue">Type of the cache data.</typeparam>
 public abstract class PersistentCacheGrain<TValue>
-  : BaseCompositeCacheGrain<TValue>
+  : BaseClusterCacheGrain<TValue>
   where TValue : notnull
 {
   private bool _stateCleared = false;
@@ -164,7 +164,7 @@ public abstract class PersistentCacheGrain<TValue>
 /// <typeparam name="TValue">Type of the cache data.</typeparam>
 /// <typeparam name="TCreateArgs">Type of argument to be used during cache value generation.</typeparam>
 public abstract class PersistentCacheGrain<TValue, TCreateArgs>
-  : BaseCompositeCacheGrain<TValue, TCreateArgs>
+  : BaseClusterCacheGrain<TValue, TCreateArgs>
   where TValue : notnull
   where TCreateArgs : notnull
 {

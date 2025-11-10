@@ -8,7 +8,7 @@ namespace ModCaches.Orleans.Server.Cluster;
 /// Don't use directly, use derived classes instead.
 /// </summary>
 /// <typeparam name="TValue">Type of the cache data.</typeparam>
-public abstract class BaseCompositeCacheGrain<TValue>
+public abstract class BaseClusterCacheGrain<TValue>
   : BaseCacheGrain<TValue>,
   IReadThroughCacheGrain<TValue>
   where TValue : notnull
@@ -17,7 +17,7 @@ public abstract class BaseCompositeCacheGrain<TValue>
   /// Marked as internal to prevent direct usage. Use derived classes instead.
   /// </summary>
   /// <param name="serviceProvider"></param>
-  internal BaseCompositeCacheGrain(IServiceProvider serviceProvider)
+  internal BaseClusterCacheGrain(IServiceProvider serviceProvider)
     : base(serviceProvider)
   {
   }
@@ -84,7 +84,7 @@ public abstract class BaseCompositeCacheGrain<TValue>
 /// </summary>
 /// <typeparam name="TValue">Type of the cache data.</typeparam>
 /// <typeparam name="TCreateArgs">Type of argument to be used during cache value generation.</typeparam>
-public abstract class BaseCompositeCacheGrain<TValue, TCreateArgs>
+public abstract class BaseClusterCacheGrain<TValue, TCreateArgs>
   : BaseCacheGrain<TValue>, IReadThroughCacheGrain<TValue, TCreateArgs>
   where TValue : notnull
   where TCreateArgs : notnull
@@ -93,7 +93,7 @@ public abstract class BaseCompositeCacheGrain<TValue, TCreateArgs>
   /// Marked as internal to prevent direct usage. Use derived classes instead.
   /// </summary>
   /// <param name="serviceProvider"></param>
-  internal BaseCompositeCacheGrain(IServiceProvider serviceProvider)
+  internal BaseClusterCacheGrain(IServiceProvider serviceProvider)
     : base(serviceProvider)
   {
   }

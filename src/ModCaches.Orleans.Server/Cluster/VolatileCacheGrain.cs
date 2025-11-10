@@ -7,7 +7,7 @@ namespace ModCaches.Orleans.Server.Cluster;
 /// </summary>
 /// <typeparam name="TValue">Type of the cache data.</typeparam>
 public abstract class VolatileCacheGrain<TValue>
-  : BaseCompositeCacheGrain<TValue>
+  : BaseClusterCacheGrain<TValue>
   where TValue : notnull
 {
   public VolatileCacheGrain(IServiceProvider serviceProvider)
@@ -66,7 +66,7 @@ public abstract class VolatileCacheGrain<TValue>
 /// <typeparam name="TValue">Type of the cache data.</typeparam>
 /// <typeparam name="TCreateArgs">Type of argument to be used during cache value generation.</typeparam>
 public abstract class VolatileCacheGrain<TValue, TCreateArgs>
-  : BaseCompositeCacheGrain<TValue, TCreateArgs>
+  : BaseClusterCacheGrain<TValue, TCreateArgs>
   where TValue : notnull
   where TCreateArgs : notnull
 {
