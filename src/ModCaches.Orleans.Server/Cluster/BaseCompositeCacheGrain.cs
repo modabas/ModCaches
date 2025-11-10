@@ -9,7 +9,7 @@ namespace ModCaches.Orleans.Server.Cluster;
 /// </summary>
 /// <typeparam name="TValue">Type of the cache data.</typeparam>
 public abstract class BaseCompositeCacheGrain<TValue>
-  : BaseClusterCacheGrain<TValue>,
+  : BaseCacheGrain<TValue>,
   IReadThroughCacheGrain<TValue>
   where TValue : notnull
 {
@@ -85,7 +85,7 @@ public abstract class BaseCompositeCacheGrain<TValue>
 /// <typeparam name="TValue">Type of the cache data.</typeparam>
 /// <typeparam name="TCreateArgs">Type of argument to be used during cache value generation.</typeparam>
 public abstract class BaseCompositeCacheGrain<TValue, TCreateArgs>
-  : BaseClusterCacheGrain<TValue>, IReadThroughCacheGrain<TValue, TCreateArgs>
+  : BaseCacheGrain<TValue>, IReadThroughCacheGrain<TValue, TCreateArgs>
   where TValue : notnull
   where TCreateArgs : notnull
 {

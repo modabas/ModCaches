@@ -10,7 +10,7 @@ namespace ModCaches.Orleans.Server.Cluster;
 /// Don't use directly, use derived classes instead.
 /// </summary>
 /// <typeparam name="TValue"></typeparam>
-public abstract class BaseClusterCacheGrain<TValue>
+public abstract class BaseCacheGrain<TValue>
   : BaseGrain,
   ICacheGrain<TValue>,
   IWriteThroughCacheGrain<TValue>
@@ -35,7 +35,7 @@ public abstract class BaseClusterCacheGrain<TValue>
   /// Marked as internal to prevent direct usage. Use derived classes instead.
   /// </summary>
   /// <param name="serviceProvider"></param>
-  internal BaseClusterCacheGrain(IServiceProvider serviceProvider)
+  internal BaseCacheGrain(IServiceProvider serviceProvider)
   {
     var timeProvider = serviceProvider.GetService<TimeProvider>() ?? TimeProvider.System;
     TimeProviderFunc = () => timeProvider.GetUtcNow();
