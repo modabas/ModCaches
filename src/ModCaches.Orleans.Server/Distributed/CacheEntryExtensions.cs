@@ -2,6 +2,7 @@
 using ModCaches.Orleans.Server.Common;
 
 namespace ModCaches.Orleans.Server.Distributed;
+
 internal static class CacheEntryExtensions
 {
   public static DistributedCacheState ToState(this CacheEntry<ImmutableArray<byte>> cacheEntry)

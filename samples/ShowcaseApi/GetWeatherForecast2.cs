@@ -65,9 +65,9 @@ internal class GetWeatherForecast2(IGrainFactory grainFactory) : MinimalEndpoint
       EndpointConfigurationBuilder builder,
       ConfigurationContext<EndpointConfigurationParameters> configurationContext)
   {
-    builder.MapGet("/weatherforecast2")
-      .WithName("GetWeatherForecast2")
-      .WithTags("WeatherForecastWebApi");
+    builder.MapGet("/ClusterCache")
+      .WithName("ClusterCache")
+      .WithTags("CacheShowcaseWebApi");
   }
 
   protected override async Task<WeatherForecast[]> HandleAsync(CancellationToken ct)

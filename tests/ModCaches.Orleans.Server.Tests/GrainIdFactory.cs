@@ -1,6 +1,7 @@
 ﻿using Orleans.Metadata;
 
 namespace ModCaches.Orleans.Server.Tests;
+
 public class GrainIdFactory
 {
   private readonly GrainInterfaceTypeResolver _grainInterfaceTypeResolver;

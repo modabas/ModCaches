@@ -1,6 +1,7 @@
 ﻿using ModCaches.Orleans.Server.Common;
 
 namespace ModCaches.Orleans.Server.Cluster;
+
 internal static class CacheEntryExtensions
 {
   public static CacheState<TValue> ToState<TValue>(this CacheEntry<TValue> cacheEntry)

@@ -2,6 +2,7 @@
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace ModCaches.Orleans.Server.Cluster;
+
 public static class ServiceCollectionExtensions
 {
   /// <summary>

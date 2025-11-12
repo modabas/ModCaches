@@ -1,11 +1,11 @@
 @ShowcaseApi_HostAddress = http://localhost:5180
 
-GET {{ShowcaseApi_HostAddress}}/weatherforecast/
+GET {{ShowcaseApi_HostAddress}}/ExtendedDistributedCache/
 Accept: application/json
 
 ###
 
-GET {{ShowcaseApi_HostAddress}}/weatherforecast2/
+GET {{ShowcaseApi_HostAddress}}/ClusterCache/
 Accept: application/json
 
 ###

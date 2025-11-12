@@ -21,9 +21,9 @@ internal class GetWeatherForecast(IExtendedDistributedCache cache) : MinimalEndp
       EndpointConfigurationBuilder builder,
       ConfigurationContext<EndpointConfigurationParameters> configurationContext)
   {
-    builder.MapGet("/weatherforecast")
-      .WithName("GetWeatherForecast")
-      .WithTags("WeatherForecastWebApi");
+    builder.MapGet("/ExtendedDistributedCache")
+      .WithName("ExtendedDistributedCache")
+      .WithTags("CacheShowcaseWebApi");
   }
 
   protected override async Task<WeatherForecast[]> HandleAsync(CancellationToken ct)
