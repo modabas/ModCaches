@@ -1,6 +1,6 @@
 ﻿namespace ModCaches.ExtendedDistributedCache;
 
-internal class DefaultDistributedCacheSerializer : IDistributedCacheSerializer
+internal sealed class DefaultDistributedCacheSerializer : IDistributedCacheSerializer
 {
   public ValueTask<Memory<byte>> SerializeAsync<T>(T value, CancellationToken ct)
   {

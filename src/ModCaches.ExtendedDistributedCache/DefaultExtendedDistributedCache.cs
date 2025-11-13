@@ -11,7 +11,7 @@ namespace ModCaches.ExtendedDistributedCache;
 // ConcurrentLruCache implementation is from Microsoft Orleans project.
 // Serialization and deserialization of cache entries is handled by ICacheSerializer.
 // The cache entry options can be customized through ExtendedDistributedCacheOptions.
-internal class DefaultExtendedDistributedCache : IExtendedDistributedCache
+internal sealed class DefaultExtendedDistributedCache : IExtendedDistributedCache
 {
   private readonly IDistributedCache _cache;
   private readonly IOptions<ExtendedDistributedCacheOptions> _options;

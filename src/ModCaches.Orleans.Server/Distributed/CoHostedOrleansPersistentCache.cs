@@ -5,7 +5,7 @@ using ModCaches.Orleans.Abstractions.Distributed;
 
 namespace ModCaches.Orleans.Server.Distributed;
 
-public class CoHostedOrleansPersistentCache : IDistributedCache
+internal sealed class CoHostedOrleansPersistentCache : IDistributedCache
 {
   private readonly IGrainFactory _grainFactory;
 

@@ -6,6 +6,10 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="ModCaches.Orleans.Client.Tests" />
+  </ItemGroup>
+  
   <PropertyGroup>
     <Description>Volatile and persistent distributed cache service implementations to be used from Microsoft Orleans clients.</Description>
     <NuGetTarget></NuGetTarget>
