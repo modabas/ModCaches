@@ -5,7 +5,7 @@
 /// </summary>
 /// <typeparam name="TValue">Type of the cache data.</typeparam>
 /// <typeparam name="TStoreArgs">Type of argument to be used during cache value generation.</typeparam>
-public interface IReadThroughCacheGrain<TValue, TStoreArgs> : ICacheGrain<TValue>
+public interface IReadThroughCacheGrain<TValue, TStoreArgs> : IReadThroughCacheGrain<TValue>
   where TValue : notnull
   where TStoreArgs : notnull
 {
@@ -22,16 +22,6 @@ public interface IReadThroughCacheGrain<TValue, TStoreArgs> : ICacheGrain<TValue
     CacheGrainEntryOptions? options = null);
 
   /// <summary>
-  /// Asynchronously gets the cached value if it exists, or generates a new entry using CreateFromStoreAsync method otherwise. CreateFromStoreAsync method must be overridden and implemented in the derived class.
-  /// </summary>
-  /// <param name="ct">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
-  /// <param name="options">The cache options for the value.</param>
-  /// <returns>The data, either from cache or the underlying value generation method.</returns>
-  Task<TValue> GetOrCreateAsync(
-    CancellationToken ct,
-    CacheGrainEntryOptions? options = null);
-
-  /// <summary>
   /// Asynchronously generates a new entry using CreateFromStoreAsync method. CreateFromStoreAsync method must be overridden and implemented in the derived class.
   /// </summary>
   /// <param name="args">Arguments to be passed to value generation method.</param>
@@ -40,16 +30,6 @@ public interface IReadThroughCacheGrain<TValue, TStoreArgs> : ICacheGrain<TValue
   /// <returns>The data from the underlying value generation method.</returns>
   Task<TValue> CreateAsync(
     TStoreArgs? args,
-    CancellationToken ct,
-    CacheGrainEntryOptions? options = null);
-
-  /// <summary>
-  /// Asynchronously generates a new entry using CreateFromStoreAsync method. CreateFromStoreAsync method must be overridden and implemented in the derived class.
-  /// </summary>
-  /// <param name="ct">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
-  /// <param name="options">The cache options for the value.</param>
-  /// <returns>The data from the underlying value generation method.</returns>
-  Task<TValue> CreateAsync(
     CancellationToken ct,
     CacheGrainEntryOptions? options = null);
 }
