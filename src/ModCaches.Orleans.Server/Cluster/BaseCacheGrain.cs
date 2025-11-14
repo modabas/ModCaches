@@ -12,8 +12,7 @@ namespace ModCaches.Orleans.Server.Cluster;
 /// <typeparam name="TValue"></typeparam>
 public abstract class BaseCacheGrain<TValue>
   : BaseGrain,
-  ICacheGrain<TValue>,
-  IWriteThroughCacheGrain<TValue>
+  ICacheGrain<TValue>
   where TValue : notnull
 {
   internal CacheEntry<TValue>? CacheEntry { get; set; }
@@ -63,7 +62,7 @@ public abstract class BaseCacheGrain<TValue>
     return Task.FromResult(true);
   }
 
-  private void RemoveInternal()
+  internal void RemoveInternal()
   {
     CacheEntry = null; // Remove the cache entry
     ResetDeactivation(); // Reset deactivation to default behavior
@@ -106,35 +105,5 @@ public abstract class BaseCacheGrain<TValue>
       DelayDeactivation(expiresIn.Value);
     }
     return Task.FromResult(value);
-  }
-
-  public virtual async Task<TValue> SetAndWriteAsync(
-    TValue value,
-    CancellationToken ct,
-    CacheGrainEntryOptions? options = null)
-  {
-    var entry = await WriteThroughAsync(value, options ?? DefaultEntryOptions, ct);
-    CacheEntry = new CacheEntry<TValue>(
-      entry.Value,
-      entry.Options.ToOrleansCacheEntryOptions(),
-      TimeProviderFunc);
-    // Delay deactivation to ensure it remains active while it has a valid cache entry
-    if (CacheEntry.TryGetExpiresIn(TimeProviderFunc, out var expiresIn))
-    {
-      DelayDeactivation(expiresIn.Value);
-    }
-    return entry.Value;
-  }
-
-  /// <summary>
-  /// Used by SetAndWriteAsync method before setting cache value. Intended to be used by write-through operation but also can be used to process/override cache value and options.
-  /// </summary>
-  /// <param name="value">The value to set in the cache.</param>
-  /// <param name="options">The cache options for the value.</param>
-  /// <param name="ct">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
-  /// <returns>A record containing value to be cached and cache options that will be used for the cache item.</returns>
-  protected virtual Task<WriteThroughResult<TValue>> WriteThroughAsync(TValue value, CacheGrainEntryOptions options, CancellationToken ct)
-  {
-    throw new NotImplementedException("Override and implement WriteThroughAsync method in order to use write-through caching strategy.");
   }
 }

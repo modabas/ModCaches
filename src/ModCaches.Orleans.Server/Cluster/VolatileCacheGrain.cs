@@ -39,6 +39,11 @@ public abstract class VolatileCacheGrain<TValue>
     return base.RemoveAsync(ct);
   }
 
+  public sealed override Task RemoveAndDeleteAsync(CancellationToken ct)
+  {
+    return base.RemoveAndDeleteAsync(ct);
+  }
+
   public sealed override Task<TValue> SetAsync(TValue value, CancellationToken ct, CacheGrainEntryOptions? options = null)
   {
     return base.SetAsync(value, ct, options);
@@ -76,19 +81,19 @@ public abstract class VolatileCacheGrain<TValue, TStoreArgs>
   }
 
   public sealed override Task<TValue> GetOrCreateAsync(
-    TStoreArgs? storeArgs,
+    TStoreArgs? args,
     CancellationToken ct,
     CacheGrainEntryOptions? options = null)
   {
-    return base.GetOrCreateAsync(storeArgs, ct, options);
+    return base.GetOrCreateAsync(args, ct, options);
   }
 
   public sealed override Task<TValue> CreateAsync(
-    TStoreArgs? storeArgs,
+    TStoreArgs? args,
     CancellationToken ct,
     CacheGrainEntryOptions? options = null)
   {
-    return base.CreateAsync(storeArgs, ct, options);
+    return base.CreateAsync(args, ct, options);
   }
 
   public sealed override Task<bool> RefreshAsync(CancellationToken ct)
@@ -101,14 +106,23 @@ public abstract class VolatileCacheGrain<TValue, TStoreArgs>
     return base.RemoveAsync(ct);
   }
 
+  public sealed override Task RemoveAndDeleteAsync(TStoreArgs? args, CancellationToken ct)
+  {
+    return base.RemoveAndDeleteAsync(args, ct);
+  }
+
   public sealed override Task<TValue> SetAsync(TValue value, CancellationToken ct, CacheGrainEntryOptions? options = null)
   {
     return base.SetAsync(value, ct, options);
   }
 
-  public sealed override Task<TValue> SetAndWriteAsync(TValue value, CancellationToken ct, CacheGrainEntryOptions? options = null)
+  public sealed override Task<TValue> SetAndWriteAsync(
+    TStoreArgs? args,
+    TValue value,
+    CancellationToken ct,
+    CacheGrainEntryOptions? options = null)
   {
-    return base.SetAndWriteAsync(value, ct, options);
+    return base.SetAndWriteAsync(args, value, ct, options);
   }
 
   public sealed override Task<TryGetResult<TValue>> TryGetAsync(CancellationToken ct)

@@ -94,6 +94,12 @@ public abstract class PersistentCacheGrain<TValue>
     await ClearStateAsync(ct);
   }
 
+  public sealed override async Task RemoveAndDeleteAsync(CancellationToken ct)
+  {
+    await base.RemoveAndDeleteAsync(ct);
+    await ClearStateAsync(ct);
+  }
+
   public sealed override async Task<TValue> SetAsync(
     TValue value,
     CancellationToken ct,
@@ -207,11 +213,11 @@ public abstract class PersistentCacheGrain<TValue, TStoreArgs>
   }
 
   public sealed override async Task<TValue> GetOrCreateAsync(
-    TStoreArgs? storeArgs,
+    TStoreArgs? args,
     CancellationToken ct,
     CacheGrainEntryOptions? options = null)
   {
-    var ret = await GetOrCreateInternalAsync(storeArgs, ct, options);
+    var ret = await GetOrCreateInternalAsync(args, ct, options);
     if (ret.IsCreated || HasSlidingExpiration)
     {
       await WriteStateAsync(ct);
@@ -220,11 +226,11 @@ public abstract class PersistentCacheGrain<TValue, TStoreArgs>
   }
 
   public sealed override async Task<TValue> CreateAsync(
-    TStoreArgs? storeArgs,
+    TStoreArgs? args,
     CancellationToken ct,
     CacheGrainEntryOptions? options = null)
   {
-    var ret = await base.CreateAsync(storeArgs, ct, options);
+    var ret = await base.CreateAsync(args, ct, options);
     await WriteStateAsync(ct);
     return ret;
   }
@@ -253,6 +259,12 @@ public abstract class PersistentCacheGrain<TValue, TStoreArgs>
     await ClearStateAsync(ct);
   }
 
+  public sealed override async Task RemoveAndDeleteAsync(TStoreArgs? args, CancellationToken ct)
+  {
+    await base.RemoveAndDeleteAsync(args, ct);
+    await ClearStateAsync(ct);
+  }
+
   public sealed override async Task<TValue> SetAsync(
     TValue value,
     CancellationToken ct,
@@ -264,11 +276,12 @@ public abstract class PersistentCacheGrain<TValue, TStoreArgs>
   }
 
   public sealed override async Task<TValue> SetAndWriteAsync(
+    TStoreArgs? args,
     TValue value,
     CancellationToken ct,
     CacheGrainEntryOptions? options = null)
   {
-    var ret = await base.SetAndWriteAsync(value, ct, options);
+    var ret = await base.SetAndWriteAsync(args, value, ct, options);
     await WriteStateAsync(ct);
     return ret;
   }

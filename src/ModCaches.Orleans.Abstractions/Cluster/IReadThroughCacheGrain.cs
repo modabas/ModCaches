@@ -10,26 +10,46 @@ public interface IReadThroughCacheGrain<TValue, TStoreArgs> : ICacheGrain<TValue
   where TStoreArgs : notnull
 {
   /// <summary>
-  /// Asynchronously gets the cached value if it exists, or generates a new entry using ReadThroughAsync method otherwise. ReadThroughAsync method must be overridden and implemented in the derived class.
+  /// Asynchronously gets the cached value if it exists, or generates a new entry using CreateFromStoreAsync method otherwise. CreateFromStoreAsync method must be overridden and implemented in the derived class.
   /// </summary>
-  /// <param name="storeArgs">Arguments to be passed to value generation method.</param>
+  /// <param name="args">Arguments to be passed to value generation method.</param>
   /// <param name="ct">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
   /// <param name="options">The cache options for the value.</param>
   /// <returns>The data, either from cache or the underlying value generation method.</returns>
   Task<TValue> GetOrCreateAsync(
-    TStoreArgs? storeArgs,
+    TStoreArgs? args,
     CancellationToken ct,
     CacheGrainEntryOptions? options = null);
 
   /// <summary>
-  /// Asynchronously generates a new entry using ReadThroughAsync method. ReadThroughAsync method must be overridden and implemented in the derived class.
+  /// Asynchronously gets the cached value if it exists, or generates a new entry using CreateFromStoreAsync method otherwise. CreateFromStoreAsync method must be overridden and implemented in the derived class.
   /// </summary>
-  /// <param name="storeArgs">Arguments to be passed to value generation method.</param>
+  /// <param name="ct">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
+  /// <param name="options">The cache options for the value.</param>
+  /// <returns>The data, either from cache or the underlying value generation method.</returns>
+  Task<TValue> GetOrCreateAsync(
+    CancellationToken ct,
+    CacheGrainEntryOptions? options = null);
+
+  /// <summary>
+  /// Asynchronously generates a new entry using CreateFromStoreAsync method. CreateFromStoreAsync method must be overridden and implemented in the derived class.
+  /// </summary>
+  /// <param name="args">Arguments to be passed to value generation method.</param>
   /// <param name="ct">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
   /// <param name="options">The cache options for the value.</param>
   /// <returns>The data from the underlying value generation method.</returns>
   Task<TValue> CreateAsync(
-    TStoreArgs? storeArgs,
+    TStoreArgs? args,
+    CancellationToken ct,
+    CacheGrainEntryOptions? options = null);
+
+  /// <summary>
+  /// Asynchronously generates a new entry using CreateFromStoreAsync method. CreateFromStoreAsync method must be overridden and implemented in the derived class.
+  /// </summary>
+  /// <param name="ct">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
+  /// <param name="options">The cache options for the value.</param>
+  /// <returns>The data from the underlying value generation method.</returns>
+  Task<TValue> CreateAsync(
     CancellationToken ct,
     CacheGrainEntryOptions? options = null);
 }
@@ -42,7 +62,7 @@ public interface IReadThroughCacheGrain<TValue> : ICacheGrain<TValue>
   where TValue : notnull
 {
   /// <summary>
-  /// Asynchronously gets the cached value if it exists, or generates a new entry using ReadThroughAsync method otherwise. ReadThroughAsync method must be overridden and implemented in the derived class.
+  /// Asynchronously gets the cached value if it exists, or generates a new entry using CreateFromStoreAsync method otherwise. CreateFromStoreAsync method must be overridden and implemented in the derived class.
   /// </summary>
   /// <param name="ct">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
   /// <param name="options">The cache options for the value.</param>
@@ -52,7 +72,7 @@ public interface IReadThroughCacheGrain<TValue> : ICacheGrain<TValue>
     CacheGrainEntryOptions? options = null);
 
   /// <summary>
-  /// Asynchronously generates a new entry using ReadThroughAsync method. ReadThroughAsync method must be overridden and implemented in the derived class.
+  /// Asynchronously generates a new entry using CreateFromStoreAsync method. CreateFromStoreAsync method must be overridden and implemented in the derived class.
   /// </summary>
   /// <param name="ct">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
   /// <param name="options">The cache options for the value.</param>

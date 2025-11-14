@@ -2,7 +2,7 @@
 
 namespace ModCaches.Orleans.Server.Cluster;
 
-public record ReadThroughResult<TValue>(
+public record CreateResult<TValue>(
   TValue Value,
   CacheGrainEntryOptions Options)
   where TValue : notnull;

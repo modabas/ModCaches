@@ -2,7 +2,7 @@
 
 namespace ModCaches.Orleans.Server.Cluster;
 
-public record WriteThroughResult<TValue>(
+public record WriteResult<TValue>(
   TValue Value,
   CacheGrainEntryOptions Options)
   where TValue : notnull;
