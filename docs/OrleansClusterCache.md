@@ -44,19 +44,19 @@ Implementing cluster cache grains is straightforward. However, it’s important 
 To cache a value using cluster cache grains, start by creating a marker interface that inherits one or more of the following interfaces, depending on the caching strategy you want to use:
 
 - `ICacheGrain<TValue>` for Cache-Aside and Write-Around strategies,  
-- `IReadThroughCacheGrain<TValue>` or `IReadThroughCacheGrain<TValue, TCreateArgs>` for Read-Through strategies (inherits `ICacheGrain<TValue>`),  
+- `IReadThroughCacheGrain<TValue>` or `IReadThroughCacheGrain<TValue, TStoreArgs>` for Read-Through strategies (inherits `ICacheGrain<TValue>`),  
 - `IWriteThroughCacheGrain<TValue>` for Write-Through strategies (inherits `ICacheGrain<TValue>`).
 
 Then create a cache grain implementation inheriting from one of the abstract base cache grain types and your marker interface:
 
-- `VolatileCacheGrain<TValue>` or `VolatileCacheGrain<TValue, TCreateArgs>` for storing data in memory,  
-- `PersistentCacheGrain<TValue>` or `PersistentCacheGrain<TValue, TCreateArgs>` for persisting data as grain state.
+- `VolatileCacheGrain<TValue>` or `VolatileCacheGrain<TValue, TStoreArgs>` for storing data in memory,  
+- `PersistentCacheGrain<TValue>` or `PersistentCacheGrain<TValue, TStoreArgs>` for persisting data as grain state.
 
 > **Note:** Read-Through cache grains require the implementation of `ReadThroughAsync` method to create cache entries when they are missing or expired.  
 > Write-Through cache grains require the implementation of `WriteThroughAsync` method to handle write operations.  
 > The default implementations of these methods throw `NotImplementedException`.
 
-The following example implements the Read-Through cache pattern by creating a marker interface `IWeatherForecastCacheGrain` first and then creating an implementation of abstract `VolatileCacheGrain<TValue, TCreateArgs>` class, overriding the `ReadThroughAsync` method and inheriting marker interface:
+The following example implements the Read-Through cache pattern by creating a marker interface `IWeatherForecastCacheGrain` first and then creating an implementation of abstract `VolatileCacheGrain<TValue, TStoreArgs>` class, overriding the `ReadThroughAsync` method and inheriting marker interface:
 
 ```csharp
 // marker interface
@@ -173,7 +173,7 @@ internal class WeatherForecastCacheGrain :
 }
 ```
 
-Creating a similar cache grain with state persistence requires implementing `PersistentCacheGrain<TValue, TCreateArgs>` instead:
+Creating a similar cache grain with state persistence requires implementing `PersistentCacheGrain<TValue, TStoreArgs>` instead:
 
 > **Note:** Persistent cache requires a configured grain storage on the Microsoft Orleans server.
 
@@ -218,7 +218,7 @@ Cluster cache grains expose several methods for interaction:
   4. `RefreshAsync` — updates the last accessed time if an unexpired cache value exists,  
   5. `RemoveAsync` — clears the cache value.  
 
-- **`IReadThroughCacheGrain<TValue>` and `IReadThroughCacheGrain<TValue, TCreateArgs>` methods:**
+- **`IReadThroughCacheGrain<TValue>` and `IReadThroughCacheGrain<TValue, TStoreArgs>` methods:**
   1. `GetOrCreateAsync` — fetches a cached value or creates one via `ReadThroughAsync` if the value is missing or expired,  
   2. `CreateAsync` — creates a cache value via `ReadThroughAsync` and fetches it,
   3. Inherits methods from `ICacheGrain<TValue>`.  

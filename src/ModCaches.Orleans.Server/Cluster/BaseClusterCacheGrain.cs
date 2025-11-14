@@ -83,11 +83,11 @@ public abstract class BaseClusterCacheGrain<TValue>
 /// Don't use directly, use derived classes instead.
 /// </summary>
 /// <typeparam name="TValue">Type of the cache data.</typeparam>
-/// <typeparam name="TCreateArgs">Type of argument to be used during cache value generation.</typeparam>
-public abstract class BaseClusterCacheGrain<TValue, TCreateArgs>
-  : BaseCacheGrain<TValue>, IReadThroughCacheGrain<TValue, TCreateArgs>
+/// <typeparam name="TStoreArgs">Type of argument to be used during cache value generation.</typeparam>
+public abstract class BaseClusterCacheGrain<TValue, TStoreArgs>
+  : BaseCacheGrain<TValue>, IReadThroughCacheGrain<TValue, TStoreArgs>
   where TValue : notnull
-  where TCreateArgs : notnull
+  where TStoreArgs : notnull
 {
   /// <summary>
   /// Marked as internal to prevent direct usage. Use derived classes instead.
@@ -99,16 +99,16 @@ public abstract class BaseClusterCacheGrain<TValue, TCreateArgs>
   }
 
   public virtual async Task<TValue> GetOrCreateAsync(
-    TCreateArgs? createArgs,
+    TStoreArgs? storeArgs,
     CancellationToken ct,
     CacheGrainEntryOptions? options = null)
   {
-    var (_, value) = await GetOrCreateInternalAsync(createArgs, ct, options);
+    var (_, value) = await GetOrCreateInternalAsync(storeArgs, ct, options);
     return value;
   }
 
   internal async Task<(bool IsCreated, TValue Value)> GetOrCreateInternalAsync(
-    TCreateArgs? createArgs,
+    TStoreArgs? storeArgs,
     CancellationToken ct,
     CacheGrainEntryOptions? options = null)
   {
@@ -117,23 +117,23 @@ public abstract class BaseClusterCacheGrain<TValue, TCreateArgs>
       DelayDeactivation(expiresIn.Value);
       return (IsCreated: false, Value: value);
     }
-    return (IsCreated: true, Value: await CreateInternalAsync(createArgs, ct, options));
+    return (IsCreated: true, Value: await CreateInternalAsync(storeArgs, ct, options));
   }
 
   public virtual Task<TValue> CreateAsync(
-    TCreateArgs? createArgs,
+    TStoreArgs? storeArgs,
     CancellationToken ct,
     CacheGrainEntryOptions? options = null)
   {
-    return CreateInternalAsync(createArgs, ct, options);
+    return CreateInternalAsync(storeArgs, ct, options);
   }
 
   private async Task<TValue> CreateInternalAsync(
-    TCreateArgs? createArgs,
+    TStoreArgs? storeArgs,
     CancellationToken ct,
     CacheGrainEntryOptions? options = null)
   {
-    var entry = await ReadThroughAsync(createArgs, options ?? DefaultEntryOptions, ct);
+    var entry = await ReadThroughAsync(storeArgs, options ?? DefaultEntryOptions, ct);
     CacheEntry = new CacheEntry<TValue>(
       entry.Value,
       entry.Options.ToOrleansCacheEntryOptions(),
@@ -153,7 +153,7 @@ public abstract class BaseClusterCacheGrain<TValue, TCreateArgs>
   /// <param name="options">The cache options for the value.</param>
   /// <param name="ct">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
   /// <returns>A record containing data to be cached and options to be used for caching.</returns>
-  protected virtual Task<ReadThroughResult<TValue>> ReadThroughAsync(TCreateArgs? args, CacheGrainEntryOptions options, CancellationToken ct)
+  protected virtual Task<ReadThroughResult<TValue>> ReadThroughAsync(TStoreArgs? args, CacheGrainEntryOptions options, CancellationToken ct)
   {
     throw new NotImplementedException("Override and implement ReadThroughAsync method in order to use read-through caching strategy.");
   }

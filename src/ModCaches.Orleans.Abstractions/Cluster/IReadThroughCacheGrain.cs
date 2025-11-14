@@ -4,32 +4,32 @@
 /// Represents a cluster cache grain that implements read-through caching strategy.
 /// </summary>
 /// <typeparam name="TValue">Type of the cache data.</typeparam>
-/// <typeparam name="TCreateArgs">Type of argument to be used during cache value generation.</typeparam>
-public interface IReadThroughCacheGrain<TValue, TCreateArgs> : ICacheGrain<TValue>
+/// <typeparam name="TStoreArgs">Type of argument to be used during cache value generation.</typeparam>
+public interface IReadThroughCacheGrain<TValue, TStoreArgs> : ICacheGrain<TValue>
   where TValue : notnull
-  where TCreateArgs : notnull
+  where TStoreArgs : notnull
 {
   /// <summary>
   /// Asynchronously gets the cached value if it exists, or generates a new entry using ReadThroughAsync method otherwise. ReadThroughAsync method must be overridden and implemented in the derived class.
   /// </summary>
-  /// <param name="createArgs">Arguments to be passed to value generation method.</param>
+  /// <param name="storeArgs">Arguments to be passed to value generation method.</param>
   /// <param name="ct">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
   /// <param name="options">The cache options for the value.</param>
   /// <returns>The data, either from cache or the underlying value generation method.</returns>
   Task<TValue> GetOrCreateAsync(
-    TCreateArgs? createArgs,
+    TStoreArgs? storeArgs,
     CancellationToken ct,
     CacheGrainEntryOptions? options = null);
 
   /// <summary>
   /// Asynchronously generates a new entry using ReadThroughAsync method. ReadThroughAsync method must be overridden and implemented in the derived class.
   /// </summary>
-  /// <param name="createArgs">Arguments to be passed to value generation method.</param>
+  /// <param name="storeArgs">Arguments to be passed to value generation method.</param>
   /// <param name="ct">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
   /// <param name="options">The cache options for the value.</param>
   /// <returns>The data from the underlying value generation method.</returns>
   Task<TValue> CreateAsync(
-    TCreateArgs? createArgs,
+    TStoreArgs? storeArgs,
     CancellationToken ct,
     CacheGrainEntryOptions? options = null);
 }

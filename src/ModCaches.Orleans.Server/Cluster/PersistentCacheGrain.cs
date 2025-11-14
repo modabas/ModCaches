@@ -162,11 +162,11 @@ public abstract class PersistentCacheGrain<TValue>
 /// Abstract class to implement a cluster cache grain that keeps data in memory and also saves it as grain state (persistent).
 /// </summary>
 /// <typeparam name="TValue">Type of the cache data.</typeparam>
-/// <typeparam name="TCreateArgs">Type of argument to be used during cache value generation.</typeparam>
-public abstract class PersistentCacheGrain<TValue, TCreateArgs>
-  : BaseClusterCacheGrain<TValue, TCreateArgs>
+/// <typeparam name="TStoreArgs">Type of argument to be used during cache value generation.</typeparam>
+public abstract class PersistentCacheGrain<TValue, TStoreArgs>
+  : BaseClusterCacheGrain<TValue, TStoreArgs>
   where TValue : notnull
-  where TCreateArgs : notnull
+  where TStoreArgs : notnull
 {
   private bool _stateCleared = false;
   private readonly IPersistentState<CacheState<TValue>> _persistentState;
@@ -207,11 +207,11 @@ public abstract class PersistentCacheGrain<TValue, TCreateArgs>
   }
 
   public sealed override async Task<TValue> GetOrCreateAsync(
-    TCreateArgs? createArgs,
+    TStoreArgs? storeArgs,
     CancellationToken ct,
     CacheGrainEntryOptions? options = null)
   {
-    var ret = await GetOrCreateInternalAsync(createArgs, ct, options);
+    var ret = await GetOrCreateInternalAsync(storeArgs, ct, options);
     if (ret.IsCreated || HasSlidingExpiration)
     {
       await WriteStateAsync(ct);
@@ -220,11 +220,11 @@ public abstract class PersistentCacheGrain<TValue, TCreateArgs>
   }
 
   public sealed override async Task<TValue> CreateAsync(
-    TCreateArgs? createArgs,
+    TStoreArgs? storeArgs,
     CancellationToken ct,
     CacheGrainEntryOptions? options = null)
   {
-    var ret = await base.CreateAsync(createArgs, ct, options);
+    var ret = await base.CreateAsync(storeArgs, ct, options);
     await WriteStateAsync(ct);
     return ret;
   }

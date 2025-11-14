@@ -64,11 +64,11 @@ public abstract class VolatileCacheGrain<TValue>
 /// Abstract class to implement a cluster cache grain that keeps data in memory (volatile).
 /// </summary>
 /// <typeparam name="TValue">Type of the cache data.</typeparam>
-/// <typeparam name="TCreateArgs">Type of argument to be used during cache value generation.</typeparam>
-public abstract class VolatileCacheGrain<TValue, TCreateArgs>
-  : BaseClusterCacheGrain<TValue, TCreateArgs>
+/// <typeparam name="TStoreArgs">Type of argument to be used during cache value generation.</typeparam>
+public abstract class VolatileCacheGrain<TValue, TStoreArgs>
+  : BaseClusterCacheGrain<TValue, TStoreArgs>
   where TValue : notnull
-  where TCreateArgs : notnull
+  where TStoreArgs : notnull
 {
   public VolatileCacheGrain(IServiceProvider serviceProvider)
     : base(serviceProvider)
@@ -76,19 +76,19 @@ public abstract class VolatileCacheGrain<TValue, TCreateArgs>
   }
 
   public sealed override Task<TValue> GetOrCreateAsync(
-    TCreateArgs? createArgs,
+    TStoreArgs? storeArgs,
     CancellationToken ct,
     CacheGrainEntryOptions? options = null)
   {
-    return base.GetOrCreateAsync(createArgs, ct, options);
+    return base.GetOrCreateAsync(storeArgs, ct, options);
   }
 
   public sealed override Task<TValue> CreateAsync(
-    TCreateArgs? createArgs,
+    TStoreArgs? storeArgs,
     CancellationToken ct,
     CacheGrainEntryOptions? options = null)
   {
-    return base.CreateAsync(createArgs, ct, options);
+    return base.CreateAsync(storeArgs, ct, options);
   }
 
   public sealed override Task<bool> RefreshAsync(CancellationToken ct)

@@ -3,15 +3,15 @@ using ModCaches.Orleans.Server.Cluster;
 
 namespace ModCaches.Orleans.Server.Tests.Cluster;
 
-internal interface IPersistentCacheTestGrainWithCreateArgs :
+internal interface IPersistentCacheTestGrainWithStoreArgs :
   IReadThroughCacheGrain<CacheTestValue, int>,
   ICacheGrain<CacheTestValue>,
   IWriteThroughCacheGrain<CacheTestValue>;
-internal class PersistentCacheTestGrainWithCreateArgs : PersistentCacheGrain<CacheTestValue, int>, IPersistentCacheTestGrainWithCreateArgs
+internal class PersistentCacheTestGrainWithStoreArgs : PersistentCacheGrain<CacheTestValue, int>, IPersistentCacheTestGrainWithStoreArgs
 {
-  public PersistentCacheTestGrainWithCreateArgs(
+  public PersistentCacheTestGrainWithStoreArgs(
     IServiceProvider serviceProvider,
-    [PersistentState(nameof(PersistentCacheTestGrainWithCreateArgs))] IPersistentState<CacheState<CacheTestValue>> persistentState) : base(serviceProvider, persistentState)
+    [PersistentState(nameof(PersistentCacheTestGrainWithStoreArgs))] IPersistentState<CacheState<CacheTestValue>> persistentState) : base(serviceProvider, persistentState)
   {
   }
 

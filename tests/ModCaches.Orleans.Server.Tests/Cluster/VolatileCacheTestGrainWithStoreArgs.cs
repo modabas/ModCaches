@@ -3,14 +3,14 @@ using ModCaches.Orleans.Server.Cluster;
 
 namespace ModCaches.Orleans.Server.Tests.Cluster;
 
-internal interface IVolatileCacheTestGrainWithCreateArgs :
+internal interface IVolatileCacheTestGrainWithStoreArgs :
   IReadThroughCacheGrain<string, int>,
   ICacheGrain<string>,
   IWriteThroughCacheGrain<string>;
 
-internal class VolatileCacheTestGrainWithCreateArgs : VolatileCacheGrain<string, int>, IVolatileCacheTestGrainWithCreateArgs
+internal class VolatileCacheTestGrainWithStoreArgs : VolatileCacheGrain<string, int>, IVolatileCacheTestGrainWithStoreArgs
 {
-  public VolatileCacheTestGrainWithCreateArgs(IServiceProvider serviceProvider) : base(serviceProvider)
+  public VolatileCacheTestGrainWithStoreArgs(IServiceProvider serviceProvider) : base(serviceProvider)
   {
   }
 
