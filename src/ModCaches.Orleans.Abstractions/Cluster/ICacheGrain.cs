@@ -1,7 +1,7 @@
 ﻿namespace ModCaches.Orleans.Abstractions.Cluster;
 
 /// <summary>
-/// Represents base methods of a cluster cache grain.
+/// Represents base methods of a cluster cache grain. For Cache-Aside and Write-Around caching strategies.
 /// </summary>
 /// <typeparam name="TValue">Type of the cache data.</typeparam>
 public interface ICacheGrain<TValue> : IGrainWithStringKey

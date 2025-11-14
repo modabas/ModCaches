@@ -6,7 +6,8 @@ using ModCaches.Orleans.Server.Common;
 namespace ModCaches.Orleans.Server.Cluster;
 
 /// <summary>
-/// Intended to be used as an internal base class for cluster cache grain implementations like volatile and persistent cluster cache grains. 
+/// Intended to be used as an internal base class for cluster cache grain implementations like volatile and persistent cluster cache grains.
+/// Implements basic in-memory caching logic along with Cache-Aside and Write-Around caching strategies.
 /// Don't use directly, use derived classes instead.
 /// </summary>
 /// <typeparam name="TValue"></typeparam>
