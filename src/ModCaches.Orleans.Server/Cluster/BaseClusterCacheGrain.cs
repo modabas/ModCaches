@@ -69,7 +69,9 @@ public abstract class BaseClusterCacheGrain<TValue>
   }
 
   /// <summary>
-  /// Value generation method for read-through caching strategy, used by GetOrCreateAsync and CreateAsync methods while creating a new cache value from underlying store. Also can be used to override input cache options.
+  /// Reads data from backing data store. Used by GetOrCreateAsync and CreateAsync methods and cache value is set by the response from this method.<br/>
+  /// Also can be used to override input cache options.<br/>
+  /// Must be overridden in order to use any one of GetOrCreateAsync and CreateAsync methods.
   /// </summary>
   /// <param name="options">The cache options for the value.</param>
   /// <param name="ct">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
@@ -98,7 +100,9 @@ public abstract class BaseClusterCacheGrain<TValue>
   }
 
   /// <summary>
-  /// Used by SetAndWriteAsync method before setting cache value. Intended to be used by write-through operation but also can be used to process/override cache value and options.
+  /// Performs update of the backing data store. Used by SetAndWriteAsync method and is called before setting cache value.<br/>
+  /// Also can be used to process/override input cache value and options.<br/>
+  /// Must be overridden in order to use SetAndWriteAsync method.
   /// </summary>
   /// <param name="value">The value to set in the cache.</param>
   /// <param name="options">The cache options for the value.</param>
@@ -120,7 +124,8 @@ public abstract class BaseClusterCacheGrain<TValue>
   }
 
   /// <summary>
-  /// Used by RemoveAndDeleteAsync method before removing cache value. Intended to be used by write-through operation.
+  /// Performs deletion the backing data store. Used by RemoveAndDeleteAsync method and is called before removing cache value.<br/>
+  /// Must be overridden in order to use RemoveAndDeleteAsync method.
   /// </summary>
   /// <param name="ct">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
   /// <returns></returns>
@@ -217,9 +222,11 @@ public abstract class BaseClusterCacheGrain<TValue, TStoreArgs>
   }
 
   /// <summary>
-  /// Value generation method for read-through caching strategy, used by GetOrCreateAsync and CreateAsync methods while creating a new cache value. Also can be used to override input cache options.
+  /// Reads data from backing data store. Used by GetOrCreateAsync and CreateAsync methods and cache value is set by the response from this method.<br/>
+  /// Also can be used to override input cache options.<br/>
+  /// Must be overridden in order to use any one of GetOrCreateAsync and CreateAsync methods.
   /// </summary>
-  /// <param name="args">Additional arguments to be used for value generation from underlying data store.</param>
+  /// <param name="args">Parameters for underlying operations from backing data store.</param>
   /// <param name="options">The cache options for the value.</param>
   /// <param name="ct">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
   /// <returns>A record containing data to be cached and options to be used for caching.</returns>
@@ -259,9 +266,11 @@ public abstract class BaseClusterCacheGrain<TValue, TStoreArgs>
   }
 
   /// <summary>
-  /// Used by SetAndWriteAsync method before setting cache value. Intended to be used by write-through operation but also can be used to process/override cache value and options.
+  /// Performs update of the backing data store. Used by SetAndWriteAsync method and is called before setting cache value.<br/>
+  /// Also can be used to process/override input cache value and options.<br/>
+  /// Must be overridden in order to use SetAndWriteAsync method.
   /// </summary>
-  /// <param name="args">Additional arguments to be used during write operation to underlying data store.</param>
+  /// <param name="args">Parameters for underlying operations from backing data store.</param>
   /// <param name="value">The value to set in the cache.</param>
   /// <param name="options">The cache options for the value.</param>
   /// <param name="ct">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
@@ -290,9 +299,10 @@ public abstract class BaseClusterCacheGrain<TValue, TStoreArgs>
   }
 
   /// <summary>
-  /// Used by RemoveAndDeleteAsync method before removing cache value. Intended to be used by write-through operation.
+  /// Performs deletion the backing data store. Used by RemoveAndDeleteAsync method and is called before removing cache value.<br/>
+  /// Must be overridden in order to use RemoveAndDeleteAsync method.
   /// </summary>
-  /// <param name="args">Additional arguments to be used during delete operation from underlying data store.</param>
+  /// <param name="args">Parameters for underlying operations from backing data store.</param>
   /// <param name="ct">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
   /// <returns></returns>
   protected virtual Task DeleteFromStoreAsync(
