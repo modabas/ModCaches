@@ -10,9 +10,9 @@ public interface IWriteThroughCacheGrain<TValue, TStoreArgs> : IWriteThroughCach
   where TStoreArgs : notnull
 {
   /// <summary>
-  /// Performs write-through operation and sets the cached value utilizing WriteToStoreAsync method. WriteToStoreAsync method must be overridden and implemented in the derived class.
+  /// Performs update of the backing data store and sets the cached value. Utilizes WriteToStoreAsync method to update backing data store. WriteToStoreAsync method must be overridden and implemented in the derived class.
   /// </summary>
-  /// <param name="args">Parameters for underlying write-through operations.</param>
+  /// <param name="args">Parameters for underlying operations from backing data store.</param>
   /// <param name="value">The value to store in the cache.</param>
   /// <param name="ct">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
   /// <param name="options">The cache options for the value.</param>
@@ -24,10 +24,10 @@ public interface IWriteThroughCacheGrain<TValue, TStoreArgs> : IWriteThroughCach
     CacheGrainEntryOptions? options = null);
 
   /// <summary>
-  /// Performs write-through removal of the cached value utilizing DeleteFromStoreAsync method. DeleteFromStoreAsync method must be overridden and implemented in the derived class.
+  /// Performs deletion from backing data store and removal from cache. Utilizes DeleteFromStoreAsync method for deleting from backing data store. DeleteFromStoreAsync method must be overridden and implemented in the derived class.
   /// </summary>
-  /// <param name="args">Parameters for underlying write-through operations.</param>
-  /// <param name="ct"></param>
+  /// <param name="args">Parameters for underlying operations from backing data store.</param>
+  /// <param name="ct">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
   /// <returns></returns>
   Task RemoveAndDeleteAsync(
     TStoreArgs? args,
@@ -43,7 +43,7 @@ public interface IWriteThroughCacheGrain<TValue> : ICacheGrain<TValue>
   where TValue : notnull
 {
   /// <summary>
-  /// Performs write-through operation and sets the cached value utilizing WriteToStoreAsync method. WriteToStoreAsync method must be overridden and implemented in the derived class.
+  /// Performs update of the backing data store and sets the cached value. Utilizes WriteToStoreAsync method to update backing data store. WriteToStoreAsync method must be overridden and implemented in the derived class.
   /// </summary>
   /// <param name="value">The value to store in the cache.</param>
   /// <param name="ct">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
@@ -55,9 +55,9 @@ public interface IWriteThroughCacheGrain<TValue> : ICacheGrain<TValue>
     CacheGrainEntryOptions? options = null);
 
   /// <summary>
-  /// Performs write-through removal of the cached value utilizing DeleteFromStoreAsync method. DeleteFromStoreAsync method must be overridden and implemented in the derived class.
+  /// Performs deletion from backing data store and removal from cache. Utilizes DeleteFromStoreAsync method for deleting from backing data store. DeleteFromStoreAsync method must be overridden and implemented in the derived class.
   /// </summary>
-  /// <param name="ct"></param>
+  /// <param name="ct">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
   /// <returns></returns>
   Task RemoveAndDeleteAsync(
     CancellationToken ct);
