@@ -87,15 +87,7 @@ public abstract class BaseClusterCacheGrain<TValue>
     CacheGrainEntryOptions? options = null)
   {
     var entry = await WriteToStoreAsync(value, options ?? DefaultEntryOptions, ct);
-    CacheEntry = new CacheEntry<TValue>(
-      entry.Value,
-      entry.Options.ToOrleansCacheEntryOptions(),
-      TimeProviderFunc);
-    // Delay deactivation to ensure it remains active while it has a valid cache entry
-    if (CacheEntry.TryGetExpiresIn(TimeProviderFunc, out var expiresIn))
-    {
-      DelayDeactivation(expiresIn.Value);
-    }
+    SetInternal(entry.Value, entry.Options);
     return entry.Value;
   }
 
@@ -245,15 +237,7 @@ public abstract class BaseClusterCacheGrain<TValue, TStoreArgs>
     CacheGrainEntryOptions? options = null)
   {
     var entry = await WriteToStoreAsync(args, value, options ?? DefaultEntryOptions, ct);
-    CacheEntry = new CacheEntry<TValue>(
-      entry.Value,
-      entry.Options.ToOrleansCacheEntryOptions(),
-      TimeProviderFunc);
-    // Delay deactivation to ensure it remains active while it has a valid cache entry
-    if (CacheEntry.TryGetExpiresIn(TimeProviderFunc, out var expiresIn))
-    {
-      DelayDeactivation(expiresIn.Value);
-    }
+    SetInternal(entry.Value, entry.Options);
     return entry.Value;
   }
 

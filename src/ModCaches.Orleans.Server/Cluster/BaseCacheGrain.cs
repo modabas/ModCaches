@@ -96,15 +96,23 @@ public abstract class BaseCacheGrain<TValue>
     CacheGrainEntryOptions? options = null)
   {
     var entryOptions = options ?? DefaultEntryOptions;
+    SetInternal(value, entryOptions);
+    return Task.FromResult(value);
+  }
+
+  internal void SetInternal(
+    TValue value,
+    CacheGrainEntryOptions options)
+  {
     CacheEntry = new CacheEntry<TValue>(
       value,
-      entryOptions.ToOrleansCacheEntryOptions(),
+      options.ToOrleansCacheEntryOptions(),
       TimeProviderFunc);
     // Delay deactivation to ensure it remains active while it has a valid cache entry
     if (CacheEntry.TryGetExpiresIn(TimeProviderFunc, out var expiresIn))
     {
       DelayDeactivation(expiresIn.Value);
     }
-    return Task.FromResult(value);
+    return;
   }
 }
