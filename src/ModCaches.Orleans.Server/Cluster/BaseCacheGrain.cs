@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Options;
 using ModCaches.Orleans.Abstractions.Cluster;
 using ModCaches.Orleans.Server.Common;
+using ModResults;
 
 namespace ModCaches.Orleans.Server.Cluster;
 
@@ -25,12 +26,6 @@ public abstract class BaseCacheGrain<TValue>
   internal bool HasSlidingExpiration =>
     CacheEntry?.HasSlidingExpiration ?? false;
 
-  private static readonly TryPeekResult<TValue> _emptyTryPeekResult =
-    new(false, default);
-
-  private static readonly TryGetResult<TValue> _emptyTryGetResult =
-    new(false, default);
-
   /// <summary>
   /// Marked as internal to prevent direct usage. Use derived classes instead.
   /// </summary>
@@ -50,17 +45,17 @@ public abstract class BaseCacheGrain<TValue>
     return Task.CompletedTask;
   }
 
-  public virtual Task<bool> RefreshAsync(CancellationToken ct)
+  public virtual Task<Result> RefreshAsync(CancellationToken ct)
   {
     if (CacheEntry is null ||
       !CacheEntry.TryGetValue(TimeProviderFunc, out _, out var expiresIn))
     {
       RemoveInternal();
-      return Task.FromResult(false);
+      return Task.FromResult(Result.NotFound());
     }
     // Delay deactivation to ensure it remains active while it has a valid cache entry
     DelayDeactivation(expiresIn.Value);
-    return Task.FromResult(true);
+    return Task.FromResult(Result.Ok());
   }
 
   internal void RemoveInternal()
@@ -70,34 +65,34 @@ public abstract class BaseCacheGrain<TValue>
     return;
   }
 
-  public virtual Task<TryGetResult<TValue>> TryGetAsync(CancellationToken ct)
+  public virtual Task<Result<TValue>> TryGetAsync(CancellationToken ct)
   {
     if (CacheEntry?.TryGetValue(TimeProviderFunc, out var value, out var expiresIn) == true)
     {
       DelayDeactivation(expiresIn.Value);
-      return Task.FromResult(new TryGetResult<TValue>(true, value));
+      return Task.FromResult(Result<TValue>.Ok(value));
     }
     RemoveInternal();
-    return Task.FromResult(_emptyTryGetResult);
+    return Task.FromResult(Result<TValue>.NotFound());
   }
 
-  public virtual Task<TryPeekResult<TValue>> TryPeekAsync(CancellationToken ct)
+  public virtual Task<Result<TValue>> TryPeekAsync(CancellationToken ct)
   {
     if (CacheEntry?.TryPeekValue(TimeProviderFunc, out var value, out _) == true)
     {
-      return Task.FromResult(new TryPeekResult<TValue>(true, value));
+      return Task.FromResult(Result<TValue>.Ok(value));
     }
-    return Task.FromResult(_emptyTryPeekResult);
+    return Task.FromResult(Result<TValue>.NotFound());
   }
 
-  public virtual Task<TValue> SetAsync(
+  public virtual Task SetAsync(
     TValue value,
     CancellationToken ct,
     CacheGrainEntryOptions? options = null)
   {
     var entryOptions = options ?? DefaultEntryOptions;
     SetInternal(value, entryOptions);
-    return Task.FromResult(value);
+    return Task.CompletedTask;
   }
 
   internal void SetInternal(

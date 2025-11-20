@@ -1,5 +1,6 @@
 ﻿using ModCaches.Orleans.Abstractions.Cluster;
 using ModCaches.Orleans.Server.Common;
+using ModResults;
 
 namespace ModCaches.Orleans.Server.Cluster;
 
@@ -24,15 +25,15 @@ public abstract class BaseClusterCacheGrain<TValue>
   {
   }
 
-  public virtual async Task<TValue> GetOrCreateAsync(
+  public virtual async Task<Result<TValue>> GetOrCreateAsync(
     CancellationToken ct,
     CacheGrainEntryOptions? options = null)
   {
     var ret = await GetOrCreateInternalAsync(ct, options);
-    return ret.Value;
+    return ret.ToResult(r => r.Value);
   }
 
-  internal async Task<(bool IsCreated, TValue Value)> GetOrCreateInternalAsync(
+  internal async Task<Result<(bool IsCreated, TValue Value)>> GetOrCreateInternalAsync(
     CancellationToken ct,
     CacheGrainEntryOptions? options = null)
   {
@@ -41,31 +42,35 @@ public abstract class BaseClusterCacheGrain<TValue>
       DelayDeactivation(expiresIn.Value);
       return (IsCreated: false, Value: value);
     }
-    return (IsCreated: true, Value: await CreateInternalAsync(ct, options));
+    var result = await CreateInternalAsync(ct, options);
+    return result.ToResult(r => (IsCreated: true, Value: r));
   }
 
-  public virtual Task<TValue> CreateAsync(
+  public virtual Task<Result<TValue>> CreateAsync(
     CancellationToken ct,
     CacheGrainEntryOptions? options = null)
   {
     return CreateInternalAsync(ct, options);
   }
 
-  private async Task<TValue> CreateInternalAsync(
+  private async Task<Result<TValue>> CreateInternalAsync(
     CancellationToken ct,
     CacheGrainEntryOptions? options = null)
   {
-    var entry = await CreateFromStoreAsync(options ?? DefaultEntryOptions, ct);
-    CacheEntry = new CacheEntry<TValue>(
-      entry.Value,
-      entry.Options.ToOrleansCacheEntryOptions(),
-      TimeProviderFunc);
-    // Delay deactivation to ensure it remains active while it has a valid cache entry
-    if (CacheEntry.TryGetExpiresIn(TimeProviderFunc, out var expiresIn))
+    var result = await CreateFromStoreAsync(options ?? DefaultEntryOptions, ct);
+    if (result.IsOk)
     {
-      DelayDeactivation(expiresIn.Value);
+      CacheEntry = new CacheEntry<TValue>(
+        result.Value.Value,
+        result.Value.Options.ToOrleansCacheEntryOptions(),
+        TimeProviderFunc);
+      // Delay deactivation to ensure it remains active while it has a valid cache entry
+      if (CacheEntry.TryGetExpiresIn(TimeProviderFunc, out var expiresIn))
+      {
+        DelayDeactivation(expiresIn.Value);
+      }
     }
-    return entry.Value;
+    return result.ToResult(r => r.Value);
   }
 
   /// <summary>
@@ -76,19 +81,22 @@ public abstract class BaseClusterCacheGrain<TValue>
   /// <param name="options">The cache options for the value.</param>
   /// <param name="ct">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
   /// <returns>A record containing data to be cached and options to be used for caching.</returns>
-  protected virtual Task<CreateResult<TValue>> CreateFromStoreAsync(CacheGrainEntryOptions options, CancellationToken ct)
+  protected virtual Task<Result<CreatedItem<TValue>>> CreateFromStoreAsync(CacheGrainEntryOptions options, CancellationToken ct)
   {
     throw new NotImplementedException("Override and implement CreateFromStoreAsync method in order to use GetOrCreateAsync and CreateAsync methods.");
   }
 
-  public virtual async Task<TValue> SetAndWriteAsync(
+  public virtual async Task<Result<TValue>> SetAndWriteAsync(
     TValue value,
     CancellationToken ct,
     CacheGrainEntryOptions? options = null)
   {
-    var entry = await WriteToStoreAsync(value, options ?? DefaultEntryOptions, ct);
-    SetInternal(entry.Value, entry.Options);
-    return entry.Value;
+    var result = await WriteToStoreAsync(value, options ?? DefaultEntryOptions, ct);
+    if (result.IsOk)
+    {
+      SetInternal(result.Value.Value, result.Value.Options);
+    }
+    return result.ToResult(r => r.Value);
   }
 
   /// <summary>
@@ -100,7 +108,7 @@ public abstract class BaseClusterCacheGrain<TValue>
   /// <param name="options">The cache options for the value.</param>
   /// <param name="ct">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
   /// <returns>A record containing value to be cached and cache options that will be used for the cache item.</returns>
-  protected virtual Task<WriteResult<TValue>> WriteToStoreAsync(
+  protected virtual Task<Result<WrittenItem<TValue>>> WriteToStoreAsync(
     TValue value,
     CacheGrainEntryOptions options,
     CancellationToken ct)
@@ -108,11 +116,15 @@ public abstract class BaseClusterCacheGrain<TValue>
     throw new NotImplementedException("Override and implement WriteToStoreAsync method in order to use SetAndWriteAsync method.");
   }
 
-  public virtual async Task RemoveAndDeleteAsync(
+  public virtual async Task<Result> RemoveAndDeleteAsync(
     CancellationToken ct)
   {
-    await DeleteFromStoreAsync(ct);
-    RemoveInternal();
+    var result = await DeleteFromStoreAsync(ct);
+    if (result.IsOk)
+    {
+      RemoveInternal();
+    }
+    return result;
   }
 
   /// <summary>
@@ -121,7 +133,7 @@ public abstract class BaseClusterCacheGrain<TValue>
   /// </summary>
   /// <param name="ct">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
   /// <returns></returns>
-  protected virtual Task DeleteFromStoreAsync(
+  protected virtual Task<Result> DeleteFromStoreAsync(
     CancellationToken ct)
   {
     throw new NotImplementedException("Override and implement DeleteFromStoreAsync method in order to use RemoveAndDeleteAsync method.");
@@ -151,23 +163,23 @@ public abstract class BaseClusterCacheGrain<TValue, TStoreArgs>
   {
   }
 
-  public virtual async Task<TValue> GetOrCreateAsync(
+  public virtual async Task<Result<TValue>> GetOrCreateAsync(
     TStoreArgs? args,
     CancellationToken ct,
     CacheGrainEntryOptions? options = null)
   {
-    var (_, value) = await GetOrCreateInternalAsync(args, ct, options);
-    return value;
+    var ret = await GetOrCreateInternalAsync(args, ct, options);
+    return ret.ToResult(r => r.Value);
   }
 
-  public Task<TValue> GetOrCreateAsync(
+  public Task<Result<TValue>> GetOrCreateAsync(
     CancellationToken ct,
     CacheGrainEntryOptions? options = null)
   {
     return GetOrCreateAsync(default, ct, options);
   }
 
-  internal async Task<(bool IsCreated, TValue Value)> GetOrCreateInternalAsync(
+  internal async Task<Result<(bool IsCreated, TValue Value)>> GetOrCreateInternalAsync(
     TStoreArgs? args,
     CancellationToken ct,
     CacheGrainEntryOptions? options = null)
@@ -177,10 +189,11 @@ public abstract class BaseClusterCacheGrain<TValue, TStoreArgs>
       DelayDeactivation(expiresIn.Value);
       return (IsCreated: false, Value: value);
     }
-    return (IsCreated: true, Value: await CreateInternalAsync(args, ct, options));
+    var result = await CreateInternalAsync(args, ct, options);
+    return result.ToResult(r => (IsCreated: true, Value: r));
   }
 
-  public virtual Task<TValue> CreateAsync(
+  public virtual Task<Result<TValue>> CreateAsync(
     TStoreArgs? args,
     CancellationToken ct,
     CacheGrainEntryOptions? options = null)
@@ -188,29 +201,32 @@ public abstract class BaseClusterCacheGrain<TValue, TStoreArgs>
     return CreateInternalAsync(args, ct, options);
   }
 
-  public Task<TValue> CreateAsync(
+  public Task<Result<TValue>> CreateAsync(
     CancellationToken ct,
     CacheGrainEntryOptions? options = null)
   {
     return CreateAsync(default, ct, options);
   }
 
-  private async Task<TValue> CreateInternalAsync(
+  private async Task<Result<TValue>> CreateInternalAsync(
     TStoreArgs? args,
     CancellationToken ct,
     CacheGrainEntryOptions? options = null)
   {
-    var entry = await CreateFromStoreAsync(args, options ?? DefaultEntryOptions, ct);
-    CacheEntry = new CacheEntry<TValue>(
-      entry.Value,
-      entry.Options.ToOrleansCacheEntryOptions(),
-      TimeProviderFunc);
-    // Delay deactivation to ensure it remains active while it has a valid cache entry
-    if (CacheEntry.TryGetExpiresIn(TimeProviderFunc, out var expiresIn))
+    var result = await CreateFromStoreAsync(args, options ?? DefaultEntryOptions, ct);
+    if (result.IsOk)
     {
-      DelayDeactivation(expiresIn.Value);
+      CacheEntry = new CacheEntry<TValue>(
+        result.Value.Value,
+        result.Value.Options.ToOrleansCacheEntryOptions(),
+        TimeProviderFunc);
+      // Delay deactivation to ensure it remains active while it has a valid cache entry
+      if (CacheEntry.TryGetExpiresIn(TimeProviderFunc, out var expiresIn))
+      {
+        DelayDeactivation(expiresIn.Value);
+      }
     }
-    return entry.Value;
+    return result.ToResult(r => r.Value);
   }
 
   /// <summary>
@@ -222,7 +238,7 @@ public abstract class BaseClusterCacheGrain<TValue, TStoreArgs>
   /// <param name="options">The cache options for the value.</param>
   /// <param name="ct">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
   /// <returns>A record containing data to be cached and options to be used for caching.</returns>
-  protected virtual Task<CreateResult<TValue>> CreateFromStoreAsync(
+  protected virtual Task<Result<CreatedItem<TValue>>> CreateFromStoreAsync(
     TStoreArgs? args,
     CacheGrainEntryOptions options,
     CancellationToken ct)
@@ -230,18 +246,21 @@ public abstract class BaseClusterCacheGrain<TValue, TStoreArgs>
     throw new NotImplementedException("Override and implement CreateFromStoreAsync method in order to use GetOrCreateAsync and CreateAsync methods.");
   }
 
-  public virtual async Task<TValue> SetAndWriteAsync(
+  public virtual async Task<Result<TValue>> SetAndWriteAsync(
     TStoreArgs? args,
     TValue value,
     CancellationToken ct,
     CacheGrainEntryOptions? options = null)
   {
-    var entry = await WriteToStoreAsync(args, value, options ?? DefaultEntryOptions, ct);
-    SetInternal(entry.Value, entry.Options);
-    return entry.Value;
+    var result = await WriteToStoreAsync(args, value, options ?? DefaultEntryOptions, ct);
+    if (result.IsOk)
+    {
+      SetInternal(result.Value.Value, result.Value.Options);
+    }
+    return result.ToResult(r => r.Value);
   }
 
-  public Task<TValue> SetAndWriteAsync(
+  public Task<Result<TValue>> SetAndWriteAsync(
     TValue value,
     CancellationToken ct,
     CacheGrainEntryOptions? options = null)
@@ -259,7 +278,7 @@ public abstract class BaseClusterCacheGrain<TValue, TStoreArgs>
   /// <param name="options">The cache options for the value.</param>
   /// <param name="ct">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
   /// <returns>A record containing value to be cached and cache options that will be used for the cache item.</returns>
-  protected virtual Task<WriteResult<TValue>> WriteToStoreAsync(
+  protected virtual Task<Result<WrittenItem<TValue>>> WriteToStoreAsync(
     TStoreArgs? args,
     TValue value,
     CacheGrainEntryOptions options,
@@ -268,15 +287,19 @@ public abstract class BaseClusterCacheGrain<TValue, TStoreArgs>
     throw new NotImplementedException("Override and implement WriteToStoreAsync method in order to use SetAndWriteAsync method.");
   }
 
-  public virtual async Task RemoveAndDeleteAsync(
+  public virtual async Task<Result> RemoveAndDeleteAsync(
     TStoreArgs? args,
     CancellationToken ct)
   {
-    await DeleteFromStoreAsync(args, ct);
-    RemoveInternal();
+    var result = await DeleteFromStoreAsync(args, ct);
+    if (result.IsOk)
+    {
+      RemoveInternal();
+    }
+    return result;
   }
 
-  public Task RemoveAndDeleteAsync(
+  public Task<Result> RemoveAndDeleteAsync(
     CancellationToken ct)
   {
     return RemoveAndDeleteAsync(default, ct);
@@ -289,7 +312,7 @@ public abstract class BaseClusterCacheGrain<TValue, TStoreArgs>
   /// <param name="args">Parameters for underlying operations from backing data store.</param>
   /// <param name="ct">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
   /// <returns></returns>
-  protected virtual Task DeleteFromStoreAsync(
+  protected virtual Task<Result> DeleteFromStoreAsync(
     TStoreArgs? args,
     CancellationToken ct)
   {

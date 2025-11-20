@@ -19,7 +19,8 @@ public class VolatileCacheTestGrainTests
     var defaultData = "default-data";
     var grain = _fixture.Cluster.GrainFactory.GetGrain<IVolatileCacheTestGrain>("SetAndWriteAsync_ReturnsWrittenValue");
     var result = await grain.SetAndWriteAsync(defaultData, CancellationToken.None);
-    result.Should().Be("write-through " + defaultData);
+    result.IsOk.Should().BeTrue();
+    result.Value.Should().Be("write-through " + defaultData);
   }
 
   [Fact]
@@ -27,7 +28,8 @@ public class VolatileCacheTestGrainTests
   {
     var grain = _fixture.Cluster.GrainFactory.GetGrain<IVolatileCacheTestGrain>("GetOrCreate_ReturnsGeneratedValue");
     var result = await grain.GetOrCreateAsync(CancellationToken.None);
-    result.Should().Be("volatile in cluster cache");
+    result.IsOk.Should().BeTrue();
+    result.Value.Should().Be("volatile in cluster cache");
   }
 
   [Fact]
@@ -36,11 +38,13 @@ public class VolatileCacheTestGrainTests
     var grain = _fixture.Cluster.GrainFactory.GetGrain<IVolatileCacheTestGrain>("Create_Then_GetOrCreate");
     // Force creation
     var created = await grain.CreateAsync(CancellationToken.None);
-    created.Should().Be("volatile in cluster cache");
+    created.IsOk.Should().BeTrue();
+    created.Value.Should().Be("volatile in cluster cache");
 
     // Then ensure subsequent GetOrCreate returns value (cached)
     var fetched = await grain.GetOrCreateAsync(CancellationToken.None);
-    fetched.Should().Be("volatile in cluster cache");
+    fetched.IsOk.Should().BeTrue();
+    fetched.Value.Should().Be("volatile in cluster cache");
   }
 
   [Fact]
@@ -49,9 +53,10 @@ public class VolatileCacheTestGrainTests
     var grain = _fixture.Cluster.GrainFactory.GetGrain<IVolatileCacheTestGrain>("Set_Then_TryGet");
     await grain.SetAsync("custom-value", CancellationToken.None, null);
 
-    var (found, value) = await grain.TryGetAsync(CancellationToken.None);
-    found.Should().BeTrue();
-    value.Should().Be("custom-value");
+    var fetched = await grain.TryGetAsync(CancellationToken.None);
+    fetched.IsOk.Should().BeTrue();
+    fetched.Value.Should().NotBeNull();
+    fetched.Value.Should().Be("custom-value");
   }
 
   [Fact]
@@ -61,14 +66,14 @@ public class VolatileCacheTestGrainTests
     await grain.SetAsync("to-be-removed", CancellationToken.None, null);
 
     // ensure set
-    var (foundBefore, _) = await grain.TryGetAsync(CancellationToken.None);
-    foundBefore.Should().BeTrue();
+    var fetchedBefore = await grain.TryGetAsync(CancellationToken.None);
+    fetchedBefore.IsOk.Should().BeTrue();
 
     // remove and verify
     await grain.RemoveAsync(CancellationToken.None);
-    var (foundAfter, valueAfter) = await grain.TryGetAsync(CancellationToken.None);
-    foundAfter.Should().BeFalse();
-    valueAfter.Should().BeNull();
+    var fetchedAfter = await grain.TryGetAsync(CancellationToken.None);
+    fetchedAfter.IsOk.Should().BeFalse();
+    fetchedAfter.Value.Should().BeNull();
   }
 
   [Fact]
@@ -89,14 +94,15 @@ public class VolatileCacheTestGrainTests
 
     // Refresh should extend lifetime
     var refreshed = await grain.RefreshAsync(CancellationToken.None);
-    refreshed.Should().BeTrue();
+    refreshed.IsOk.Should().BeTrue();
 
     // Wait again beyond original remaining time but within refreshed lifetime
     await Task.Delay(TimeSpan.FromMilliseconds(500));
 
-    var (found, value) = await grain.TryGetAsync(CancellationToken.None);
-    found.Should().BeTrue();
-    value.Should().Be("refresh-test");
+    var fetched = await grain.TryGetAsync(CancellationToken.None);
+    fetched.IsOk.Should().BeTrue();
+    fetched.Value.Should().NotBeNull();
+    fetched.Value.Should().Be("refresh-test");
   }
 
   [Fact]
@@ -117,14 +123,14 @@ public class VolatileCacheTestGrainTests
 
     // Refresh should extend lifetime
     var refreshed = await grain.RefreshAsync(CancellationToken.None);
-    refreshed.Should().BeTrue();
+    refreshed.IsOk.Should().BeTrue();
 
     // Wait again beyond original remaining time but within refreshed lifetime
     await Task.Delay(TimeSpan.FromMilliseconds(500));
 
-    var (foundAfter, valueAfter) = await grain.TryGetAsync(CancellationToken.None);
-    foundAfter.Should().BeFalse();
-    valueAfter.Should().BeNull();
+    var fetchedAfter = await grain.TryGetAsync(CancellationToken.None);
+    fetchedAfter.IsOk.Should().BeFalse();
+    fetchedAfter.Value.Should().BeNull();
   }
 
   [Fact]
@@ -144,16 +150,18 @@ public class VolatileCacheTestGrainTests
     await Task.Delay(TimeSpan.FromMilliseconds(500));
 
     // Refresh should extend lifetime
-    var (found, value) = await grain.TryPeekAsync(CancellationToken.None);
-    found.Should().BeTrue();
-    value.Should().Be("peek-test");
+    var fetched = await grain.TryPeekAsync(CancellationToken.None);
+    fetched.IsOk.Should().BeTrue();
+    fetched.Value.Should().NotBeNull();
+    fetched.Value.Should().Be("peek-test");
 
     // Wait again beyond original remaining time but within refreshed lifetime
     await Task.Delay(TimeSpan.FromMilliseconds(500));
 
-    var (foundAfter, valueAfter) = await grain.TryGetAsync(CancellationToken.None);
-    foundAfter.Should().BeFalse();
-    valueAfter.Should().BeNull();
+    var fetchedAfter = await grain.TryGetAsync(CancellationToken.None);
+    fetchedAfter.IsOk.Should().BeFalse();
+    fetchedAfter.Value.Should().BeNull();
+    fetchedAfter.Value.Should().BeNull();
   }
 
   [Fact]
@@ -167,13 +175,14 @@ public class VolatileCacheTestGrainTests
         SlidingExpiration: default
     );
     var value = await grain.GetOrCreateAsync(CancellationToken.None, options);
-    value.Should().Be("volatile in cluster cache");
+    value.IsOk.Should().BeTrue();
+    value.Value.Should().Be("volatile in cluster cache");
 
     // Wait for expiration (use a little buffer)
     await Task.Delay(TimeSpan.FromMilliseconds(200));
 
-    var (found, afterValue) = await grain.TryGetAsync(CancellationToken.None);
-    found.Should().BeFalse();
-    afterValue.Should().BeNull();
+    var fetchedAfter = await grain.TryGetAsync(CancellationToken.None);
+    fetchedAfter.IsOk.Should().BeFalse();
+    fetchedAfter.Value.Should().BeNull();
   }
 }

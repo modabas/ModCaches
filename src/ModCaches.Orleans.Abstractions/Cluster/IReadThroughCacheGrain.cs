@@ -1,4 +1,6 @@
-﻿namespace ModCaches.Orleans.Abstractions.Cluster;
+﻿using ModResults;
+
+namespace ModCaches.Orleans.Abstractions.Cluster;
 
 /// <summary>
 /// Represents a cluster cache grain that implements read-through caching strategy.
@@ -16,7 +18,7 @@ public interface IReadThroughCacheGrain<TValue, TStoreArgs> : IReadThroughCacheG
   /// <param name="ct">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
   /// <param name="options">The cache options for the value.</param>
   /// <returns>The data, either from cache or the underlying value generation method.</returns>
-  Task<TValue> GetOrCreateAsync(
+  Task<Result<TValue>> GetOrCreateAsync(
     TStoreArgs? args,
     CancellationToken ct,
     CacheGrainEntryOptions? options = null);
@@ -28,7 +30,7 @@ public interface IReadThroughCacheGrain<TValue, TStoreArgs> : IReadThroughCacheG
   /// <param name="ct">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
   /// <param name="options">The cache options for the value.</param>
   /// <returns>The data from the underlying value generation method.</returns>
-  Task<TValue> CreateAsync(
+  Task<Result<TValue>> CreateAsync(
     TStoreArgs? args,
     CancellationToken ct,
     CacheGrainEntryOptions? options = null);
@@ -47,7 +49,7 @@ public interface IReadThroughCacheGrain<TValue> : ICacheGrain<TValue>
   /// <param name="ct">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
   /// <param name="options">The cache options for the value.</param>
   /// <returns>The data, either from cache or the underlying value generation method.</returns>
-  Task<TValue> GetOrCreateAsync(
+  Task<Result<TValue>> GetOrCreateAsync(
     CancellationToken ct,
     CacheGrainEntryOptions? options = null);
 
@@ -57,7 +59,7 @@ public interface IReadThroughCacheGrain<TValue> : ICacheGrain<TValue>
   /// <param name="ct">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
   /// <param name="options">The cache options for the value.</param>
   /// <returns>The data from the underlying value generation method.</returns>
-  Task<TValue> CreateAsync(
+  Task<Result<TValue>> CreateAsync(
     CancellationToken ct,
     CacheGrainEntryOptions? options = null);
 }

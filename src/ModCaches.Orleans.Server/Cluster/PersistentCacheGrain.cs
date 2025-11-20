@@ -1,5 +1,6 @@
 ﻿using ModCaches.Orleans.Abstractions.Cluster;
 using ModCaches.Orleans.Server.Common;
+using ModResults;
 
 namespace ModCaches.Orleans.Server.Cluster;
 
@@ -49,31 +50,37 @@ public abstract class PersistentCacheGrain<TValue>
     await base.OnDeactivateAsync(reason, cancellationToken);
   }
 
-  public sealed override async Task<TValue> GetOrCreateAsync(
+  public sealed override async Task<Result<TValue>> GetOrCreateAsync(
     CancellationToken ct,
     CacheGrainEntryOptions? options = null)
   {
     var ret = await GetOrCreateInternalAsync(ct, options);
-    if (ret.IsCreated || HasSlidingExpiration)
+    if (ret.IsOk)
     {
-      await WriteStateAsync(ct);
+      if (ret.Value.IsCreated || HasSlidingExpiration)
+      {
+        await WriteStateAsync(ct);
+      }
     }
-    return ret.Value;
+    return ret.ToResult(r => r.Value);
   }
 
-  public sealed override async Task<TValue> CreateAsync(
+  public sealed override async Task<Result<TValue>> CreateAsync(
     CancellationToken ct,
     CacheGrainEntryOptions? options = null)
   {
     var ret = await base.CreateAsync(ct, options);
-    await WriteStateAsync(ct);
+    if (ret.IsOk)
+    {
+      await WriteStateAsync(ct);
+    }
     return ret;
   }
 
-  public sealed override async Task<bool> RefreshAsync(CancellationToken ct)
+  public sealed override async Task<Result> RefreshAsync(CancellationToken ct)
   {
     var ret = await base.RefreshAsync(ct);
-    if (ret)
+    if (ret.IsOk)
     {
       // Only write state if we have sliding expiration, as absolute expiration does not change on access
       if (HasSlidingExpiration)
@@ -94,36 +101,42 @@ public abstract class PersistentCacheGrain<TValue>
     await ClearStateAsync(ct);
   }
 
-  public sealed override async Task RemoveAndDeleteAsync(CancellationToken ct)
+  public sealed override async Task<Result> RemoveAndDeleteAsync(CancellationToken ct)
   {
-    await base.RemoveAndDeleteAsync(ct);
-    await ClearStateAsync(ct);
+    var ret = await base.RemoveAndDeleteAsync(ct);
+    if (ret.IsOk)
+    {
+      await ClearStateAsync(ct);
+    }
+    return ret;
   }
 
-  public sealed override async Task<TValue> SetAsync(
+  public sealed override async Task SetAsync(
     TValue value,
     CancellationToken ct,
     CacheGrainEntryOptions? options = null)
   {
-    var ret = await base.SetAsync(value, ct, options);
+    await base.SetAsync(value, ct, options);
     await WriteStateAsync(ct);
-    return ret;
   }
 
-  public sealed override async Task<TValue> SetAndWriteAsync(
+  public sealed override async Task<Result<TValue>> SetAndWriteAsync(
     TValue value,
     CancellationToken ct,
     CacheGrainEntryOptions? options = null)
   {
     var ret = await base.SetAndWriteAsync(value, ct, options);
-    await WriteStateAsync(ct);
+    if (ret.IsOk)
+    {
+      await WriteStateAsync(ct);
+    }
     return ret;
   }
 
-  public sealed override async Task<TryGetResult<TValue>> TryGetAsync(CancellationToken ct)
+  public sealed override async Task<Result<TValue>> TryGetAsync(CancellationToken ct)
   {
     var ret = await base.TryGetAsync(ct);
-    if (ret.IsFound)
+    if (ret.IsOk)
     {
       // Only write state if we have sliding expiration, as absolute expiration does not change on access
       if (HasSlidingExpiration)
@@ -138,7 +151,7 @@ public abstract class PersistentCacheGrain<TValue>
     return ret;
   }
 
-  public sealed override Task<TryPeekResult<TValue>> TryPeekAsync(CancellationToken ct)
+  public sealed override Task<Result<TValue>> TryPeekAsync(CancellationToken ct)
   {
     return base.TryPeekAsync(ct);
   }
@@ -212,33 +225,39 @@ public abstract class PersistentCacheGrain<TValue, TStoreArgs>
     await base.OnDeactivateAsync(reason, cancellationToken);
   }
 
-  public sealed override async Task<TValue> GetOrCreateAsync(
+  public sealed override async Task<Result<TValue>> GetOrCreateAsync(
     TStoreArgs? args,
     CancellationToken ct,
     CacheGrainEntryOptions? options = null)
   {
     var ret = await GetOrCreateInternalAsync(args, ct, options);
-    if (ret.IsCreated || HasSlidingExpiration)
+    if (ret.IsOk)
     {
-      await WriteStateAsync(ct);
+      if (ret.Value.IsCreated || HasSlidingExpiration)
+      {
+        await WriteStateAsync(ct);
+      }
     }
-    return ret.Value;
+    return ret.ToResult(r => r.Value);
   }
 
-  public sealed override async Task<TValue> CreateAsync(
+  public sealed override async Task<Result<TValue>> CreateAsync(
     TStoreArgs? args,
     CancellationToken ct,
     CacheGrainEntryOptions? options = null)
   {
     var ret = await base.CreateAsync(args, ct, options);
-    await WriteStateAsync(ct);
+    if (ret.IsOk)
+    {
+      await WriteStateAsync(ct);
+    }
     return ret;
   }
 
-  public sealed override async Task<bool> RefreshAsync(CancellationToken ct)
+  public sealed override async Task<Result> RefreshAsync(CancellationToken ct)
   {
     var ret = await base.RefreshAsync(ct);
-    if (ret)
+    if (ret.IsOk)
     {
       // Only write state if we have sliding expiration, as absolute expiration does not change on access
       if (HasSlidingExpiration)
@@ -259,37 +278,43 @@ public abstract class PersistentCacheGrain<TValue, TStoreArgs>
     await ClearStateAsync(ct);
   }
 
-  public sealed override async Task RemoveAndDeleteAsync(TStoreArgs? args, CancellationToken ct)
+  public sealed override async Task<Result> RemoveAndDeleteAsync(TStoreArgs? args, CancellationToken ct)
   {
-    await base.RemoveAndDeleteAsync(args, ct);
-    await ClearStateAsync(ct);
+    var ret = await base.RemoveAndDeleteAsync(args, ct);
+    if (ret.IsOk)
+    {
+      await ClearStateAsync(ct);
+    }
+    return ret;
   }
 
-  public sealed override async Task<TValue> SetAsync(
+  public sealed override async Task SetAsync(
     TValue value,
     CancellationToken ct,
     CacheGrainEntryOptions? options = null)
   {
-    var ret = await base.SetAsync(value, ct, options);
+    await base.SetAsync(value, ct, options);
     await WriteStateAsync(ct);
-    return ret;
   }
 
-  public sealed override async Task<TValue> SetAndWriteAsync(
+  public sealed override async Task<Result<TValue>> SetAndWriteAsync(
     TStoreArgs? args,
     TValue value,
     CancellationToken ct,
     CacheGrainEntryOptions? options = null)
   {
     var ret = await base.SetAndWriteAsync(args, value, ct, options);
-    await WriteStateAsync(ct);
+    if (ret.IsOk)
+    {
+      await WriteStateAsync(ct);
+    }
     return ret;
   }
 
-  public sealed override async Task<TryGetResult<TValue>> TryGetAsync(CancellationToken ct)
+  public sealed override async Task<Result<TValue>> TryGetAsync(CancellationToken ct)
   {
     var ret = await base.TryGetAsync(ct);
-    if (ret.IsFound)
+    if (ret.IsOk)
     {
       // Only write state if we have sliding expiration, as absolute expiration does not change on access
       if (HasSlidingExpiration)
@@ -304,7 +329,7 @@ public abstract class PersistentCacheGrain<TValue, TStoreArgs>
     return ret;
   }
 
-  public sealed override Task<TryPeekResult<TValue>> TryPeekAsync(CancellationToken ct)
+  public sealed override Task<Result<TValue>> TryPeekAsync(CancellationToken ct)
   {
     return base.TryPeekAsync(ct);
   }

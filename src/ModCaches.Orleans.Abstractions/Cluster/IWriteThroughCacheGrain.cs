@@ -1,4 +1,6 @@
-﻿namespace ModCaches.Orleans.Abstractions.Cluster;
+﻿using ModResults;
+
+namespace ModCaches.Orleans.Abstractions.Cluster;
 
 /// <summary>
 /// Represents a cluster cache grain that implements write-through caching strategy.
@@ -17,7 +19,7 @@ public interface IWriteThroughCacheGrain<TValue, TStoreArgs> : IWriteThroughCach
   /// <param name="ct">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
   /// <param name="options">The cache options for the value.</param>
   /// <returns>Value stored in cache.</returns>
-  Task<TValue> SetAndWriteAsync(
+  Task<Result<TValue>> SetAndWriteAsync(
     TStoreArgs? args,
     TValue value,
     CancellationToken ct,
@@ -29,7 +31,7 @@ public interface IWriteThroughCacheGrain<TValue, TStoreArgs> : IWriteThroughCach
   /// <param name="args">Parameters for underlying operations from backing data store.</param>
   /// <param name="ct">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
   /// <returns></returns>
-  Task RemoveAndDeleteAsync(
+  Task<Result> RemoveAndDeleteAsync(
     TStoreArgs? args,
     CancellationToken ct);
 }
@@ -49,7 +51,7 @@ public interface IWriteThroughCacheGrain<TValue> : ICacheGrain<TValue>
   /// <param name="ct">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
   /// <param name="options">The cache options for the value.</param>
   /// <returns>Value stored in cache.</returns>
-  Task<TValue> SetAndWriteAsync(
+  Task<Result<TValue>> SetAndWriteAsync(
     TValue value,
     CancellationToken ct,
     CacheGrainEntryOptions? options = null);
@@ -59,6 +61,6 @@ public interface IWriteThroughCacheGrain<TValue> : ICacheGrain<TValue>
   /// </summary>
   /// <param name="ct">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
   /// <returns></returns>
-  Task RemoveAndDeleteAsync(
+  Task<Result> RemoveAndDeleteAsync(
     CancellationToken ct);
 }

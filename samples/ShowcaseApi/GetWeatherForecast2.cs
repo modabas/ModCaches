@@ -1,6 +1,7 @@
 ﻿using ModCaches.Orleans.Abstractions.Cluster;
 using ModCaches.Orleans.Server.Cluster;
 using ModEndpoints.Core;
+using ModResults;
 
 namespace ShowcaseApi;
 
@@ -38,7 +39,7 @@ internal class WeatherForecastCacheGrain :
   {
   }
 
-  protected override async Task<CreateResult<WeatherForecastCacheValue>> CreateFromStoreAsync(
+  protected override async Task<Result<CreatedItem<WeatherForecastCacheValue>>> CreateFromStoreAsync(
     WeatherForecastCacheArgs? args,
     CacheGrainEntryOptions options,
     CancellationToken ct)
@@ -55,7 +56,7 @@ internal class WeatherForecastCacheGrain :
         Summary = _summaries[Random.Shared.Next(_summaries.Length)]
       }).ToArray()
     };
-    return new CreateResult<WeatherForecastCacheValue>(Value: value, Options: options);
+    return new CreatedItem<WeatherForecastCacheValue>(Value: value, Options: options);
   }
 }
 
@@ -77,11 +78,13 @@ internal class GetWeatherForecast2(IGrainFactory grainFactory) : MinimalEndpoint
     return (await grainFactory
       .GetGrain<IWeatherForecastCacheGrain>("weatherforecast")
       .GetOrCreateAsync(args, ct))
-      .Items
-      .Select(x => new WeatherForecast(
-        Date: x.Date,
-        TemperatureC: x.TemperatureC,
-        Summary: x.Summary))
-      .ToArray();
+      .Map(result =>
+        result.Value.Items
+          .Select(x => new WeatherForecast(
+            Date: x.Date,
+            TemperatureC: x.TemperatureC,
+            Summary: x.Summary))
+          .ToArray(),
+        _ => []);
   }
 }

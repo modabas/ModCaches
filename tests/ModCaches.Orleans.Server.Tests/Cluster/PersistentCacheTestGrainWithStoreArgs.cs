@@ -1,5 +1,6 @@
 ﻿using ModCaches.Orleans.Abstractions.Cluster;
 using ModCaches.Orleans.Server.Cluster;
+using ModResults;
 
 namespace ModCaches.Orleans.Server.Tests.Cluster;
 
@@ -15,13 +16,13 @@ internal class PersistentCacheTestGrainWithStoreArgs : PersistentCacheGrain<Cach
   {
   }
 
-  protected override Task<CreateResult<CacheTestValue>> CreateFromStoreAsync(int args, CacheGrainEntryOptions options, CancellationToken ct)
+  protected override Task<Result<CreatedItem<CacheTestValue>>> CreateFromStoreAsync(int args, CacheGrainEntryOptions options, CancellationToken ct)
   {
-    return Task.FromResult(new CreateResult<CacheTestValue>(new CacheTestValue() { Data = $"persistent in cluster cache {args}" }, options));
+    return Task.FromResult(Result.Ok(new CreatedItem<CacheTestValue>(new CacheTestValue() { Data = $"persistent in cluster cache {args}" }, options)));
   }
 
-  protected override Task<WriteResult<CacheTestValue>> WriteToStoreAsync(int args, CacheTestValue value, CacheGrainEntryOptions options, CancellationToken ct)
+  protected override Task<Result<WrittenItem<CacheTestValue>>> WriteToStoreAsync(int args, CacheTestValue value, CacheGrainEntryOptions options, CancellationToken ct)
   {
-    return Task.FromResult(new WriteResult<CacheTestValue>(new CacheTestValue() { Data = $"write-through {value.Data}" }, options));
+    return Task.FromResult(Result.Ok(new WrittenItem<CacheTestValue>(new CacheTestValue() { Data = $"write-through {value.Data}" }, options)));
   }
 }

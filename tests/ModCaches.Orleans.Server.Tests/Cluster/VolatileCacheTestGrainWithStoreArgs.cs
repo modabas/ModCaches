@@ -1,5 +1,6 @@
 ﻿using ModCaches.Orleans.Abstractions.Cluster;
 using ModCaches.Orleans.Server.Cluster;
+using ModResults;
 
 namespace ModCaches.Orleans.Server.Tests.Cluster;
 
@@ -14,13 +15,13 @@ internal class VolatileCacheTestGrainWithStoreArgs : VolatileCacheGrain<string, 
   {
   }
 
-  protected override Task<CreateResult<string>> CreateFromStoreAsync(int args, CacheGrainEntryOptions options, CancellationToken ct)
+  protected override Task<Result<CreatedItem<string>>> CreateFromStoreAsync(int args, CacheGrainEntryOptions options, CancellationToken ct)
   {
-    return Task.FromResult(new CreateResult<string>(Value: $"volatile in cluster cache {args}", Options: options));
+    return Task.FromResult(Result.Ok(new CreatedItem<string>(Value: $"volatile in cluster cache {args}", Options: options)));
   }
 
-  protected override Task<WriteResult<string>> WriteToStoreAsync(int args, string value, CacheGrainEntryOptions options, CancellationToken ct)
+  protected override Task<Result<WrittenItem<string>>> WriteToStoreAsync(int args, string value, CacheGrainEntryOptions options, CancellationToken ct)
   {
-    return Task.FromResult(new WriteResult<string>($"write-through {value}", options));
+    return Task.FromResult(Result.Ok(new WrittenItem<string>($"write-through {value}", options)));
   }
 }
