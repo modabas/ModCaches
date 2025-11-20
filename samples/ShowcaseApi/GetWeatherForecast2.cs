@@ -39,7 +39,7 @@ internal class WeatherForecastCacheGrain :
   {
   }
 
-  protected override async Task<Result<CreatedItem<WeatherForecastCacheValue>>> CreateFromStoreAsync(
+  protected override async Task<Result<CreateRecord<WeatherForecastCacheValue>>> CreateFromStoreAsync(
     WeatherForecastCacheArgs? args,
     CacheGrainEntryOptions options,
     CancellationToken ct)
@@ -56,7 +56,7 @@ internal class WeatherForecastCacheGrain :
         Summary = _summaries[Random.Shared.Next(_summaries.Length)]
       }).ToArray()
     };
-    return new CreatedItem<WeatherForecastCacheValue>(Value: value, Options: options);
+    return new CreateRecord<WeatherForecastCacheValue>(Value: value, Options: options);
   }
 }
 

@@ -80,8 +80,8 @@ public abstract class BaseClusterCacheGrain<TValue>
   /// </summary>
   /// <param name="options">The cache options for the value.</param>
   /// <param name="ct">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
-  /// <returns>A <see cref="Result"/> containing <see cref="CreatedItem{TValue}"/> that represents the outcome and record containing data to be cached and options to be used for caching if successful.</returns>
-  protected virtual Task<Result<CreatedItem<TValue>>> CreateFromStoreAsync(CacheGrainEntryOptions options, CancellationToken ct)
+  /// <returns>A <see cref="Result"/> containing <see cref="CreateRecord{TValue}"/> that represents the outcome and record containing data to be cached and options to be used for caching if successful.</returns>
+  protected virtual Task<Result<CreateRecord<TValue>>> CreateFromStoreAsync(CacheGrainEntryOptions options, CancellationToken ct)
   {
     throw new NotImplementedException("Override and implement CreateFromStoreAsync method in order to use GetOrCreateAsync and CreateAsync methods.");
   }
@@ -107,8 +107,8 @@ public abstract class BaseClusterCacheGrain<TValue>
   /// <param name="value">The value to set in the cache.</param>
   /// <param name="options">The cache options for the value.</param>
   /// <param name="ct">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
-  /// <returns>A <see cref="Result"/> containing <see cref="WrittenItem{TValue}"/> that represents the outcome and record containing data to be cached and options to be used for caching if successful.</returns>
-  protected virtual Task<Result<WrittenItem<TValue>>> WriteToStoreAsync(
+  /// <returns>A <see cref="Result"/> containing <see cref="WriteRecord{TValue}"/> that represents the outcome and record containing data to be cached and options to be used for caching if successful.</returns>
+  protected virtual Task<Result<WriteRecord<TValue>>> WriteToStoreAsync(
     TValue value,
     CacheGrainEntryOptions options,
     CancellationToken ct)
@@ -238,8 +238,8 @@ public abstract class BaseClusterCacheGrain<TValue, TStoreArgs>
   /// <param name="args">Parameters for underlying operations from backing data store.</param>
   /// <param name="options">The cache options for the value.</param>
   /// <param name="ct">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
-  /// <returns>A <see cref="Result"/> containing <see cref="CreatedItem{TValue}"/> that represents the outcome and record containing data to be cached and options to be used for caching if successful.</returns>
-  protected virtual Task<Result<CreatedItem<TValue>>> CreateFromStoreAsync(
+  /// <returns>A <see cref="Result"/> containing <see cref="CreateRecord{TValue}"/> that represents the outcome and record containing data to be cached and options to be used for caching if successful.</returns>
+  protected virtual Task<Result<CreateRecord<TValue>>> CreateFromStoreAsync(
     TStoreArgs? args,
     CacheGrainEntryOptions options,
     CancellationToken ct)
@@ -278,8 +278,8 @@ public abstract class BaseClusterCacheGrain<TValue, TStoreArgs>
   /// <param name="value">The value to set in the cache.</param>
   /// <param name="options">The cache options for the value.</param>
   /// <param name="ct">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
-  /// <returns>A <see cref="Result"/> containing <see cref="WrittenItem{TValue}"/> that represents the outcome and record containing data to be cached and options to be used for caching if successful.</returns>
-  protected virtual Task<Result<WrittenItem<TValue>>> WriteToStoreAsync(
+  /// <returns>A <see cref="Result"/> containing <see cref="WriteRecord{TValue}"/> that represents the outcome and record containing data to be cached and options to be used for caching if successful.</returns>
+  protected virtual Task<Result<WriteRecord<TValue>>> WriteToStoreAsync(
     TStoreArgs? args,
     TValue value,
     CacheGrainEntryOptions options,

@@ -101,7 +101,7 @@ internal class WeatherForecastCacheGrain :
   {
   }
 
-  protected override async Task<Result<CreatedItem<WeatherForecastCacheValue>>> CreateFromStoreAsync(
+  protected override async Task<Result<CreateRecord<WeatherForecastCacheValue>>> CreateFromStoreAsync(
     WeatherForecastCacheArgs? args,
     CacheGrainEntryOptions options,
     CancellationToken ct)
@@ -118,7 +118,7 @@ internal class WeatherForecastCacheGrain :
         Summary = _summaries[Random.Shared.Next(_summaries.Length)]
       }).ToArray()
     };
-    return new CreatedItem<WeatherForecastCacheValue>(Value: value, Options: options);
+    return new CreateRecord<WeatherForecastCacheValue>(Value: value, Options: options);
   }
 }
 
@@ -164,7 +164,7 @@ internal class WeatherForecastCacheGrain :
   {
   }
 
-  protected override async Task<Result<WrittenItem<WeatherForecastCacheValue>>> WriteToStoreAsync(
+  protected override async Task<Result<WriteRecord<WeatherForecastCacheValue>>> WriteToStoreAsync(
     WeatherForecastCacheArgs? args,
     WeatherForecastCacheValue value,
     CacheGrainEntryOptions options,
@@ -173,10 +173,10 @@ internal class WeatherForecastCacheGrain :
     // Write to an external data source
     // e.g., await _database.SaveAsync(value, ct);
     
-    return new WrittenItem<WeatherForecastCacheValue>(Value: value, Options: options);
+    return new WriteRecord<WeatherForecastCacheValue>(Value: value, Options: options);
   }
 
-  protected override async Task<Result<CreatedItem<WeatherForecastCacheValue>>> CreateFromStoreAsync(
+  protected override async Task<Result<CreateRecord<WeatherForecastCacheValue>>> CreateFromStoreAsync(
     WeatherForecastCacheArgs? args,
     CacheGrainEntryOptions options,
     CancellationToken ct)
@@ -193,7 +193,7 @@ internal class WeatherForecastCacheGrain :
         Summary = _summaries[Random.Shared.Next(_summaries.Length)]
       }).ToArray()
     };
-    return new CreatedItem<WeatherForecastCacheValue>(Value: value, Options: options);
+    return new CreateRecord<WeatherForecastCacheValue>(Value: value, Options: options);
   }
 }
 ```
@@ -220,7 +220,7 @@ internal class WeatherForecastCacheGrain :
   {
   }
 
-  protected override async Task<Result<CreatedItem<WeatherForecastCacheValue>>> CreateFromStoreAsync(
+  protected override async Task<Result<CreateRecord<WeatherForecastCacheValue>>> CreateFromStoreAsync(
     WeatherForecastCacheArgs? args,
     CacheGrainEntryOptions options,
     CancellationToken ct)
@@ -257,7 +257,7 @@ var forecast = await clusterClient.GetGrain<IWeatherForecastCacheGrain>("weather
 For a Read-Through cache, if you need to adjust caching options based on the generated value within the `CreateFromStoreAsync` method (for example, when the value includes a token with its own lifetime), return the updated options along with the value:
 
 ```csharp
-protected override async Task<CreateResult<WeatherForecastCacheValue>> CreateFromStoreAsync(
+protected override async Task<Result<CreateRecord<WeatherForecastCacheValue>>> CreateFromStoreAsync(
   WeatherForecastCacheArgs? args,
   CacheGrainEntryOptions options,
   CancellationToken ct)
@@ -266,7 +266,7 @@ protected override async Task<CreateResult<WeatherForecastCacheValue>> CreateFro
   // var value = ...
 
   // Modify options as needed
-  return new CreateResult<WeatherForecastCacheValue>(
+  return new CreateRecord<WeatherForecastCacheValue>(
       Value: value, 
       Options: new CacheGrainEntryOptions(
           AbsoluteExpiration: default,
@@ -280,7 +280,7 @@ protected override async Task<CreateResult<WeatherForecastCacheValue>> CreateFro
 For a Write-Through cache, it’s possible to modify the input value and options passed to the `SetAndWriteAsync` method. You can adjust these within `WriteToStoreAsync` before returning them:
 
 ```csharp
-protected override async Task<WriteResult<WeatherForecastCacheValue>> WriteToStoreAsync(
+protected override async Task<Result<WriteRecord<WeatherForecastCacheValue>>> WriteToStoreAsync(
   WeatherForecastCacheValue value,
   CacheGrainEntryOptions options,
   CancellationToken ct)
@@ -288,6 +288,6 @@ protected override async Task<WriteResult<WeatherForecastCacheValue>> WriteToSto
   // Process options/value as needed (e.g., log, write to DB, etc.)
 
   // Return original or modified value/options to be used for the set operation
-  return new WriteResult<WeatherForecastCacheValue>(Value: value, Options: options);
+  return new WriteRecord<WeatherForecastCacheValue>(Value: value, Options: options);
 }
 ```

@@ -15,13 +15,13 @@ internal class VolatileCacheTestGrainWithStoreArgs : VolatileCacheGrain<string, 
   {
   }
 
-  protected override Task<Result<CreatedItem<string>>> CreateFromStoreAsync(int args, CacheGrainEntryOptions options, CancellationToken ct)
+  protected override Task<Result<CreateRecord<string>>> CreateFromStoreAsync(int args, CacheGrainEntryOptions options, CancellationToken ct)
   {
-    return Task.FromResult(Result.Ok(new CreatedItem<string>(Value: $"volatile in cluster cache {args}", Options: options)));
+    return Task.FromResult(Result.Ok(new CreateRecord<string>(Value: $"volatile in cluster cache {args}", Options: options)));
   }
 
-  protected override Task<Result<WrittenItem<string>>> WriteToStoreAsync(int args, string value, CacheGrainEntryOptions options, CancellationToken ct)
+  protected override Task<Result<WriteRecord<string>>> WriteToStoreAsync(int args, string value, CacheGrainEntryOptions options, CancellationToken ct)
   {
-    return Task.FromResult(Result.Ok(new WrittenItem<string>($"write-through {value}", options)));
+    return Task.FromResult(Result.Ok(new WriteRecord<string>($"write-through {value}", options)));
   }
 }
