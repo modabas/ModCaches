@@ -32,7 +32,7 @@ builder.Services.AddOrleansClusterCache(options =>
 
 > **Note:** The `Action<ClusterCacheOptions>? setupAction` parameter is optional and can be used to configure default options.
 
-## 🧩 Implementation
+## 🧩 Overview
 
 Implementing cluster cache grains is straightforward. However, it’s important to choose the appropriate caching strategy based on your application’s requirements. The available strategies are:
 
@@ -40,6 +40,35 @@ Implementing cluster cache grains is straightforward. However, it’s important 
 - **Read-Through:** The cache itself retrieves data from the source when a cache miss occurs. The application only interacts with the cache, which handles data retrieval and storage.  
 - **Write-Around:** The application writes data directly to the source, bypassing the cache. The cache is only updated when the data is read.  
 - **Write-Through:** The application writes data to both the cache and the source simultaneously, ensuring the cache remains up to date.
+
+Cluster cache grains expose several methods for interaction:
+
+- **`ICacheGrain<TValue>` methods:**
+  1. `SetAsync` — stores a value in the cache and returns the stored value,  
+  2. `TryGetAsync` — fetches an unexpired cached value if it exists (updating the last accessed time for sliding expiration),  
+  3. `TryPeekAsync` — fetches an unexpired cached value if it exists (without updating the last accessed time),  
+  4. `RefreshAsync` — updates the last accessed time if an unexpired cache value exists,  
+  5. `RemoveAsync` — clears the cache value.  
+
+- **`IReadThroughCacheGrain<TValue>` and `IReadThroughCacheGrain<TValue, TStoreArgs>` methods:**
+  1. `GetOrCreateAsync` — fetches a cached value or creates one via `CreateFromStoreAsync` if the value is missing or expired,  
+  2. `CreateAsync` — creates a cache value via `CreateFromStoreAsync` and fetches it,
+  3. Inherits methods from `ICacheGrain<TValue>`.  
+
+- **`IWriteThroughCacheGrain<TValue>` and `IWriteThroughCacheGrain<TStoreArgs>` methods:**
+  1. `SetAndWriteAsync` — writes the value via `WriteToStoreAsync` and updates the cache,
+  2. `RemoveAndDeleteAsync` — deletes the value via `DeleteFromStoreAsync` and removes it from the cache,
+  3. Inherits methods from `ICacheGrain<TValue>`.
+
+> **Notes:**
+>- If the cache grain implements both Read-Through and Write-Through interfaces, it will expose all methods from both interfaces.
+>- Read-Through cache grains require the implementation of `CreateFromStoreAsync` method to handle cache misses. Default implementation of this method throws `NotImplementedException`.
+>- Write-Through cache grains require the implementation of `WriteToStoreAsync` and `DeleteFromStoreAsync` methods to handle write operations. Default implementations of these methods throw `NotImplementedException`.
+>- Read-Through and Write-Through methods depend on the success of their respective store operations:
+>   1. If `CreateFromStoreAsync` returns a failure result, the `GetOrCreateAsync` and `CreateAsync` methods will also return a failure result without updating the cache.
+>   2. If `WriteToStoreAsync` or `DeleteFromStoreAsync` returns a failure result, the `SetAndWriteAsync` and `RemoveAndDeleteAsync` methods will also return a failure result without updating the cache.
+
+## 🧩 Cache Grain Implementation
 
 To cache a value using cluster cache grains, start by creating a marker interface that inherits one or more of the following interfaces, depending on the caching strategy you want to use:
 
@@ -52,9 +81,7 @@ Then create a cache grain implementation inheriting from one of the abstract bas
 - `VolatileCacheGrain<TValue>` or `VolatileCacheGrain<TValue, TStoreArgs>` for storing data in memory,  
 - `PersistentCacheGrain<TValue>` or `PersistentCacheGrain<TValue, TStoreArgs>` for storing data in memory and also persisting it as grain state.
 
-> **Note:** Read-Through cache grains require the implementation of `CreateFromStoreAsync` method to create cache entries when they are missing or expired.  
-> Write-Through cache grains require the implementation of `WriteToStoreAsync` and `DeleteFromStoreAsync` methods to handle write operations.  
-> The default implementations of these methods throw `NotImplementedException`.
+> **Note:** Persistent cache is not same as Write-Through cache. Persistent cache grains can implement any caching strategy while persisting the cached data as grain state. This enables cache data to survive grain deactivations and server restarts.
 
 The following example implements the Read-Through cache pattern by creating a marker interface `IWeatherForecastCacheGrain` first and then creating an implementation of abstract `VolatileCacheGrain<TValue, TStoreArgs>` class, overriding the `CreateFromStoreAsync` method and inheriting marker interface:
 
@@ -74,7 +101,7 @@ internal class WeatherForecastCacheGrain :
   {
   }
 
-  protected override async Task<CreateResult<WeatherForecastCacheValue>> CreateFromStoreAsync(
+  protected override async Task<Result<CreatedItem<WeatherForecastCacheValue>>> CreateFromStoreAsync(
     WeatherForecastCacheArgs? args,
     CacheGrainEntryOptions options,
     CancellationToken ct)
@@ -82,7 +109,6 @@ internal class WeatherForecastCacheGrain :
     var dayCount = args?.DayCount ?? 5;
     // Simulate a long-running operation
     await Task.Delay(5000, ct);
-
     var value = new WeatherForecastCacheValue()
     {
       Items = Enumerable.Range(1, dayCount).Select(index => new WeatherForecastCacheValueItem()
@@ -92,8 +118,7 @@ internal class WeatherForecastCacheGrain :
         Summary = _summaries[Random.Shared.Next(_summaries.Length)]
       }).ToArray()
     };
-
-    return new CreateResult<WeatherForecastCacheValue>(Value: value, Options: options);
+    return new CreatedItem<WeatherForecastCacheValue>(Value: value, Options: options);
   }
 }
 
@@ -139,7 +164,7 @@ internal class WeatherForecastCacheGrain :
   {
   }
 
-  protected override async Task<WriteResult<WeatherForecastCacheValue>> WriteToStoreAsync(
+  protected override async Task<Result<WrittenItem<WeatherForecastCacheValue>>> WriteToStoreAsync(
     WeatherForecastCacheArgs? args,
     WeatherForecastCacheValue value,
     CacheGrainEntryOptions options,
@@ -148,17 +173,17 @@ internal class WeatherForecastCacheGrain :
     // Write to an external data source
     // e.g., await _database.SaveAsync(value, ct);
     
-    return new WriteResult<WeatherForecastCacheValue>(Value: value, Options: options);
+    return new WrittenItem<WeatherForecastCacheValue>(Value: value, Options: options);
   }
 
-  protected override async Task<CreateResult<WeatherForecastCacheValue>> CreateFromStoreAsync(
+  protected override async Task<Result<CreatedItem<WeatherForecastCacheValue>>> CreateFromStoreAsync(
     WeatherForecastCacheArgs? args,
     CacheGrainEntryOptions options,
     CancellationToken ct)
   {
     var dayCount = args?.DayCount ?? 5;
+    // Simulate a long-running operation
     await Task.Delay(5000, ct);
-
     var value = new WeatherForecastCacheValue()
     {
       Items = Enumerable.Range(1, dayCount).Select(index => new WeatherForecastCacheValueItem()
@@ -168,8 +193,7 @@ internal class WeatherForecastCacheGrain :
         Summary = _summaries[Random.Shared.Next(_summaries.Length)]
       }).ToArray()
     };
-
-    return new CreateResult<WeatherForecastCacheValue>(Value: value, Options: options);
+    return new CreatedItem<WeatherForecastCacheValue>(Value: value, Options: options);
   }
 }
 ```
@@ -196,7 +220,7 @@ internal class WeatherForecastCacheGrain :
   {
   }
 
-  protected override async Task<CreateResult<WeatherForecastCacheValue>> CreateFromStoreAsync(
+  protected override async Task<Result<CreatedItem<WeatherForecastCacheValue>>> CreateFromStoreAsync(
     WeatherForecastCacheArgs? args,
     CacheGrainEntryOptions options,
     CancellationToken ct)
@@ -207,27 +231,6 @@ internal class WeatherForecastCacheGrain :
   }
 }
 ```
-
-## 🧩 How to Call Implemented Cache Grains
-
-Cluster cache grains expose several methods for interaction:
-
-- **`ICacheGrain<TValue>` methods:**
-  1. `SetAsync` — stores a value in the cache and returns the stored value,  
-  2. `TryGetAsync` — fetches an unexpired cached value if it exists (updating the last accessed time for sliding expiration),  
-  3. `TryPeekAsync` — fetches an unexpired cached value if it exists (without updating the last accessed time),  
-  4. `RefreshAsync` — updates the last accessed time if an unexpired cache value exists,  
-  5. `RemoveAsync` — clears the cache value.  
-
-- **`IReadThroughCacheGrain<TValue>` and `IReadThroughCacheGrain<TValue, TStoreArgs>` methods:**
-  1. `GetOrCreateAsync` — fetches a cached value or creates one via `CreateFromStoreAsync` if the value is missing or expired,  
-  2. `CreateAsync` — creates a cache value via `CreateFromStoreAsync` and fetches it,
-  3. Inherits methods from `ICacheGrain<TValue>`.  
-
-- **`IWriteThroughCacheGrain<TValue>` and `IWriteThroughCacheGrain<TStoreArgs>` methods:**
-  1. `SetAndWriteAsync` — writes the value via `WriteToStoreAsync` and updates the cache,
-  2. `RemoveAndDeleteAsync` — deletes the value via `DeleteFromStoreAsync` and removes it from the cache,
-  3. Inherits methods from `ICacheGrain<TValue>`.
 
 ### Example usage of the Read-Through `WeatherForecastCacheGrain`:
 
