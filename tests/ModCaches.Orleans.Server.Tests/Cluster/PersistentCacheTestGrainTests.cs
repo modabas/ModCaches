@@ -361,7 +361,7 @@ public class PersistentCacheTestGrainTests
     fetched.IsOk.Should().BeTrue();
     fetched.Value.Should().NotBeNull();
     fetched.Value.Data.Should().Be(DefaultData);
-    
+
     var stateAfterGet = await GetStateAsync(grainId);
     stateAfterGet.Should().NotBeNull();
     stateAfterGet.State.Value.Data.Should().Be(DefaultData);
@@ -509,7 +509,7 @@ public class PersistentCacheTestGrainTests
     fetched.IsOk.Should().BeTrue();
     fetched.Value.Should().NotBeNull();
     fetched.Value.Data.Should().Be(DefaultData);
-    
+
     var stateAfterGet = await GetStateAsync(grainId);
     stateAfterGet.Should().NotBeNull();
     stateAfterGet.State.Value.Data.Should().Be(DefaultData);
