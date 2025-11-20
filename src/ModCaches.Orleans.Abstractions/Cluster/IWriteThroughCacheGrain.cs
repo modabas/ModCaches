@@ -12,13 +12,15 @@ public interface IWriteThroughCacheGrain<TValue, TStoreArgs> : IWriteThroughCach
   where TStoreArgs : notnull
 {
   /// <summary>
-  /// Performs update of the backing data store and sets the cached value. Utilizes WriteToStoreAsync method to update backing data store. WriteToStoreAsync method must be overridden and implemented in the derived class.
+  /// Performs update of the backing data store and sets the cached value.<br/>
+  /// Utilizes WriteToStoreAsync method to update backing data store. If WriteToStoreAsync method returns failure, cache is not updated.<br/>
+  /// WriteToStoreAsync method must be overridden and implemented in the derived class.
   /// </summary>
   /// <param name="args">Parameters for underlying operations from backing data store.</param>
   /// <param name="value">The value to store in the cache.</param>
   /// <param name="ct">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
   /// <param name="options">The cache options for the value.</param>
-  /// <returns>Value stored in cache.</returns>
+  /// <returns>A <see cref="Result{TValue}"/> that represents the outcome and the data stored in cache if successful.</returns>
   Task<Result<TValue>> SetAndWriteAsync(
     TStoreArgs? args,
     TValue value,
@@ -26,11 +28,13 @@ public interface IWriteThroughCacheGrain<TValue, TStoreArgs> : IWriteThroughCach
     CacheGrainEntryOptions? options = null);
 
   /// <summary>
-  /// Performs deletion from backing data store and removal from cache. Utilizes DeleteFromStoreAsync method for deleting from backing data store. DeleteFromStoreAsync method must be overridden and implemented in the derived class.
+  /// Performs deletion from backing data store and removal from cache.<br/>
+  /// Utilizes DeleteFromStoreAsync method for deleting from backing data store. If DeleteFromStoreAsync method returns failure, cache item is not removed.<br/>
+  /// DeleteFromStoreAsync method must be overridden and implemented in the derived class.
   /// </summary>
   /// <param name="args">Parameters for underlying operations from backing data store.</param>
   /// <param name="ct">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
-  /// <returns></returns>
+  /// <returns>A <see cref="Result"/> that represents the outcome.</returns>
   Task<Result> RemoveAndDeleteAsync(
     TStoreArgs? args,
     CancellationToken ct);
@@ -45,22 +49,26 @@ public interface IWriteThroughCacheGrain<TValue> : ICacheGrain<TValue>
   where TValue : notnull
 {
   /// <summary>
-  /// Performs update of the backing data store and sets the cached value. Utilizes WriteToStoreAsync method to update backing data store. WriteToStoreAsync method must be overridden and implemented in the derived class.
+  /// Performs update of the backing data store and sets the cached value.<br/>
+  /// Utilizes WriteToStoreAsync method to update backing data store. If WriteToStoreAsync method returns failure, cache is not updated.<br/>
+  /// WriteToStoreAsync method must be overridden and implemented in the derived class.
   /// </summary>
   /// <param name="value">The value to store in the cache.</param>
   /// <param name="ct">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
   /// <param name="options">The cache options for the value.</param>
-  /// <returns>Value stored in cache.</returns>
+  /// <returns>A <see cref="Result{TValue}"/> that represents the outcome and the data stored in cache if successful.</returns>
   Task<Result<TValue>> SetAndWriteAsync(
     TValue value,
     CancellationToken ct,
     CacheGrainEntryOptions? options = null);
 
   /// <summary>
-  /// Performs deletion from backing data store and removal from cache. Utilizes DeleteFromStoreAsync method for deleting from backing data store. DeleteFromStoreAsync method must be overridden and implemented in the derived class.
+  /// Performs deletion from backing data store and removal from cache.<br/>
+  /// Utilizes DeleteFromStoreAsync method for deleting from backing data store. If DeleteFromStoreAsync method returns failure, cache item is not removed.<br/>
+  /// DeleteFromStoreAsync method must be overridden and implemented in the derived class.
   /// </summary>
   /// <param name="ct">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
-  /// <returns></returns>
+  /// <returns>A <see cref="Result"/> that represents the outcome.</returns>
   Task<Result> RemoveAndDeleteAsync(
     CancellationToken ct);
 }

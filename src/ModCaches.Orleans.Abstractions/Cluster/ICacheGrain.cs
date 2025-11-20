@@ -13,7 +13,7 @@ public interface ICacheGrain<TValue> : IGrainWithStringKey
   /// Refreshes the value in the cache, resetting its sliding expiration timeout (if any).
   /// </summary>
   /// <param name="ct">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
-  /// <returns>The <see cref="Task"/> that represents the asynchronous operation.</returns>
+  /// <returns>A <see cref="Result"/> that represents the outcome.</returns>
   Task<Result> RefreshAsync(CancellationToken ct);
 
   /// <summary>
@@ -27,14 +27,14 @@ public interface ICacheGrain<TValue> : IGrainWithStringKey
   /// Asynchronously tries to get the cached value associated if it exists, resetting its sliding expiration timeout (if any).
   /// </summary>
   /// <param name="ct">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
-  /// <returns>A record containing either IsFound: "true" and Value: the data from cache, on cache hit, or IsFound: "false" and Value: a default value, on cache miss.</returns>
+  /// <returns>A <see cref="Result{TValue}"/> that represents the outcome.</returns>
   Task<Result<TValue>> TryGetAsync(CancellationToken ct);
 
   /// <summary>
   /// Asynchronously tries to get the cached value associated if it exists, without resetting its sliding expiration timeout (if any).
   /// </summary>
   /// <param name="ct">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
-  /// <returns>A record containing either IsFound: "true" and Value: the data from cache, on cache hit, or IsFound: "false" and Value: a default value, on cache miss.</returns>
+  /// <returns>A <see cref="Result{TValue}"/> that represents the outcome.</returns>
   Task<Result<TValue>> TryPeekAsync(CancellationToken ct);
 
   /// <summary>
@@ -43,7 +43,7 @@ public interface ICacheGrain<TValue> : IGrainWithStringKey
   /// <param name="value">The value to store in the cache.</param>
   /// <param name="ct">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
   /// <param name="options">The cache options for the value.</param>
-  /// <returns>Value stored in cache.</returns>
+  /// <returns>The <see cref="Task"/> that represents the asynchronous operation.</returns>
   Task SetAsync(
     TValue value,
     CancellationToken ct,

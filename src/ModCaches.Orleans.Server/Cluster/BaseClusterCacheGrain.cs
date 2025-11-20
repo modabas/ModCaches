@@ -74,13 +74,13 @@ public abstract class BaseClusterCacheGrain<TValue>
   }
 
   /// <summary>
-  /// Reads data from backing data store. Used by GetOrCreateAsync and CreateAsync methods and cache value is set by the response from this method.<br/>
-  /// Also can be used to override input cache options.<br/>
+  /// Reads data from backing data store. Used by GetOrCreateAsync and CreateAsync methods and cache value is set by the response from this method. Also can be used to override input cache options.<br/>
+  /// If CreateFromStoreAsync method returns a failure result, the failure is propagated back to the caller and no cache entry is created.<br/>
   /// Must be overridden in order to use any one of GetOrCreateAsync and CreateAsync methods.
   /// </summary>
   /// <param name="options">The cache options for the value.</param>
   /// <param name="ct">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
-  /// <returns>A record containing data to be cached and options to be used for caching.</returns>
+  /// <returns>A <see cref="Result"/> containing <see cref="CreatedItem{TValue}"/> that represents the outcome and record containing data to be cached and options to be used for caching if successful.</returns>
   protected virtual Task<Result<CreatedItem<TValue>>> CreateFromStoreAsync(CacheGrainEntryOptions options, CancellationToken ct)
   {
     throw new NotImplementedException("Override and implement CreateFromStoreAsync method in order to use GetOrCreateAsync and CreateAsync methods.");
@@ -100,14 +100,14 @@ public abstract class BaseClusterCacheGrain<TValue>
   }
 
   /// <summary>
-  /// Performs update of the backing data store. Used by SetAndWriteAsync method and is called before setting cache value.<br/>
-  /// Also can be used to process/override input cache value and options.<br/>
+  /// Performs update of the backing data store. Used by SetAndWriteAsync method and is called before setting cache value. Also can be used to process/override input cache value and options.<br/>
+  /// If WriteToStoreAsync method returns failure, cache is not updated.<br/>
   /// Must be overridden in order to use SetAndWriteAsync method.
   /// </summary>
   /// <param name="value">The value to set in the cache.</param>
   /// <param name="options">The cache options for the value.</param>
   /// <param name="ct">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
-  /// <returns>A record containing value to be cached and cache options that will be used for the cache item.</returns>
+  /// <returns>A <see cref="Result"/> containing <see cref="WrittenItem{TValue}"/> that represents the outcome and record containing data to be cached and options to be used for caching if successful.</returns>
   protected virtual Task<Result<WrittenItem<TValue>>> WriteToStoreAsync(
     TValue value,
     CacheGrainEntryOptions options,
@@ -129,10 +129,11 @@ public abstract class BaseClusterCacheGrain<TValue>
 
   /// <summary>
   /// Performs deletion the backing data store. Used by RemoveAndDeleteAsync method and is called before removing cache value.<br/>
+  /// If DeleteFromStoreAsync method returns failure, cache item is not removed.<br/>
   /// Must be overridden in order to use RemoveAndDeleteAsync method.
   /// </summary>
   /// <param name="ct">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
-  /// <returns></returns>
+  /// <returns>A <see cref="Result"/> that represents the outcome.</returns>
   protected virtual Task<Result> DeleteFromStoreAsync(
     CancellationToken ct)
   {
@@ -230,14 +231,14 @@ public abstract class BaseClusterCacheGrain<TValue, TStoreArgs>
   }
 
   /// <summary>
-  /// Reads data from backing data store. Used by GetOrCreateAsync and CreateAsync methods and cache value is set by the response from this method.<br/>
-  /// Also can be used to override input cache options.<br/>
+  /// Reads data from backing data store. Used by GetOrCreateAsync and CreateAsync methods and cache value is set by the response from this method. Also can be used to override input cache options.<br/>
+  /// If CreateFromStoreAsync method returns a failure result, the failure is propagated back to the caller and no cache entry is created.<br/>
   /// Must be overridden in order to use any one of GetOrCreateAsync and CreateAsync methods.
   /// </summary>
   /// <param name="args">Parameters for underlying operations from backing data store.</param>
   /// <param name="options">The cache options for the value.</param>
   /// <param name="ct">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
-  /// <returns>A record containing data to be cached and options to be used for caching.</returns>
+  /// <returns>A <see cref="Result"/> containing <see cref="CreatedItem{TValue}"/> that represents the outcome and record containing data to be cached and options to be used for caching if successful.</returns>
   protected virtual Task<Result<CreatedItem<TValue>>> CreateFromStoreAsync(
     TStoreArgs? args,
     CacheGrainEntryOptions options,
@@ -269,15 +270,15 @@ public abstract class BaseClusterCacheGrain<TValue, TStoreArgs>
   }
 
   /// <summary>
-  /// Performs update of the backing data store. Used by SetAndWriteAsync method and is called before setting cache value.<br/>
-  /// Also can be used to process/override input cache value and options.<br/>
+  /// Performs update of the backing data store. Used by SetAndWriteAsync method and is called before setting cache value. Also can be used to process/override input cache value and options.<br/>
+  /// If WriteToStoreAsync method returns failure, cache is not updated.<br/>
   /// Must be overridden in order to use SetAndWriteAsync method.
   /// </summary>
   /// <param name="args">Parameters for underlying operations from backing data store.</param>
   /// <param name="value">The value to set in the cache.</param>
   /// <param name="options">The cache options for the value.</param>
   /// <param name="ct">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
-  /// <returns>A record containing value to be cached and cache options that will be used for the cache item.</returns>
+  /// <returns>A <see cref="Result"/> containing <see cref="WrittenItem{TValue}"/> that represents the outcome and record containing data to be cached and options to be used for caching if successful.</returns>
   protected virtual Task<Result<WrittenItem<TValue>>> WriteToStoreAsync(
     TStoreArgs? args,
     TValue value,
@@ -307,11 +308,12 @@ public abstract class BaseClusterCacheGrain<TValue, TStoreArgs>
 
   /// <summary>
   /// Performs deletion the backing data store. Used by RemoveAndDeleteAsync method and is called before removing cache value.<br/>
+  /// If DeleteFromStoreAsync method returns failure, cache item is not removed.<br/>
   /// Must be overridden in order to use RemoveAndDeleteAsync method.
   /// </summary>
   /// <param name="args">Parameters for underlying operations from backing data store.</param>
   /// <param name="ct">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
-  /// <returns></returns>
+  /// <returns>A <see cref="Result"/> that represents the outcome.</returns>
   protected virtual Task<Result> DeleteFromStoreAsync(
     TStoreArgs? args,
     CancellationToken ct)
