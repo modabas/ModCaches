@@ -65,5 +65,5 @@ public interface IExtendedDistributedCache
   /// <param name="key">The key of the entry to look for.</param>
   /// <param name="ct">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
   /// <returns>A tuple, either "true" and the data from cache if found or "false" and a default value if not found.</returns>
-  Task<(bool, T?)> TryGetValueAsync<T>(string key, CancellationToken ct);
+  Task<(bool IsOk, T? Value)> TryGetValueAsync<T>(string key, CancellationToken ct);
 }
