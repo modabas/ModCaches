@@ -55,14 +55,14 @@ public abstract class VolatileCacheGrain<TValue>
     return base.SetAndWriteAsync(value, ct, options);
   }
 
-  public sealed override Task<Result<TValue>> TryGetAsync(CancellationToken ct)
+  public sealed override Task<Result<TValue>> GetAsync(CancellationToken ct)
   {
-    return base.TryGetAsync(ct);
+    return base.GetAsync(ct);
   }
 
-  public sealed override Task<Result<TValue>> TryPeekAsync(CancellationToken ct)
+  public sealed override Task<Result<TValue>> PeekAsync(CancellationToken ct)
   {
-    return base.TryPeekAsync(ct);
+    return base.PeekAsync(ct);
   }
 }
 
@@ -126,13 +126,13 @@ public abstract class VolatileCacheGrain<TValue, TStoreArgs>
     return base.SetAndWriteAsync(args, value, ct, options);
   }
 
-  public sealed override Task<Result<TValue>> TryGetAsync(CancellationToken ct)
+  public sealed override Task<Result<TValue>> GetAsync(CancellationToken ct)
   {
-    return base.TryGetAsync(ct);
+    return base.GetAsync(ct);
   }
 
-  public sealed override Task<Result<TValue>> TryPeekAsync(CancellationToken ct)
+  public sealed override Task<Result<TValue>> PeekAsync(CancellationToken ct)
   {
-    return base.TryPeekAsync(ct);
+    return base.PeekAsync(ct);
   }
 }

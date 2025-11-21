@@ -45,8 +45,8 @@ Cluster cache grains expose several methods for interaction:
 
 - **`ICacheGrain<TValue>` methods:**
   1. `SetAsync` — stores a value in the cache and returns the stored value,  
-  2. `TryGetAsync` — fetches an unexpired cached value if it exists (updating the last accessed time for sliding expiration),  
-  3. `TryPeekAsync` — fetches an unexpired cached value if it exists (without updating the last accessed time),  
+  2. `GetAsync` — fetches an unexpired cached value if it exists (updating the last accessed time for sliding expiration),  
+  3. `PeekAsync` — fetches an unexpired cached value if it exists (without updating the last accessed time),  
   4. `RefreshAsync` — updates the last accessed time if an unexpired cache value exists,  
   5. `RemoveAsync` — clears the cache value.  
 

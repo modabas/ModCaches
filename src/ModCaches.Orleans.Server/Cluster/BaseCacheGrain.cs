@@ -65,7 +65,7 @@ public abstract class BaseCacheGrain<TValue>
     return;
   }
 
-  public virtual Task<Result<TValue>> TryGetAsync(CancellationToken ct)
+  public virtual Task<Result<TValue>> GetAsync(CancellationToken ct)
   {
     if (CacheEntry?.TryGetValue(TimeProviderFunc, out var value, out var expiresIn) == true)
     {
@@ -76,7 +76,7 @@ public abstract class BaseCacheGrain<TValue>
     return Task.FromResult(Result<TValue>.NotFound());
   }
 
-  public virtual Task<Result<TValue>> TryPeekAsync(CancellationToken ct)
+  public virtual Task<Result<TValue>> PeekAsync(CancellationToken ct)
   {
     if (CacheEntry?.TryPeekValue(TimeProviderFunc, out var value, out _) == true)
     {

@@ -53,7 +53,7 @@ public class VolatileCacheTestGrainWithStoreArgsTests
     var grain = _fixture.Cluster.GrainFactory.GetGrain<IVolatileCacheTestGrainWithStoreArgs>("Set_Then_TryGet");
     await grain.SetAsync("custom-value", CancellationToken.None, null);
 
-    var fetched = await grain.TryGetAsync(CancellationToken.None);
+    var fetched = await grain.GetAsync(CancellationToken.None);
     fetched.IsOk.Should().BeTrue();
     fetched.Value.Should().Be("custom-value");
   }
@@ -65,12 +65,12 @@ public class VolatileCacheTestGrainWithStoreArgsTests
     await grain.SetAsync("to-be-removed", CancellationToken.None, null);
 
     // ensure set
-    var fetchedBefore = await grain.TryGetAsync(CancellationToken.None);
+    var fetchedBefore = await grain.GetAsync(CancellationToken.None);
     fetchedBefore.IsOk.Should().BeTrue();
 
     // remove and verify
     await grain.RemoveAsync(CancellationToken.None);
-    var fetchedAfter = await grain.TryGetAsync(CancellationToken.None);
+    var fetchedAfter = await grain.GetAsync(CancellationToken.None);
     fetchedAfter.IsOk.Should().BeFalse();
     fetchedAfter.Value.Should().BeNull();
   }
@@ -98,7 +98,7 @@ public class VolatileCacheTestGrainWithStoreArgsTests
     // Wait again beyond original remaining time but within refreshed lifetime
     await Task.Delay(TimeSpan.FromMilliseconds(500));
 
-    var fetched = await grain.TryGetAsync(CancellationToken.None);
+    var fetched = await grain.GetAsync(CancellationToken.None);
     fetched.IsOk.Should().BeTrue();
     fetched.Value.Should().Be("refresh-test");
   }
@@ -126,7 +126,7 @@ public class VolatileCacheTestGrainWithStoreArgsTests
     // Wait again beyond original remaining time but within refreshed lifetime
     await Task.Delay(TimeSpan.FromMilliseconds(500));
 
-    var fetchedAfter = await grain.TryGetAsync(CancellationToken.None);
+    var fetchedAfter = await grain.GetAsync(CancellationToken.None);
     fetchedAfter.IsOk.Should().BeFalse();
     fetchedAfter.Value.Should().BeNull();
   }
@@ -148,14 +148,14 @@ public class VolatileCacheTestGrainWithStoreArgsTests
     await Task.Delay(TimeSpan.FromMilliseconds(500));
 
     // Refresh should extend lifetime
-    var fetched = await grain.TryPeekAsync(CancellationToken.None);
+    var fetched = await grain.PeekAsync(CancellationToken.None);
     fetched.IsOk.Should().BeTrue();
     fetched.Value.Should().Be("peek-test");
 
     // Wait again beyond original remaining time but within refreshed lifetime
     await Task.Delay(TimeSpan.FromMilliseconds(500));
 
-    var fetchedAfter = await grain.TryGetAsync(CancellationToken.None);
+    var fetchedAfter = await grain.GetAsync(CancellationToken.None);
     fetchedAfter.IsOk.Should().BeFalse();
     fetchedAfter.Value.Should().BeNull();
   }
@@ -177,7 +177,7 @@ public class VolatileCacheTestGrainWithStoreArgsTests
     // Wait for expiration (use a little buffer)
     await Task.Delay(TimeSpan.FromMilliseconds(200));
 
-    var fetchedAfter = await grain.TryGetAsync(CancellationToken.None);
+    var fetchedAfter = await grain.GetAsync(CancellationToken.None);
     fetchedAfter.IsOk.Should().BeFalse();
     fetchedAfter.Value.Should().BeNull();
   }

@@ -89,7 +89,7 @@ public class PersistentCacheTestGrainTests
     var grain = _fixture.Cluster.GrainFactory.GetGrain<IPersistentCacheTestGrain>(grainId);
     await grain.SetAsync(new CacheTestValue() { Data = "custom-value" }, CancellationToken.None, null);
 
-    var fetched = await grain.TryGetAsync(CancellationToken.None);
+    var fetched = await grain.GetAsync(CancellationToken.None);
     fetched.IsOk.Should().BeTrue();
     fetched.Value.Should().NotBeNull();
     fetched.Value.Data.Should().Be("custom-value");
@@ -107,7 +107,7 @@ public class PersistentCacheTestGrainTests
     await grain.SetAsync(new CacheTestValue() { Data = "to-be-removed" }, CancellationToken.None, null);
 
     // ensure set
-    var fetched = await grain.TryGetAsync(CancellationToken.None);
+    var fetched = await grain.GetAsync(CancellationToken.None);
     fetched.IsOk.Should().BeTrue();
 
     var state = await GetStateAsync(grainId);
@@ -116,7 +116,7 @@ public class PersistentCacheTestGrainTests
 
     // remove and verify
     await grain.RemoveAsync(CancellationToken.None);
-    var fetchedAfter = await grain.TryGetAsync(CancellationToken.None);
+    var fetchedAfter = await grain.GetAsync(CancellationToken.None);
     fetchedAfter.IsOk.Should().BeFalse();
     fetchedAfter.Value.Should().BeNull();
     var stateAfterRemove = await GetStateAsync(grainId);
@@ -149,7 +149,7 @@ public class PersistentCacheTestGrainTests
     // Wait again beyond original remaining time but within refreshed lifetime
     await Task.Delay(TimeSpan.FromMilliseconds(500));
 
-    var fetched = await grain.TryGetAsync(CancellationToken.None);
+    var fetched = await grain.GetAsync(CancellationToken.None);
     fetched.IsOk.Should().BeTrue();
     fetched.Value.Should().NotBeNull();
     fetched.Value.Data.Should().Be("refresh-test");
@@ -182,7 +182,7 @@ public class PersistentCacheTestGrainTests
     // Wait again beyond original remaining time but within refreshed lifetime
     await Task.Delay(TimeSpan.FromMilliseconds(500));
 
-    var fetchedAfter = await grain.TryGetAsync(CancellationToken.None);
+    var fetchedAfter = await grain.GetAsync(CancellationToken.None);
     fetchedAfter.IsOk.Should().BeFalse();
     fetchedAfter.Value.Should().BeNull();
 
@@ -214,7 +214,7 @@ public class PersistentCacheTestGrainTests
     var refreshed = await grain.RefreshAsync(CancellationToken.None);
     refreshed.IsOk.Should().BeFalse();
 
-    var fetched = await grain.TryGetAsync(CancellationToken.None);
+    var fetched = await grain.GetAsync(CancellationToken.None);
     fetched.IsOk.Should().BeFalse();
     fetched.Value.Should().BeNull();
 
@@ -242,7 +242,7 @@ public class PersistentCacheTestGrainTests
     await Task.Delay(TimeSpan.FromMilliseconds(500));
 
     // Refresh should extend lifetime
-    var fetched = await grain.TryPeekAsync(CancellationToken.None);
+    var fetched = await grain.PeekAsync(CancellationToken.None);
     fetched.IsOk.Should().BeTrue();
     fetched.Value.Should().NotBeNull();
     fetched.Value.Data.Should().Be("peek-test");
@@ -250,7 +250,7 @@ public class PersistentCacheTestGrainTests
     // Wait again beyond original remaining time but within refreshed lifetime
     await Task.Delay(TimeSpan.FromMilliseconds(500));
 
-    var fetchedAfter = await grain.TryGetAsync(CancellationToken.None);
+    var fetchedAfter = await grain.GetAsync(CancellationToken.None);
     fetchedAfter.IsOk.Should().BeFalse();
     fetchedAfter.Value.Should().BeNull();
 
@@ -279,7 +279,7 @@ public class PersistentCacheTestGrainTests
     // Wait for expiration (use a little buffer)
     await Task.Delay(TimeSpan.FromMilliseconds(200));
 
-    var fetched = await grain.TryGetAsync(CancellationToken.None);
+    var fetched = await grain.GetAsync(CancellationToken.None);
     fetched.IsOk.Should().BeFalse();
     fetched.Value.Should().BeNull();
 
@@ -303,7 +303,7 @@ public class PersistentCacheTestGrainTests
     await SetStateAsync(grainId, cacheState);
     var grain = _fixture.Cluster.GrainFactory.GetGrain<IPersistentCacheTestGrain>(grainId);
 
-    var fetched = await grain.TryGetAsync(CancellationToken.None);
+    var fetched = await grain.GetAsync(CancellationToken.None);
     fetched.IsOk.Should().BeFalse();
     fetched.Value.Should().BeNull();
 
@@ -327,7 +327,7 @@ public class PersistentCacheTestGrainTests
     await SetStateAsync(grainId, cacheState);
     var grain = _fixture.Cluster.GrainFactory.GetGrain<IPersistentCacheTestGrain>(grainId);
 
-    var fetched = await grain.TryGetAsync(CancellationToken.None);
+    var fetched = await grain.GetAsync(CancellationToken.None);
     fetched.IsOk.Should().BeTrue();
     fetched.Value.Should().NotBeNull();
     fetched.Value.Data.Should().Be("valid-data");
@@ -417,7 +417,7 @@ public class PersistentCacheTestGrainTests
     state.State.Value.Data.Should().Be(DefaultData);
     var lastAccessed = state.State.LastAccessed;
 
-    var fetched = await grain.TryGetAsync(CancellationToken.None);
+    var fetched = await grain.GetAsync(CancellationToken.None);
     fetched.IsOk.Should().BeTrue();
     fetched.Value.Should().NotBeNull();
     fetched.Value.Data.Should().Be(DefaultData);
@@ -505,7 +505,7 @@ public class PersistentCacheTestGrainTests
     state.State.Value.Data.Should().Be(DefaultData);
     var lastAccessed = state.State.LastAccessed;
 
-    var fetched = await grain.TryGetAsync(CancellationToken.None);
+    var fetched = await grain.GetAsync(CancellationToken.None);
     fetched.IsOk.Should().BeTrue();
     fetched.Value.Should().NotBeNull();
     fetched.Value.Data.Should().Be(DefaultData);

@@ -133,9 +133,9 @@ public abstract class PersistentCacheGrain<TValue>
     return ret;
   }
 
-  public sealed override async Task<Result<TValue>> TryGetAsync(CancellationToken ct)
+  public sealed override async Task<Result<TValue>> GetAsync(CancellationToken ct)
   {
-    var ret = await base.TryGetAsync(ct);
+    var ret = await base.GetAsync(ct);
     if (ret.IsOk)
     {
       // Only write state if we have sliding expiration, as absolute expiration does not change on access
@@ -151,9 +151,9 @@ public abstract class PersistentCacheGrain<TValue>
     return ret;
   }
 
-  public sealed override Task<Result<TValue>> TryPeekAsync(CancellationToken ct)
+  public sealed override Task<Result<TValue>> PeekAsync(CancellationToken ct)
   {
-    return base.TryPeekAsync(ct);
+    return base.PeekAsync(ct);
   }
 
   private async Task WriteStateAsync(CancellationToken ct)
@@ -311,9 +311,9 @@ public abstract class PersistentCacheGrain<TValue, TStoreArgs>
     return ret;
   }
 
-  public sealed override async Task<Result<TValue>> TryGetAsync(CancellationToken ct)
+  public sealed override async Task<Result<TValue>> GetAsync(CancellationToken ct)
   {
-    var ret = await base.TryGetAsync(ct);
+    var ret = await base.GetAsync(ct);
     if (ret.IsOk)
     {
       // Only write state if we have sliding expiration, as absolute expiration does not change on access
@@ -329,9 +329,9 @@ public abstract class PersistentCacheGrain<TValue, TStoreArgs>
     return ret;
   }
 
-  public sealed override Task<Result<TValue>> TryPeekAsync(CancellationToken ct)
+  public sealed override Task<Result<TValue>> PeekAsync(CancellationToken ct)
   {
-    return base.TryPeekAsync(ct);
+    return base.PeekAsync(ct);
   }
 
   private async Task WriteStateAsync(CancellationToken ct)

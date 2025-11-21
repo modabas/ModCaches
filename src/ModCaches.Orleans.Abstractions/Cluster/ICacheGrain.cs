@@ -28,14 +28,14 @@ public interface ICacheGrain<TValue> : IGrainWithStringKey
   /// </summary>
   /// <param name="ct">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
   /// <returns>A <see cref="Result{TValue}"/> that represents the outcome.</returns>
-  Task<Result<TValue>> TryGetAsync(CancellationToken ct);
+  Task<Result<TValue>> GetAsync(CancellationToken ct);
 
   /// <summary>
   /// Asynchronously tries to get the cached value associated if it exists, without resetting its sliding expiration timeout (if any).
   /// </summary>
   /// <param name="ct">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
   /// <returns>A <see cref="Result{TValue}"/> that represents the outcome.</returns>
-  Task<Result<TValue>> TryPeekAsync(CancellationToken ct);
+  Task<Result<TValue>> PeekAsync(CancellationToken ct);
 
   /// <summary>
   /// Sets the cached value.
