@@ -63,8 +63,8 @@ internal class WeatherForecastCacheGrain :
 internal class GetWeatherForecast2(IGrainFactory grainFactory) : MinimalEndpoint<WeatherForecast[]>
 {
   protected override void Configure(
-      EndpointConfigurationBuilder builder,
-      ConfigurationContext<EndpointConfigurationParameters> configurationContext)
+    EndpointConfigurationBuilder builder,
+    EndpointConfigurationContext configurationContext)
   {
     builder.MapGet("/ClusterCache")
       .WithName("ClusterCache")

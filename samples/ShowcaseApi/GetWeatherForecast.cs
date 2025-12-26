@@ -18,8 +18,8 @@ internal class GetWeatherForecast(IExtendedDistributedCache cache) : MinimalEndp
   private static readonly string[] _summaries = ["Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"];
 
   protected override void Configure(
-      EndpointConfigurationBuilder builder,
-      ConfigurationContext<EndpointConfigurationParameters> configurationContext)
+    EndpointConfigurationBuilder builder,
+    EndpointConfigurationContext configurationContext)
   {
     builder.MapGet("/ExtendedDistributedCache")
       .WithName("ExtendedDistributedCache")
