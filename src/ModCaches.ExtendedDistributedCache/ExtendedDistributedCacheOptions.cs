@@ -13,7 +13,7 @@ public class ExtendedDistributedCacheOptions
   /// <summary>
   /// Gets or sets an absolute expiration time, relative to now.
   /// </summary>
-  public TimeSpan? AbsoluteExpirationRelativeToNow { get; set; } = TimeSpan.FromMinutes(10); // Default to 10 minutes
+  public TimeSpan? AbsoluteExpirationRelativeToNow { get; set; }
 
   /// <summary>
   /// Gets or sets how long a cache entry can be inactive (for example, not accessed) before it will be removed.

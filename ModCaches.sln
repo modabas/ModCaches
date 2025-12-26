@@ -44,7 +44,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{7BA935E2-7
 	ProjectSection(SolutionItems) = preProject
 		docs\ExtendedDistributedCache.md = docs\ExtendedDistributedCache.md
 		docs\OrleansDistributedCache.md = docs\OrleansDistributedCache.md
-		docs\OrleansInClusterCache.md = docs\OrleansInClusterCache.md
+		docs\OrleansClusterCache.md = docs\OrleansClusterCache.md
 	EndProjectSection
 EndProject
 Global

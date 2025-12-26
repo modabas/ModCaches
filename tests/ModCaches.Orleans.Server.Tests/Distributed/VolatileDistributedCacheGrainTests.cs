@@ -27,10 +27,10 @@ public class VolatileDistributedCacheGrainTests
   {
     var grain = _fixture.Cluster.GrainFactory.GetGrain<IVolatileDistributedCacheGrain>("SetThenGet");
     var data = ImmutableArray.Create<byte>(1, 2, 3, 4);
-    var options = new ModCaches.Orleans.Abstractions.Common.CacheEntryOptions
-    {
-      AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5)
-    };
+    var options = new Abstractions.Common.CacheEntryOptions(
+      AbsoluteExpiration: null,
+      AbsoluteExpirationRelativeToNow: TimeSpan.FromMinutes(5),
+      SlidingExpiration: null);
 
     await grain.SetAsync(data, options, CancellationToken.None);
 
@@ -46,10 +46,10 @@ public class VolatileDistributedCacheGrainTests
     var grain = _fixture.Cluster.GrainFactory.GetGrain<IVolatileDistributedCacheGrain>(key);
     var data = ImmutableArray.Create<byte>(9, 8, 7);
 
-    var options = new ModCaches.Orleans.Abstractions.Common.CacheEntryOptions
-    {
-      AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(1)
-    };
+    var options = new Abstractions.Common.CacheEntryOptions(
+      AbsoluteExpiration: null,
+      AbsoluteExpirationRelativeToNow: TimeSpan.FromMinutes(1),
+      SlidingExpiration: null);
 
     await grain.SetAsync(data, options, CancellationToken.None);
 
@@ -70,10 +70,10 @@ public class VolatileDistributedCacheGrainTests
     var grain = _fixture.Cluster.GrainFactory.GetGrain<IVolatileDistributedCacheGrain>(key);
     var data = ImmutableArray.Create<byte>(5, 6, 7);
 
-    var options = new ModCaches.Orleans.Abstractions.Common.CacheEntryOptions
-    {
-      AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(5)
-    };
+    var options = new Abstractions.Common.CacheEntryOptions(
+      AbsoluteExpiration: null,
+      AbsoluteExpirationRelativeToNow: TimeSpan.FromMinutes(5),
+      SlidingExpiration: null);
 
     await grain.SetAsync(data, options, CancellationToken.None);
 
@@ -92,10 +92,10 @@ public class VolatileDistributedCacheGrainTests
     var grain = _fixture.Cluster.GrainFactory.GetGrain<IVolatileDistributedCacheGrain>(key);
     var data = ImmutableArray.Create<byte>(11, 22, 33);
 
-    var options = new ModCaches.Orleans.Abstractions.Common.CacheEntryOptions
-    {
-      AbsoluteExpirationRelativeToNow = TimeSpan.FromMilliseconds(50)
-    };
+    var options = new Abstractions.Common.CacheEntryOptions(
+      AbsoluteExpiration: null,
+      AbsoluteExpirationRelativeToNow: TimeSpan.FromMilliseconds(50),
+      SlidingExpiration: null);
 
     await grain.SetAsync(data, options, CancellationToken.None);
 

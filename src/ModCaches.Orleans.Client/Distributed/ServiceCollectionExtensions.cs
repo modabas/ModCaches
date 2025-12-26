@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace ModCaches.Orleans.Client.Distributed;
+
 public static class ServiceCollectionExtensions
 {
 

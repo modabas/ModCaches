@@ -2,6 +2,7 @@
 using Orleans.TestingHost;
 
 namespace ModCaches.Orleans.Server.Tests;
+
 public sealed class ClusterFixture : IDisposable
 {
   public TestCluster Cluster { get; } = new TestClusterBuilder()

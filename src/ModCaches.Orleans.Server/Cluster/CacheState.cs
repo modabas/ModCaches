@@ -1,7 +1,7 @@
-﻿namespace ModCaches.Orleans.Server.InCluster;
+﻿namespace ModCaches.Orleans.Server.Cluster;
 
 /// <summary>
-/// Holds the persistent state for an in-cluster cache grain.
+/// Holds the persistent state for a cluster cache grain.
 /// </summary>
 /// <typeparam name="TValue"></typeparam>
 [GenerateSerializer]

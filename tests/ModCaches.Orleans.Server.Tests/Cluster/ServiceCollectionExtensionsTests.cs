@@ -1,20 +1,20 @@
 ﻿using AwesomeAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
-using ModCaches.Orleans.Server.InCluster;
+using ModCaches.Orleans.Server.Cluster;
 
-namespace ModCaches.Orleans.Server.Tests.InCluster;
+namespace ModCaches.Orleans.Server.Tests.Cluster;
 
 public class ServiceCollectionExtensionsTests
 {
   [Fact]
-  public void AddOrleansInClusterCache_Registers_TimeProvider_System()
+  public void AddOrleansClusterCache_Registers_TimeProvider_System()
   {
     // Arrange
     var services = new ServiceCollection();
 
     // Act
-    services.AddOrleansInClusterCache();
+    services.AddOrleansClusterCache();
     using var provider = services.BuildServiceProvider();
     var registered = provider.GetRequiredService<TimeProvider>();
 
@@ -23,15 +23,15 @@ public class ServiceCollectionExtensionsTests
   }
 
   [Fact]
-  public void AddOrleansInClusterCache_Default_Does_Not_Modify_Options()
+  public void AddOrleansClusterCache_Default_Does_Not_Modify_Options()
   {
     // Arrange
     var services = new ServiceCollection();
 
     // Act
-    services.AddOrleansInClusterCache();
+    services.AddOrleansClusterCache();
     using var provider = services.BuildServiceProvider();
-    var options = provider.GetRequiredService<IOptions<CacheGrainEntryOptions>>().Value;
+    var options = provider.GetRequiredService<IOptions<ClusterCacheOptions>>().Value;
 
     // Assert - default lambda in the production code does not mutate the options instance,
     // so all properties should remain null.
@@ -41,7 +41,7 @@ public class ServiceCollectionExtensionsTests
   }
 
   [Fact]
-  public void AddOrleansInClusterCache_Applies_SetupAction_To_Options()
+  public void AddOrleansClusterCache_Applies_SetupAction_To_Options()
   {
     // Arrange
     var services = new ServiceCollection();
@@ -50,7 +50,7 @@ public class ServiceCollectionExtensionsTests
     var expectedAbs = DateTimeOffset.UtcNow.AddMinutes(30);
 
     // Act
-    services.AddOrleansInClusterCache(options =>
+    services.AddOrleansClusterCache(options =>
     {
       options.AbsoluteExpirationRelativeToNow = expectedAbsRelToNow;
       options.SlidingExpiration = expectedSliding;
@@ -58,7 +58,7 @@ public class ServiceCollectionExtensionsTests
     });
 
     using var provider = services.BuildServiceProvider();
-    var options = provider.GetRequiredService<IOptions<InClusterCacheOptions>>().Value;
+    var options = provider.GetRequiredService<IOptions<ClusterCacheOptions>>().Value;
 
     // Assert
     options.AbsoluteExpirationRelativeToNow.Should().Be(expectedAbsRelToNow);

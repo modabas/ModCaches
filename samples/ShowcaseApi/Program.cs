@@ -1,6 +1,6 @@
 ﻿using ModCaches.ExtendedDistributedCache;
+using ModCaches.Orleans.Server.Cluster;
 using ModCaches.Orleans.Server.Distributed;
-using ModCaches.Orleans.Server.InCluster;
 using ModEndpoints.Core;
 using ShowcaseApi;
 
@@ -18,7 +18,7 @@ builder.Services.AddExtendedDistributedCache(options =>
   options.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(1);
 });
 
-builder.Services.AddOrleansInClusterCache(options =>
+builder.Services.AddOrleansClusterCache(options =>
 {
   options.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5);
   options.SlidingExpiration = TimeSpan.FromMinutes(1);

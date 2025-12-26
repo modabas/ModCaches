@@ -4,7 +4,7 @@ using ModCaches.Orleans.Abstractions.Distributed;
 
 namespace ModCaches.Orleans.Client.Distributed;
 
-public class RemoteOrleansPersistentCache : IDistributedCache
+internal sealed class RemoteOrleansPersistentCache : IDistributedCache
 {
   private readonly IClusterClient _clusterClient;
 

@@ -49,11 +49,7 @@ public class PersistentDistributedCacheGrainTests
     var grainId = GetGrainId("SetThenGet");
     var grain = _fixture.Cluster.GrainFactory.GetGrain<IPersistentDistributedCacheGrain>(grainId);
     var data = ImmutableArray.Create<byte>(1, 2, 3, 4);
-    var options = new CacheEntryOptions
-    {
-      AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5),
-      SlidingExpiration = TimeSpan.FromMinutes(2)
-    };
+    var options = new CacheEntryOptions(null, TimeSpan.FromMinutes(5), TimeSpan.FromMinutes(2));
 
     await grain.SetAsync(data, options, CancellationToken.None);
 
@@ -77,10 +73,7 @@ public class PersistentDistributedCacheGrainTests
     var grainId = GetGrainId("State_IsNotSavedAfterGet_IfDoesntHaveSlidingExpiration");
     var grain = _fixture.Cluster.GrainFactory.GetGrain<IPersistentDistributedCacheGrain>(grainId);
     var data = ImmutableArray.Create<byte>(1, 2, 3, 4);
-    var options = new CacheEntryOptions
-    {
-      AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5),
-    };
+    var options = new CacheEntryOptions(null, TimeSpan.FromMinutes(5), null);
 
     await grain.SetAsync(data, options, CancellationToken.None);
 
@@ -104,10 +97,7 @@ public class PersistentDistributedCacheGrainTests
     var grainId = GetGrainId("State_IsNotSavedAfterRefresh_IfDoesntHaveSlidingExpiration");
     var grain = _fixture.Cluster.GrainFactory.GetGrain<IPersistentDistributedCacheGrain>(grainId);
     var data = ImmutableArray.Create<byte>(1, 2, 3, 4);
-    var options = new CacheEntryOptions
-    {
-      AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5),
-    };
+    var options = new CacheEntryOptions(null, TimeSpan.FromMinutes(5), null);
 
     await grain.SetAsync(data, options, CancellationToken.None);
 
@@ -130,10 +120,7 @@ public class PersistentDistributedCacheGrainTests
     var grain = _fixture.Cluster.GrainFactory.GetGrain<IPersistentDistributedCacheGrain>(grainId);
     var data = ImmutableArray.Create<byte>(9, 8, 7);
 
-    var options = new CacheEntryOptions
-    {
-      AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(1)
-    };
+    var options = new CacheEntryOptions(null, TimeSpan.FromMinutes(1), null);
 
     await grain.SetAsync(data, options, CancellationToken.None);
 
@@ -160,10 +147,7 @@ public class PersistentDistributedCacheGrainTests
     var grain = _fixture.Cluster.GrainFactory.GetGrain<IPersistentDistributedCacheGrain>(grainId);
     var data = ImmutableArray.Create<byte>(5, 6, 7);
 
-    var options = new CacheEntryOptions
-    {
-      SlidingExpiration = TimeSpan.FromSeconds(5)
-    };
+    var options = new CacheEntryOptions(null, null, TimeSpan.FromSeconds(5));
 
     await grain.SetAsync(data, options, CancellationToken.None);
     var state = await GetStateAsync(grainId);
@@ -188,10 +172,7 @@ public class PersistentDistributedCacheGrainTests
     var grain = _fixture.Cluster.GrainFactory.GetGrain<IPersistentDistributedCacheGrain>(grainId);
     var data = ImmutableArray.Create<byte>(11, 22, 33);
 
-    var options = new CacheEntryOptions
-    {
-      AbsoluteExpirationRelativeToNow = TimeSpan.FromMilliseconds(50)
-    };
+    var options = new CacheEntryOptions(null, TimeSpan.FromMilliseconds(50), null);
 
     await grain.SetAsync(data, options, CancellationToken.None);
 

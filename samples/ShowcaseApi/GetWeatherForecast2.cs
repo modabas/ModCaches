@@ -1,5 +1,7 @@
-﻿using ModCaches.Orleans.Server.InCluster;
+﻿using ModCaches.Orleans.Abstractions.Cluster;
+using ModCaches.Orleans.Server.Cluster;
 using ModEndpoints.Core;
+using ModResults;
 
 namespace ShowcaseApi;
 
@@ -24,7 +26,7 @@ internal struct WeatherForecastCacheValueItem
 [GenerateSerializer]
 internal record WeatherForecastCacheArgs(int DayCount);
 
-internal interface IWeatherForecastCacheGrain : ICacheGrain<WeatherForecastCacheValue, WeatherForecastCacheArgs>;
+internal interface IWeatherForecastCacheGrain : IReadThroughCacheGrain<WeatherForecastCacheValue, WeatherForecastCacheArgs>;
 
 internal class WeatherForecastCacheGrain :
   VolatileCacheGrain<WeatherForecastCacheValue, WeatherForecastCacheArgs>,
@@ -37,7 +39,7 @@ internal class WeatherForecastCacheGrain :
   {
   }
 
-  protected override async Task<WeatherForecastCacheValue> GenerateValueAsync(
+  protected override async Task<Result<CreateRecord<WeatherForecastCacheValue>>> CreateFromStoreAsync(
     WeatherForecastCacheArgs? args,
     CacheGrainEntryOptions options,
     CancellationToken ct)
@@ -45,7 +47,7 @@ internal class WeatherForecastCacheGrain :
     var dayCount = args?.DayCount ?? 5;
     // Simulate a long-running operation
     await Task.Delay(5000, ct);
-    return new WeatherForecastCacheValue()
+    var value = new WeatherForecastCacheValue()
     {
       Items = Enumerable.Range(1, dayCount).Select(index => new WeatherForecastCacheValueItem()
       {
@@ -54,18 +56,19 @@ internal class WeatherForecastCacheGrain :
         Summary = _summaries[Random.Shared.Next(_summaries.Length)]
       }).ToArray()
     };
+    return new CreateRecord<WeatherForecastCacheValue>(Value: value, Options: options);
   }
 }
 
 internal class GetWeatherForecast2(IGrainFactory grainFactory) : MinimalEndpoint<WeatherForecast[]>
 {
   protected override void Configure(
-      EndpointConfigurationBuilder builder,
-      ConfigurationContext<EndpointConfigurationParameters> configurationContext)
+    EndpointConfigurationBuilder builder,
+    EndpointConfigurationContext configurationContext)
   {
-    builder.MapGet("/weatherforecast2")
-      .WithName("GetWeatherForecast2")
-      .WithTags("WeatherForecastWebApi");
+    builder.MapGet("/ClusterCache")
+      .WithName("ClusterCache")
+      .WithTags("CacheShowcaseWebApi");
   }
 
   protected override async Task<WeatherForecast[]> HandleAsync(CancellationToken ct)
@@ -75,11 +78,13 @@ internal class GetWeatherForecast2(IGrainFactory grainFactory) : MinimalEndpoint
     return (await grainFactory
       .GetGrain<IWeatherForecastCacheGrain>("weatherforecast")
       .GetOrCreateAsync(args, ct))
-      .Items
-      .Select(x => new WeatherForecast(
-        Date: x.Date,
-        TemperatureC: x.TemperatureC,
-        Summary: x.Summary))
-      .ToArray();
+      .Map(result =>
+        result.Value.Items
+          .Select(x => new WeatherForecast(
+            Date: x.Date,
+            TemperatureC: x.TemperatureC,
+            Summary: x.Summary))
+          .ToArray(),
+        _ => []);
   }
 }

@@ -18,12 +18,12 @@ internal class GetWeatherForecast(IExtendedDistributedCache cache) : MinimalEndp
   private static readonly string[] _summaries = ["Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"];
 
   protected override void Configure(
-      EndpointConfigurationBuilder builder,
-      ConfigurationContext<EndpointConfigurationParameters> configurationContext)
+    EndpointConfigurationBuilder builder,
+    EndpointConfigurationContext configurationContext)
   {
-    builder.MapGet("/weatherforecast")
-      .WithName("GetWeatherForecast")
-      .WithTags("WeatherForecastWebApi");
+    builder.MapGet("/ExtendedDistributedCache")
+      .WithName("ExtendedDistributedCache")
+      .WithTags("CacheShowcaseWebApi");
   }
 
   protected override async Task<WeatherForecast[]> HandleAsync(CancellationToken ct)

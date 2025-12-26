@@ -1,4 +1,4 @@
-﻿namespace ModCaches.Orleans.Server.Tests.InCluster;
+﻿namespace ModCaches.Orleans.Server.Tests.Cluster;
 
 [GenerateSerializer]
 internal class CacheTestValue
