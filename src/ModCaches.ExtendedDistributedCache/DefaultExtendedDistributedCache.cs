@@ -48,21 +48,21 @@ internal sealed class DefaultExtendedDistributedCache : IExtendedDistributedCach
   public async Task<T> GetOrCreateAsync<TState, T>(string key, TState state, Func<TState, CancellationToken, Task<T>> factory, CancellationToken ct, DistributedCacheEntryOptions? options = null)
   {
     //Read the cache first
-    var bytes = await _cache.GetAsync(key, ct);
+    var bytes = await _cache.GetAsync(key, ct).ConfigureAwait(false);
     if (bytes is null)
     {
       // If the cache entry does not exist, we need to create it.
       // Use a semaphore to ensure that only one thread can create the entry.
       var keyLock = _locks.GetOrAdd(key, CreateLockSemaphore);
-      await keyLock.WaitAsync(ct);
+      await keyLock.WaitAsync(ct).ConfigureAwait(false);
       try
       {
         // Double-check if the cache entry was created while waiting for the lock.
-        bytes = await _cache.GetAsync(key, ct);
+        bytes = await _cache.GetAsync(key, ct).ConfigureAwait(false);
         if (bytes is null)
         {
-          var value = await factory(state, ct);
-          await SetAsync(key, value, ct, options);
+          var value = await factory(state, ct).ConfigureAwait(false);
+          await SetAsync(key, value, ct, options).ConfigureAwait(false);
           return value;
         }
       }
@@ -71,7 +71,7 @@ internal sealed class DefaultExtendedDistributedCache : IExtendedDistributedCach
         keyLock.Release();
       }
     }
-    return await _serializer.DeserializeAsync<T>(bytes, ct) ??
+    return await _serializer.DeserializeAsync<T>(bytes, ct).ConfigureAwait(false) ??
       throw new InvalidOperationException("Deserialized value is null.");
   }
 
@@ -83,9 +83,9 @@ internal sealed class DefaultExtendedDistributedCache : IExtendedDistributedCach
     CancellationToken ct,
     DistributedCacheEntryOptions? options = null)
   {
-    var bytes = await _serializer.SerializeAsync(value, ct);
+    var bytes = await _serializer.SerializeAsync(value, ct).ConfigureAwait(false);
     var cacheEntryOptions = GetCacheEntryOptions(options);
-    await _cache.SetAsync(key, bytes.ToArray(), cacheEntryOptions, ct);
+    await _cache.SetAsync(key, bytes.ToArray(), cacheEntryOptions, ct).ConfigureAwait(false);
   }
 
   private DistributedCacheEntryOptions GetCacheEntryOptions(DistributedCacheEntryOptions? options)
@@ -100,12 +100,12 @@ internal sealed class DefaultExtendedDistributedCache : IExtendedDistributedCach
 
   public async Task<(bool IsOk, T? Value)> TryGetValueAsync<T>(string key, CancellationToken ct)
   {
-    var bytes = await _cache.GetAsync(key, ct);
+    var bytes = await _cache.GetAsync(key, ct).ConfigureAwait(false);
     if (bytes is null)
     {
       return (IsOk: false, Value: default);
     }
-    var value = await _serializer.DeserializeAsync<T>(bytes, ct) ??
+    var value = await _serializer.DeserializeAsync<T>(bytes, ct).ConfigureAwait(false) ??
       throw new InvalidOperationException("Deserialized value is null.");
     return (IsOk: true, Value: value);
   }
