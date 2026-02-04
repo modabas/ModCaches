@@ -1,5 +1,4 @@
-﻿using System.Collections.Immutable;
-using AwesomeAssertions;
+﻿using AwesomeAssertions;
 using ModCaches.Orleans.Abstractions.Cluster;
 using ModCaches.Orleans.Server.Cluster;
 using ModResults;
@@ -41,7 +40,7 @@ public class PersistentCacheTestGrainWithStoreArgsTests
   {
     var grainId = GetGrainId("SetAndWriteAsync_ReturnsWrittenValue");
     var grain = _fixture.Cluster.GrainFactory.GetGrain<IPersistentCacheTestGrainWithStoreArgs>(grainId);
-    var result = await grain.SetAndWriteAsync(new CacheTestValue() { Data = DefaultData }, CancellationToken.None);
+    var result = await grain.SetAndWriteAsync(new CacheTestValue() { Data = DefaultData }, TestContext.Current.CancellationToken);
     result.IsOk.Should().BeTrue();
     result.Value.Should().NotBeNull();
     result.Value.Data.Should().Be("write-through " + DefaultData);
@@ -52,7 +51,7 @@ public class PersistentCacheTestGrainWithStoreArgsTests
   {
     var grainId = GetGrainId("GetOrCreate_ReturnsGeneratedValue");
     var grain = _fixture.Cluster.GrainFactory.GetGrain<IPersistentCacheTestGrainWithStoreArgs>(grainId);
-    var result = await grain.GetOrCreateAsync(2, CancellationToken.None);
+    var result = await grain.GetOrCreateAsync(2, TestContext.Current.CancellationToken);
     result.IsOk.Should().BeTrue();
     result.Value.Should().NotBeNull();
     result.Value.Data.Should().Be($"{DefaultData} 2");
@@ -64,7 +63,7 @@ public class PersistentCacheTestGrainWithStoreArgsTests
     var grainId = GetGrainId("Create_Then_GetOrCreate");
     var grain = _fixture.Cluster.GrainFactory.GetGrain<IPersistentCacheTestGrainWithStoreArgs>(grainId);
     // Force creation
-    var created = await grain.CreateAsync(3, CancellationToken.None);
+    var created = await grain.CreateAsync(3, TestContext.Current.CancellationToken);
     created.IsOk.Should().BeTrue();
     created.Value.Should().NotBeNull();
     created.Value.Data.Should().Be($"{DefaultData} 3");
@@ -73,7 +72,7 @@ public class PersistentCacheTestGrainWithStoreArgsTests
     state.State.Value.Data.Should().Be($"{DefaultData} 3");
 
     // Then ensure subsequent GetOrCreate returns value (cached)
-    var fetched = await grain.GetOrCreateAsync(4, CancellationToken.None);
+    var fetched = await grain.GetOrCreateAsync(4, TestContext.Current.CancellationToken);
     fetched.IsOk.Should().BeTrue();
     fetched.Value.Should().NotBeNull();
     fetched.Value.Data.Should().Be($"{DefaultData} 3");
@@ -87,9 +86,9 @@ public class PersistentCacheTestGrainWithStoreArgsTests
   {
     var grainId = GetGrainId("Set_Then_TryGet");
     var grain = _fixture.Cluster.GrainFactory.GetGrain<IPersistentCacheTestGrainWithStoreArgs>(grainId);
-    await grain.SetAsync(new CacheTestValue() { Data = "custom-value" }, CancellationToken.None, null);
+    await grain.SetAsync(new CacheTestValue() { Data = "custom-value" }, TestContext.Current.CancellationToken, null);
 
-    var fetched = await grain.GetAsync(CancellationToken.None);
+    var fetched = await grain.GetAsync(TestContext.Current.CancellationToken);
     fetched.IsOk.Should().BeTrue();
     fetched.Value.Should().NotBeNull();
     fetched.Value.Data.Should().Be("custom-value");
@@ -103,10 +102,10 @@ public class PersistentCacheTestGrainWithStoreArgsTests
   {
     var grainId = GetGrainId("Remove_RemovesValue");
     var grain = _fixture.Cluster.GrainFactory.GetGrain<IPersistentCacheTestGrainWithStoreArgs>(grainId);
-    await grain.SetAsync(new CacheTestValue() { Data = "to-be-removed" }, CancellationToken.None, null);
+    await grain.SetAsync(new CacheTestValue() { Data = "to-be-removed" }, TestContext.Current.CancellationToken, null);
 
     // ensure set
-    var fetchedBefore = await grain.GetAsync(CancellationToken.None);
+    var fetchedBefore = await grain.GetAsync(TestContext.Current.CancellationToken);
     fetchedBefore.IsOk.Should().BeTrue();
 
     var state = await GetStateAsync(grainId);
@@ -114,8 +113,8 @@ public class PersistentCacheTestGrainWithStoreArgsTests
     state.State.Value.Data.Should().Be("to-be-removed");
 
     // remove and verify
-    await grain.RemoveAsync(CancellationToken.None);
-    var fetchedAfter = await grain.GetAsync(CancellationToken.None);
+    await grain.RemoveAsync(TestContext.Current.CancellationToken);
+    var fetchedAfter = await grain.GetAsync(TestContext.Current.CancellationToken);
     fetchedAfter.IsOk.Should().BeFalse();
     fetchedAfter.Value.Should().BeNull();
     var stateAfterRemove = await GetStateAsync(grainId);
@@ -136,19 +135,19 @@ public class PersistentCacheTestGrainWithStoreArgsTests
         SlidingExpiration: TimeSpan.FromMilliseconds(750)
     );
 
-    await grain.SetAsync(new CacheTestValue() { Data = "refresh-test" }, CancellationToken.None, options);
+    await grain.SetAsync(new CacheTestValue() { Data = "refresh-test" }, TestContext.Current.CancellationToken, options);
 
     // Wait a bit but not until expiration
-    await Task.Delay(TimeSpan.FromMilliseconds(500));
+    await Task.Delay(TimeSpan.FromMilliseconds(500), TestContext.Current.CancellationToken);
 
     // Refresh should extend lifetime
-    var refreshed = await grain.RefreshAsync(CancellationToken.None);
+    var refreshed = await grain.RefreshAsync(TestContext.Current.CancellationToken);
     refreshed.IsOk.Should().BeTrue();
 
     // Wait again beyond original remaining time but within refreshed lifetime
-    await Task.Delay(TimeSpan.FromMilliseconds(500));
+    await Task.Delay(TimeSpan.FromMilliseconds(500), TestContext.Current.CancellationToken);
 
-    var fetched = await grain.GetAsync(CancellationToken.None);
+    var fetched = await grain.GetAsync(TestContext.Current.CancellationToken);
     fetched.IsOk.Should().BeTrue();
     fetched.Value.Should().NotBeNull();
     fetched.Value.Data.Should().Be("refresh-test");
@@ -169,19 +168,19 @@ public class PersistentCacheTestGrainWithStoreArgsTests
         SlidingExpiration: default
     );
 
-    await grain.SetAsync(new CacheTestValue() { Data = "refresh-test" }, CancellationToken.None, options);
+    await grain.SetAsync(new CacheTestValue() { Data = "refresh-test" }, TestContext.Current.CancellationToken, options);
 
     // Wait a bit but not until expiration
-    await Task.Delay(TimeSpan.FromMilliseconds(500));
+    await Task.Delay(TimeSpan.FromMilliseconds(500), TestContext.Current.CancellationToken);
 
     // Refresh should extend lifetime
-    var refreshed = await grain.RefreshAsync(CancellationToken.None);
+    var refreshed = await grain.RefreshAsync(TestContext.Current.CancellationToken);
     refreshed.IsOk.Should().BeTrue();
 
     // Wait again beyond original remaining time but within refreshed lifetime
-    await Task.Delay(TimeSpan.FromMilliseconds(500));
+    await Task.Delay(TimeSpan.FromMilliseconds(500), TestContext.Current.CancellationToken);
 
-    var fetched = await grain.GetAsync(CancellationToken.None);
+    var fetched = await grain.GetAsync(TestContext.Current.CancellationToken);
     fetched.IsOk.Should().BeFalse();
     fetched.Value.Should().BeNull();
 
@@ -204,16 +203,16 @@ public class PersistentCacheTestGrainWithStoreArgsTests
         SlidingExpiration: default
     );
 
-    await grain.SetAsync(new CacheTestValue() { Data = "refresh-test" }, CancellationToken.None, options);
+    await grain.SetAsync(new CacheTestValue() { Data = "refresh-test" }, TestContext.Current.CancellationToken, options);
 
     // Wait for the entry to expire
-    await Task.Delay(150);
+    await Task.Delay(150, TestContext.Current.CancellationToken);
 
     // Refresh should detect expiration and remove the entry
-    var refreshed = await grain.RefreshAsync(CancellationToken.None);
+    var refreshed = await grain.RefreshAsync(TestContext.Current.CancellationToken);
     refreshed.IsOk.Should().BeFalse();
 
-    var fetched = await grain.GetAsync(CancellationToken.None);
+    var fetched = await grain.GetAsync(TestContext.Current.CancellationToken);
     fetched.IsOk.Should().BeFalse();
     fetched.Value.Should().BeNull();
 
@@ -235,21 +234,21 @@ public class PersistentCacheTestGrainWithStoreArgsTests
         SlidingExpiration: TimeSpan.FromMilliseconds(750)
     );
 
-    await grain.SetAsync(new CacheTestValue() { Data = "peek-test" }, CancellationToken.None, options);
+    await grain.SetAsync(new CacheTestValue() { Data = "peek-test" }, TestContext.Current.CancellationToken, options);
 
     // Wait a bit but not until expiration
-    await Task.Delay(TimeSpan.FromMilliseconds(500));
+    await Task.Delay(TimeSpan.FromMilliseconds(500), TestContext.Current.CancellationToken);
 
     // Refresh should extend lifetime
-    var fetched = await grain.PeekAsync(CancellationToken.None);
+    var fetched = await grain.PeekAsync(TestContext.Current.CancellationToken);
     fetched.IsOk.Should().BeTrue();
     fetched.Value.Should().NotBeNull();
     fetched.Value.Data.Should().Be("peek-test");
 
     // Wait again beyond original remaining time but within refreshed lifetime
-    await Task.Delay(TimeSpan.FromMilliseconds(500));
+    await Task.Delay(TimeSpan.FromMilliseconds(500), TestContext.Current.CancellationToken);
 
-    var fetchedAfter = await grain.GetAsync(CancellationToken.None);
+    var fetchedAfter = await grain.GetAsync(TestContext.Current.CancellationToken);
     fetchedAfter.IsOk.Should().BeFalse();
     fetchedAfter.Value.Should().BeNull();
 
@@ -270,15 +269,15 @@ public class PersistentCacheTestGrainWithStoreArgsTests
         AbsoluteExpirationRelativeToNow: TimeSpan.FromMilliseconds(100),
         SlidingExpiration: default
     );
-    var fetched = await grain.GetOrCreateAsync(5, CancellationToken.None, options);
+    var fetched = await grain.GetOrCreateAsync(5, TestContext.Current.CancellationToken, options);
     fetched.IsOk.Should().BeTrue();
     fetched.Value.Should().NotBeNull();
     fetched.Value.Data.Should().Be($"{DefaultData} 5");
 
     // Wait for expiration (use a little buffer)
-    await Task.Delay(TimeSpan.FromMilliseconds(200));
+    await Task.Delay(TimeSpan.FromMilliseconds(200), TestContext.Current.CancellationToken);
 
-    var fetchedAfter = await grain.GetAsync(CancellationToken.None);
+    var fetchedAfter = await grain.GetAsync(TestContext.Current.CancellationToken);
     fetchedAfter.IsOk.Should().BeFalse();
     fetchedAfter.Value.Should().BeNull();
 
@@ -302,7 +301,7 @@ public class PersistentCacheTestGrainWithStoreArgsTests
     await SetStateAsync(grainId, cacheState);
     var grain = _fixture.Cluster.GrainFactory.GetGrain<IPersistentCacheTestGrainWithStoreArgs>(grainId);
 
-    var fetchedAfter = await grain.GetAsync(CancellationToken.None);
+    var fetchedAfter = await grain.GetAsync(TestContext.Current.CancellationToken);
     fetchedAfter.IsOk.Should().BeFalse();
     fetchedAfter.Value.Should().BeNull();
     var stateAfterRemove = await GetStateAsync(grainId);
@@ -325,7 +324,7 @@ public class PersistentCacheTestGrainWithStoreArgsTests
     await SetStateAsync(grainId, cacheState);
     var grain = _fixture.Cluster.GrainFactory.GetGrain<IPersistentCacheTestGrainWithStoreArgs>(grainId);
 
-    var fetched = await grain.GetAsync(CancellationToken.None);
+    var fetched = await grain.GetAsync(TestContext.Current.CancellationToken);
     fetched.IsOk.Should().BeTrue();
     fetched.Value.Should().NotBeNull();
     fetched.Value.Data.Should().Be("keep-valid-data");
@@ -339,7 +338,6 @@ public class PersistentCacheTestGrainWithStoreArgsTests
   {
     var grainId = GetGrainId("State_IsNotSavedAfterGet_IfDoesntHaveSlidingExpiration");
     var grain = _fixture.Cluster.GrainFactory.GetGrain<IPersistentCacheTestGrainWithStoreArgs>(grainId);
-    var data = ImmutableArray.Create<byte>(1, 2, 3, 4);
     var options = new CacheGrainEntryOptions
     (
         AbsoluteExpiration: default,
@@ -347,14 +345,14 @@ public class PersistentCacheTestGrainWithStoreArgsTests
         SlidingExpiration: default
     );
 
-    await grain.GetOrCreateAsync(8, CancellationToken.None, options);
+    await grain.GetOrCreateAsync(8, TestContext.Current.CancellationToken, options);
 
     var state = await GetStateAsync(grainId);
     state.Should().NotBeNull();
     state.State.Value.Data.Should().Be($"{DefaultData} 8");
     var lastAccessed = state.State.LastAccessed;
 
-    var fetched = await grain.GetOrCreateAsync(9, CancellationToken.None, options);
+    var fetched = await grain.GetOrCreateAsync(9, TestContext.Current.CancellationToken, options);
     fetched.IsOk.Should().BeTrue();
     fetched.Value.Should().NotBeNull();
     fetched.Value.Data.Should().Be($"{DefaultData} 8");
@@ -369,7 +367,6 @@ public class PersistentCacheTestGrainWithStoreArgsTests
   {
     var grainId = GetGrainId("State_IsNotSavedAfterRefresh_IfDoesntHaveSlidingExpiration");
     var grain = _fixture.Cluster.GrainFactory.GetGrain<IPersistentCacheTestGrainWithStoreArgs>(grainId);
-    var data = ImmutableArray.Create<byte>(1, 2, 3, 4);
     var options = new CacheGrainEntryOptions
     (
         AbsoluteExpiration: default,
@@ -377,14 +374,14 @@ public class PersistentCacheTestGrainWithStoreArgsTests
         SlidingExpiration: default
     );
 
-    await grain.GetOrCreateAsync(10, CancellationToken.None, options);
+    await grain.GetOrCreateAsync(10, TestContext.Current.CancellationToken, options);
 
     var state = await GetStateAsync(grainId);
     state.Should().NotBeNull();
     state.State.Value.Data.Should().Be($"{DefaultData} 10");
     var lastAccessed = state.State.LastAccessed;
 
-    var refreshed = await grain.RefreshAsync(CancellationToken.None);
+    var refreshed = await grain.RefreshAsync(TestContext.Current.CancellationToken);
     refreshed.IsOk.Should().BeTrue();
     var stateAfterRefresh = await GetStateAsync(grainId);
     stateAfterRefresh.Should().NotBeNull();
@@ -397,7 +394,6 @@ public class PersistentCacheTestGrainWithStoreArgsTests
   {
     var grainId = GetGrainId("State_IsNotSavedAfterTryGet_IfDoesntHaveSlidingExpiration");
     var grain = _fixture.Cluster.GrainFactory.GetGrain<IPersistentCacheTestGrainWithStoreArgs>(grainId);
-    var data = ImmutableArray.Create<byte>(1, 2, 3, 4);
     var options = new CacheGrainEntryOptions
     (
         AbsoluteExpiration: default,
@@ -405,14 +401,14 @@ public class PersistentCacheTestGrainWithStoreArgsTests
         SlidingExpiration: default
     );
 
-    await grain.GetOrCreateAsync(11, CancellationToken.None, options);
+    await grain.GetOrCreateAsync(11, TestContext.Current.CancellationToken, options);
 
     var state = await GetStateAsync(grainId);
     state.Should().NotBeNull();
     state.State.Value.Data.Should().Be($"{DefaultData} 11");
     var lastAccessed = state.State.LastAccessed;
 
-    var fetched = await grain.GetAsync(CancellationToken.None);
+    var fetched = await grain.GetAsync(TestContext.Current.CancellationToken);
     fetched.IsOk.Should().BeTrue();
     fetched.Value.Should().NotBeNull();
     fetched.Value.Data.Should().Be($"{DefaultData} 11");
@@ -427,7 +423,6 @@ public class PersistentCacheTestGrainWithStoreArgsTests
   {
     var grainId = GetGrainId("State_IsSavedAfterGet_IfHasSlidingExpiration");
     var grain = _fixture.Cluster.GrainFactory.GetGrain<IPersistentCacheTestGrainWithStoreArgs>(grainId);
-    var data = ImmutableArray.Create<byte>(1, 2, 3, 4);
     var options = new CacheGrainEntryOptions
     (
         AbsoluteExpiration: default,
@@ -435,14 +430,14 @@ public class PersistentCacheTestGrainWithStoreArgsTests
         SlidingExpiration: TimeSpan.FromMinutes(2)
     );
 
-    await grain.GetOrCreateAsync(8, CancellationToken.None, options);
+    await grain.GetOrCreateAsync(8, TestContext.Current.CancellationToken, options);
 
     var state = await GetStateAsync(grainId);
     state.Should().NotBeNull();
     state.State.Value.Data.Should().Be($"{DefaultData} 8");
     var lastAccessed = state.State.LastAccessed;
 
-    var fetched = await grain.GetOrCreateAsync(9, CancellationToken.None, options);
+    var fetched = await grain.GetOrCreateAsync(9, TestContext.Current.CancellationToken, options);
     fetched.IsOk.Should().BeTrue();
     fetched.Value.Should().NotBeNull();
     fetched.Value.Data.Should().Be($"{DefaultData} 8");
@@ -457,7 +452,6 @@ public class PersistentCacheTestGrainWithStoreArgsTests
   {
     var grainId = GetGrainId("State_IsSavedAfterRefresh_IfHasSlidingExpiration");
     var grain = _fixture.Cluster.GrainFactory.GetGrain<IPersistentCacheTestGrainWithStoreArgs>(grainId);
-    var data = ImmutableArray.Create<byte>(1, 2, 3, 4);
     var options = new CacheGrainEntryOptions
     (
         AbsoluteExpiration: default,
@@ -465,7 +459,7 @@ public class PersistentCacheTestGrainWithStoreArgsTests
         SlidingExpiration: TimeSpan.FromMinutes(2)
     );
 
-    var fetched = await grain.GetOrCreateAsync(10, CancellationToken.None, options);
+    var fetched = await grain.GetOrCreateAsync(10, TestContext.Current.CancellationToken, options);
     fetched.IsOk.Should().BeTrue();
 
     var state = await GetStateAsync(grainId);
@@ -473,7 +467,7 @@ public class PersistentCacheTestGrainWithStoreArgsTests
     state.State.Value.Data.Should().Be($"{DefaultData} 10");
     var lastAccessed = state.State.LastAccessed;
 
-    await grain.RefreshAsync(CancellationToken.None);
+    await grain.RefreshAsync(TestContext.Current.CancellationToken);
     var stateAfterRefresh = await GetStateAsync(grainId);
     stateAfterRefresh.Should().NotBeNull();
     stateAfterRefresh.State.Value.Data.Should().Be($"{DefaultData} 10");
@@ -485,7 +479,6 @@ public class PersistentCacheTestGrainWithStoreArgsTests
   {
     var grainId = GetGrainId("State_IsSavedAfterTryGet_IfHasSlidingExpiration");
     var grain = _fixture.Cluster.GrainFactory.GetGrain<IPersistentCacheTestGrainWithStoreArgs>(grainId);
-    var data = ImmutableArray.Create<byte>(1, 2, 3, 4);
     var options = new CacheGrainEntryOptions
     (
         AbsoluteExpiration: default,
@@ -493,14 +486,14 @@ public class PersistentCacheTestGrainWithStoreArgsTests
         SlidingExpiration: TimeSpan.FromMinutes(2)
     );
 
-    await grain.GetOrCreateAsync(11, CancellationToken.None, options);
+    await grain.GetOrCreateAsync(11, TestContext.Current.CancellationToken, options);
 
     var state = await GetStateAsync(grainId);
     state.Should().NotBeNull();
     state.State.Value.Data.Should().Be($"{DefaultData} 11");
     var lastAccessed = state.State.LastAccessed;
 
-    var fetched = await grain.GetAsync(CancellationToken.None);
+    var fetched = await grain.GetAsync(TestContext.Current.CancellationToken);
     fetched.IsOk.Should().BeTrue();
     fetched.Value.Should().NotBeNull();
     fetched.Value.Data.Should().Be($"{DefaultData} 11");

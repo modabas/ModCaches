@@ -49,7 +49,7 @@ public class RemoteOrleansPersistentCacheTests
     var cache = new RemoteOrleansPersistentCache(cluster);
 
     // Act
-    var actual = await cache.GetAsync(Key, CancellationToken.None);
+    var actual = await cache.GetAsync(Key, TestContext.Current.CancellationToken);
 
     // Assert
     actual.Should().NotBeNull();
@@ -91,7 +91,7 @@ public class RemoteOrleansPersistentCacheTests
     var cache = new RemoteOrleansPersistentCache(cluster);
 
     // Act
-    await cache.RefreshAsync(Key, CancellationToken.None);
+    await cache.RefreshAsync(Key, TestContext.Current.CancellationToken);
 
     // Assert
     await grain.Received(1).RefreshAsync(Arg.Any<CancellationToken>());
@@ -131,7 +131,7 @@ public class RemoteOrleansPersistentCacheTests
     var cache = new RemoteOrleansPersistentCache(cluster);
 
     // Act
-    await cache.RemoveAsync(Key, CancellationToken.None);
+    await cache.RemoveAsync(Key, TestContext.Current.CancellationToken);
 
     // Assert
     await grain.Received(1).RemoveAsync(Arg.Any<CancellationToken>());
@@ -194,7 +194,7 @@ public class RemoteOrleansPersistentCacheTests
     var cache = new RemoteOrleansPersistentCache(cluster);
 
     // Act
-    await cache.SetAsync(Key, value, options, CancellationToken.None);
+    await cache.SetAsync(Key, value, options, TestContext.Current.CancellationToken);
 
     // Assert
     await grain.Received(1).SetAsync(

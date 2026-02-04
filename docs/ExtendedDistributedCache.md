@@ -8,7 +8,7 @@ Simplifies the usage of any distributed cache that implements the `IDistributedC
 - In-process cache stampede protection
 - HybridCache-like interface that simplifies storing and fetching data from any `IDistributedCache` implementation
 
-> **Note**: Cache stampede protection is achieved via an in-memory least-recently-used (LRU) cache implementation from the [Microsoft Orleans](https://github.com/dotnet/orleans) project.
+> **Note**: Cache stampede protection is achieved via a concurrent least-recently-used (LRU) cache from the [BitFaster.Caching](https://github.com/bitfaster/BitFaster.Caching) project.
 
 ## 🛠️ Getting Started
 

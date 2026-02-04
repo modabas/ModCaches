@@ -1,1 +1,0 @@
-Lru cache code is copied over from [Microsoft Orleans project](https://github.com/dotnet/orleans)

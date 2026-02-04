@@ -39,7 +39,7 @@ public class PersistentDistributedCacheGrainTests
   public async Task GetAsync_ReturnsNull_WhenNotSetAsync()
   {
     var grain = _fixture.Cluster.GrainFactory.GetGrain<IPersistentDistributedCacheGrain>("GetAsync_ReturnsNull_WhenNotSet");
-    var result = await grain.GetAsync(CancellationToken.None);
+    var result = await grain.GetAsync(TestContext.Current.CancellationToken);
     result.Should().BeNull();
   }
 
@@ -51,14 +51,14 @@ public class PersistentDistributedCacheGrainTests
     var data = ImmutableArray.Create<byte>(1, 2, 3, 4);
     var options = new CacheEntryOptions(null, TimeSpan.FromMinutes(5), TimeSpan.FromMinutes(2));
 
-    await grain.SetAsync(data, options, CancellationToken.None);
+    await grain.SetAsync(data, options, TestContext.Current.CancellationToken);
 
     var state = await GetStateAsync(grainId);
     state.Should().NotBeNull();
     state.State.Value.Should().Equal(data);
     var lastAccessed = state.State.LastAccessed;
 
-    var fetched = await grain.GetAsync(CancellationToken.None);
+    var fetched = await grain.GetAsync(TestContext.Current.CancellationToken);
     fetched.Should().NotBeNull();
     fetched.Value.Should().Equal(data);
     var stateAfterGet = await GetStateAsync(grainId);
@@ -75,14 +75,14 @@ public class PersistentDistributedCacheGrainTests
     var data = ImmutableArray.Create<byte>(1, 2, 3, 4);
     var options = new CacheEntryOptions(null, TimeSpan.FromMinutes(5), null);
 
-    await grain.SetAsync(data, options, CancellationToken.None);
+    await grain.SetAsync(data, options, TestContext.Current.CancellationToken);
 
     var state = await GetStateAsync(grainId);
     state.Should().NotBeNull();
     state.State.Value.Should().Equal(data);
     var lastAccessed = state.State.LastAccessed;
 
-    var fetched = await grain.GetAsync(CancellationToken.None);
+    var fetched = await grain.GetAsync(TestContext.Current.CancellationToken);
     fetched.Should().NotBeNull();
     fetched.Value.Should().Equal(data);
     var stateAfterGet = await GetStateAsync(grainId);
@@ -99,14 +99,14 @@ public class PersistentDistributedCacheGrainTests
     var data = ImmutableArray.Create<byte>(1, 2, 3, 4);
     var options = new CacheEntryOptions(null, TimeSpan.FromMinutes(5), null);
 
-    await grain.SetAsync(data, options, CancellationToken.None);
+    await grain.SetAsync(data, options, TestContext.Current.CancellationToken);
 
     var state = await GetStateAsync(grainId);
     state.Should().NotBeNull();
     state.State.Value.Should().Equal(data);
     var lastAccessed = state.State.LastAccessed;
 
-    await grain.RefreshAsync(CancellationToken.None);
+    await grain.RefreshAsync(TestContext.Current.CancellationToken);
     var stateAfterRefresh = await GetStateAsync(grainId);
     stateAfterRefresh.Should().NotBeNull();
     stateAfterRefresh.State.Value.Should().Equal(data);
@@ -122,17 +122,17 @@ public class PersistentDistributedCacheGrainTests
 
     var options = new CacheEntryOptions(null, TimeSpan.FromMinutes(1), null);
 
-    await grain.SetAsync(data, options, CancellationToken.None);
+    await grain.SetAsync(data, options, TestContext.Current.CancellationToken);
 
     // ensure it was set
-    var fetched = await grain.GetAsync(CancellationToken.None);
+    var fetched = await grain.GetAsync(TestContext.Current.CancellationToken);
     fetched.Should().NotBeNull();
     var state = await GetStateAsync(grainId);
     state.Should().NotBeNull();
 
     // remove and verify
-    await grain.RemoveAsync(CancellationToken.None);
-    var afterRemove = await grain.GetAsync(CancellationToken.None);
+    await grain.RemoveAsync(TestContext.Current.CancellationToken);
+    var afterRemove = await grain.GetAsync(TestContext.Current.CancellationToken);
     afterRemove.Should().BeNull();
     var stateAfterRemove = await GetStateAsync(grainId);
     stateAfterRemove.Should().NotBeNull();
@@ -149,14 +149,14 @@ public class PersistentDistributedCacheGrainTests
 
     var options = new CacheEntryOptions(null, null, TimeSpan.FromSeconds(5));
 
-    await grain.SetAsync(data, options, CancellationToken.None);
+    await grain.SetAsync(data, options, TestContext.Current.CancellationToken);
     var state = await GetStateAsync(grainId);
     state.Should().NotBeNull();
     state.RecordExists.Should().BeTrue();
     var lastAccessed = state.State.LastAccessed;
 
     // call refresh; since not expired it should remain available
-    var ret = await grain.RefreshAsync(CancellationToken.None);
+    var ret = await grain.RefreshAsync(TestContext.Current.CancellationToken);
     ret.Should().BeTrue();
     state = await GetStateAsync(grainId);
     state.Should().NotBeNull();
@@ -174,15 +174,15 @@ public class PersistentDistributedCacheGrainTests
 
     var options = new CacheEntryOptions(null, TimeSpan.FromMilliseconds(50), null);
 
-    await grain.SetAsync(data, options, CancellationToken.None);
+    await grain.SetAsync(data, options, TestContext.Current.CancellationToken);
 
     // Wait for the entry to expire
-    await Task.Delay(150);
+    await Task.Delay(150, TestContext.Current.CancellationToken);
 
     // Refresh should detect expiration and remove the entry
-    await grain.RefreshAsync(CancellationToken.None);
+    await grain.RefreshAsync(TestContext.Current.CancellationToken);
 
-    var fetched = await grain.GetAsync(CancellationToken.None);
+    var fetched = await grain.GetAsync(TestContext.Current.CancellationToken);
     fetched.Should().BeNull();
 
     var state = await GetStateAsync(grainId);
@@ -205,7 +205,7 @@ public class PersistentDistributedCacheGrainTests
     await SetStateAsync(grainId, cacheState);
     var grain = _fixture.Cluster.GrainFactory.GetGrain<IPersistentDistributedCacheGrain>(grainId);
 
-    var result = await grain.GetAsync(CancellationToken.None);
+    var result = await grain.GetAsync(TestContext.Current.CancellationToken);
     result.Should().BeNull();
     var stateAfterRemove = await GetStateAsync(grainId);
     stateAfterRemove.Should().NotBeNull();
@@ -227,7 +227,7 @@ public class PersistentDistributedCacheGrainTests
     await SetStateAsync(grainId, cacheState);
     var grain = _fixture.Cluster.GrainFactory.GetGrain<IPersistentDistributedCacheGrain>(grainId);
 
-    var fetched = await grain.GetAsync(CancellationToken.None);
+    var fetched = await grain.GetAsync(TestContext.Current.CancellationToken);
     fetched.Should().NotBeNull();
     fetched.Value.Should().Equal(data);
     var state = await GetStateAsync(grainId);

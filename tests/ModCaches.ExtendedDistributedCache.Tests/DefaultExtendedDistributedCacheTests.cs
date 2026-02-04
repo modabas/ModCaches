@@ -33,13 +33,13 @@ public class DefaultExtendedDistributedCacheTests
 
     var key = "k1";
     var original = 12345;
-    var bytes = await serializer.SerializeAsync(original, CancellationToken.None);
-    await mem.SetAsync(key, bytes.ToArray(), new DistributedCacheEntryOptions(), CancellationToken.None);
+    var bytes = await serializer.SerializeAsync(original, TestContext.Current.CancellationToken);
+    await mem.SetAsync(key, bytes.ToArray(), new DistributedCacheEntryOptions(), TestContext.Current.CancellationToken);
 
     // factory should not be called
     Func<CancellationToken, Task<int>> factory = _ => throw new InvalidOperationException("Factory invoked");
 
-    var result = await svc.GetOrCreateAsync<int>(key, factory, CancellationToken.None);
+    var result = await svc.GetOrCreateAsync<int>(key, factory, TestContext.Current.CancellationToken);
     result.Should().Be(original);
   }
 
@@ -53,13 +53,13 @@ public class DefaultExtendedDistributedCacheTests
     var key = "k-miss";
     var value = "hello world";
 
-    var result = await svc.GetOrCreateAsync<string>(key, _ => Task.FromResult(value), CancellationToken.None);
+    var result = await svc.GetOrCreateAsync<string>(key, _ => Task.FromResult(value), TestContext.Current.CancellationToken);
     result.Should().Be(value);
 
     // verify cache was set
-    var stored = await mem.GetAsync(key, CancellationToken.None);
+    var stored = await mem.GetAsync(key, TestContext.Current.CancellationToken);
     stored.Should().NotBeNull();
-    var deserialized = await serializer.DeserializeAsync<string>(stored, CancellationToken.None);
+    var deserialized = await serializer.DeserializeAsync<string>(stored, TestContext.Current.CancellationToken);
     deserialized.Should().Be(value);
   }
 
@@ -81,8 +81,8 @@ public class DefaultExtendedDistributedCacheTests
       return 42;
     };
 
-    var t1 = svc.GetOrCreateAsync<int>(key, factory, CancellationToken.None);
-    var t2 = svc.GetOrCreateAsync<int>(key, factory, CancellationToken.None);
+    var t1 = svc.GetOrCreateAsync<int>(key, factory, TestContext.Current.CancellationToken);
+    var t2 = svc.GetOrCreateAsync<int>(key, factory, TestContext.Current.CancellationToken);
 
     var results = await Task.WhenAll(t1, t2);
     results[0].Should().Be(42);
@@ -99,11 +99,11 @@ public class DefaultExtendedDistributedCacheTests
 
     var key = "bad";
     // put some bytes so flow goes to DeserializeAsync
-    await mem.SetAsync(key, Encoding.UTF8.GetBytes("ignored"), new DistributedCacheEntryOptions(), CancellationToken.None);
+    await mem.SetAsync(key, Encoding.UTF8.GetBytes("ignored"), new DistributedCacheEntryOptions(), TestContext.Current.CancellationToken);
 
     Func<CancellationToken, Task<string>> factory = _ => Task.FromResult("should-not-be-used");
 
-    await svc.Invoking(s => s.GetOrCreateAsync<string>(key, factory, CancellationToken.None))
+    await svc.Invoking(s => s.GetOrCreateAsync<string>(key, factory, TestContext.Current.CancellationToken))
         .Should().ThrowAsync<InvalidOperationException>()
         .WithMessage("Deserialized value is null.");
   }
@@ -119,13 +119,13 @@ public class DefaultExtendedDistributedCacheTests
 
     var key = "k1-state";
     var original = 12345;
-    var bytes = await serializer.SerializeAsync(original, CancellationToken.None);
-    await mem.SetAsync(key, bytes.ToArray(), new DistributedCacheEntryOptions(), CancellationToken.None);
+    var bytes = await serializer.SerializeAsync(original, TestContext.Current.CancellationToken);
+    await mem.SetAsync(key, bytes.ToArray(), new DistributedCacheEntryOptions(), TestContext.Current.CancellationToken);
 
     // factory should not be called
     Func<string, CancellationToken, Task<int>> factory = (_, ct) => throw new InvalidOperationException("Factory invoked");
 
-    var result = await svc.GetOrCreateAsync<string, int>(key, "ignored-state", factory, CancellationToken.None);
+    var result = await svc.GetOrCreateAsync<string, int>(key, "ignored-state", factory, TestContext.Current.CancellationToken);
     result.Should().Be(original);
   }
 
@@ -140,13 +140,13 @@ public class DefaultExtendedDistributedCacheTests
     var state = "state-";
     Func<string, CancellationToken, Task<string>> factory = (s, ct) => Task.FromResult(s + "hello");
 
-    var result = await svc.GetOrCreateAsync<string, string>(key, state, factory, CancellationToken.None);
+    var result = await svc.GetOrCreateAsync<string, string>(key, state, factory, TestContext.Current.CancellationToken);
     result.Should().Be(state + "hello");
 
     // verify cache was set
-    var stored = await mem.GetAsync(key, CancellationToken.None);
+    var stored = await mem.GetAsync(key, TestContext.Current.CancellationToken);
     stored.Should().NotBeNull();
-    var deserialized = await serializer.DeserializeAsync<string>(stored, CancellationToken.None);
+    var deserialized = await serializer.DeserializeAsync<string>(stored, TestContext.Current.CancellationToken);
     deserialized.Should().Be(state + "hello");
   }
 
@@ -168,8 +168,8 @@ public class DefaultExtendedDistributedCacheTests
       return 42;
     };
 
-    var t1 = svc.GetOrCreateAsync<string, int>(key, "state", factory, CancellationToken.None);
-    var t2 = svc.GetOrCreateAsync<string, int>(key, "state", factory, CancellationToken.None);
+    var t1 = svc.GetOrCreateAsync<string, int>(key, "state", factory, TestContext.Current.CancellationToken);
+    var t2 = svc.GetOrCreateAsync<string, int>(key, "state", factory, TestContext.Current.CancellationToken);
 
     var results = await Task.WhenAll(t1, t2);
     results[0].Should().Be(42);
@@ -185,11 +185,11 @@ public class DefaultExtendedDistributedCacheTests
     var svc = CreateCache(mem, serializer);
 
     var key = "bad-state";
-    await mem.SetAsync(key, Encoding.UTF8.GetBytes("ignored"), new DistributedCacheEntryOptions(), CancellationToken.None);
+    await mem.SetAsync(key, Encoding.UTF8.GetBytes("ignored"), new DistributedCacheEntryOptions(), TestContext.Current.CancellationToken);
 
     Func<string, CancellationToken, Task<string>> factory = (s, ct) => Task.FromResult(s + "-should-not-be-used");
 
-    await svc.Invoking(s => s.GetOrCreateAsync<string, string>(key, "st", factory, CancellationToken.None))
+    await svc.Invoking(s => s.GetOrCreateAsync<string, string>(key, "st", factory, TestContext.Current.CancellationToken))
         .Should().ThrowAsync<InvalidOperationException>()
         .WithMessage("Deserialized value is null.");
   }
@@ -209,7 +209,7 @@ public class DefaultExtendedDistributedCacheTests
       SlidingExpiration = TimeSpan.FromMinutes(1)
     };
 
-    await svc.SetAsync(key, value, CancellationToken.None, opts);
+    await svc.SetAsync(key, value, TestContext.Current.CancellationToken, opts);
 
     mem.CapturedOptions.TryGetValue(key, out var captured).Should().BeTrue();
     captured.Should().NotBeNull();
@@ -217,8 +217,8 @@ public class DefaultExtendedDistributedCacheTests
     captured.SlidingExpiration.Should().Be(opts.SlidingExpiration);
 
     // Ensure value was serialized and stored
-    var bytes = await mem.GetAsync(key, CancellationToken.None);
-    var deserialized = await serializer.DeserializeAsync<int>(bytes, CancellationToken.None);
+    var bytes = await mem.GetAsync(key, TestContext.Current.CancellationToken);
+    var deserialized = await serializer.DeserializeAsync<int>(bytes, TestContext.Current.CancellationToken);
     deserialized.Should().Be(value);
   }
 
@@ -239,7 +239,7 @@ public class DefaultExtendedDistributedCacheTests
     var key = "setdefault";
     var value = 77;
 
-    await svc.SetAsync(key, value, CancellationToken.None, options: null);
+    await svc.SetAsync(key, value, TestContext.Current.CancellationToken, options: null);
 
     mem.CapturedOptions.TryGetValue(key, out var captured).Should().BeTrue();
     captured.Should().NotBeNull();
@@ -257,10 +257,10 @@ public class DefaultExtendedDistributedCacheTests
 
     var key = "try-get";
     var value = Guid.NewGuid();
-    var bytes = await serializer.SerializeAsync(value, CancellationToken.None);
-    await mem.SetAsync(key, bytes.ToArray(), new DistributedCacheEntryOptions(), CancellationToken.None);
+    var bytes = await serializer.SerializeAsync(value, TestContext.Current.CancellationToken);
+    await mem.SetAsync(key, bytes.ToArray(), new DistributedCacheEntryOptions(), TestContext.Current.CancellationToken);
 
-    var (ok, v) = await svc.TryGetValueAsync<Guid>(key, CancellationToken.None);
+    var (ok, v) = await svc.TryGetValueAsync<Guid>(key, TestContext.Current.CancellationToken);
     ok.Should().BeTrue();
     v.Should().Be(value);
   }
@@ -272,7 +272,7 @@ public class DefaultExtendedDistributedCacheTests
     var serializer = new JsonSerializer();
     var svc = CreateCache(mem, serializer);
 
-    var (ok, v) = await svc.TryGetValueAsync<int>("not-here", CancellationToken.None);
+    var (ok, v) = await svc.TryGetValueAsync<int>("not-here", TestContext.Current.CancellationToken);
     ok.Should().BeFalse();
     v.Should().Be(default);
   }
@@ -285,9 +285,9 @@ public class DefaultExtendedDistributedCacheTests
     var svc = CreateCache(mem, serializer);
 
     var key = "bad2";
-    await mem.SetAsync(key, Encoding.UTF8.GetBytes("ignored"), new DistributedCacheEntryOptions(), CancellationToken.None);
+    await mem.SetAsync(key, Encoding.UTF8.GetBytes("ignored"), new DistributedCacheEntryOptions(), TestContext.Current.CancellationToken);
 
-    await svc.Invoking(s => s.TryGetValueAsync<string>(key, CancellationToken.None))
+    await svc.Invoking(s => s.TryGetValueAsync<string>(key, TestContext.Current.CancellationToken))
         .Should().ThrowAsync<InvalidOperationException>()
         .WithMessage("Deserialized value is null.");
   }
