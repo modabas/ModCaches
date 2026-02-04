@@ -13,7 +13,7 @@ public class DefaultDistributedCacheSerializerTests
   [Fact]
   public async Task SerializeAsync_Primitive_ReturnsExpectedUtf8BytesAsync()
   {
-    var result = await _serializer.SerializeAsync<int>(42, CancellationToken.None);
+    var result = await _serializer.SerializeAsync<int>(42, TestContext.Current.CancellationToken);
     var expected = JsonSerializer.SerializeToUtf8Bytes(42);
 
     result.ToArray().Should().Equal(expected);
@@ -24,7 +24,7 @@ public class DefaultDistributedCacheSerializerTests
   public async Task SerializeAsync_Object_ReturnsExpectedUtf8BytesAsync()
   {
     var person = new Person("Alice", 30);
-    var result = await _serializer.SerializeAsync(person, CancellationToken.None);
+    var result = await _serializer.SerializeAsync(person, TestContext.Current.CancellationToken);
     var expected = JsonSerializer.SerializeToUtf8Bytes(person);
 
     result.ToArray().Should().Equal(expected);
@@ -35,7 +35,7 @@ public class DefaultDistributedCacheSerializerTests
   [Fact]
   public async Task SerializeAsync_NullReferenceType_ReturnsJsonNullAsync()
   {
-    var result = await _serializer.SerializeAsync<string?>(null, CancellationToken.None);
+    var result = await _serializer.SerializeAsync<string?>(null, TestContext.Current.CancellationToken);
     var expected = JsonSerializer.SerializeToUtf8Bytes<string?>(null);
 
     result.ToArray().Should().Equal(expected);
@@ -45,14 +45,14 @@ public class DefaultDistributedCacheSerializerTests
   [Fact]
   public async Task DeserializeAsync_EmptyBytes_ReturnsDefaultForReferenceTypeAsync()
   {
-    var result = await _serializer.DeserializeAsync<string>(Memory<byte>.Empty, CancellationToken.None);
+    var result = await _serializer.DeserializeAsync<string>(Memory<byte>.Empty, TestContext.Current.CancellationToken);
     result.Should().BeNull();
   }
 
   [Fact]
   public async Task DeserializeAsync_EmptyBytes_ReturnsDefaultForValueTypeAsync()
   {
-    var result = await _serializer.DeserializeAsync<int>(Memory<byte>.Empty, CancellationToken.None);
+    var result = await _serializer.DeserializeAsync<int>(Memory<byte>.Empty, TestContext.Current.CancellationToken);
     result.Should().Be(0);
   }
 
@@ -61,7 +61,7 @@ public class DefaultDistributedCacheSerializerTests
   {
     var person = new Person("Bob", 45);
     var bytes = JsonSerializer.SerializeToUtf8Bytes(person);
-    var result = await _serializer.DeserializeAsync<Person>(new Memory<byte>(bytes), CancellationToken.None);
+    var result = await _serializer.DeserializeAsync<Person>(new Memory<byte>(bytes), TestContext.Current.CancellationToken);
 
     result.Should().BeEquivalentTo(person);
   }

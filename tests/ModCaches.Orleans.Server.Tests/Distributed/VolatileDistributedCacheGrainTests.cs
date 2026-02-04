@@ -18,7 +18,7 @@ public class VolatileDistributedCacheGrainTests
   public async Task GetAsync_ReturnsNull_WhenNotSetAsync()
   {
     var grain = _fixture.Cluster.GrainFactory.GetGrain<IVolatileDistributedCacheGrain>("GetAsync_ReturnsNull_WhenNotSet");
-    var result = await grain.GetAsync(CancellationToken.None);
+    var result = await grain.GetAsync(TestContext.Current.CancellationToken);
     result.Should().BeNull();
   }
 
@@ -32,9 +32,9 @@ public class VolatileDistributedCacheGrainTests
       AbsoluteExpirationRelativeToNow: TimeSpan.FromMinutes(5),
       SlidingExpiration: null);
 
-    await grain.SetAsync(data, options, CancellationToken.None);
+    await grain.SetAsync(data, options, TestContext.Current.CancellationToken);
 
-    var fetched = await grain.GetAsync(CancellationToken.None);
+    var fetched = await grain.GetAsync(TestContext.Current.CancellationToken);
     fetched.Should().NotBeNull();
     fetched.Value.Should().Equal(data);
   }
@@ -51,15 +51,15 @@ public class VolatileDistributedCacheGrainTests
       AbsoluteExpirationRelativeToNow: TimeSpan.FromMinutes(1),
       SlidingExpiration: null);
 
-    await grain.SetAsync(data, options, CancellationToken.None);
+    await grain.SetAsync(data, options, TestContext.Current.CancellationToken);
 
     // ensure it was set
-    var fetched = await grain.GetAsync(CancellationToken.None);
+    var fetched = await grain.GetAsync(TestContext.Current.CancellationToken);
     fetched.Should().NotBeNull();
 
     // remove and verify
-    await grain.RemoveAsync(CancellationToken.None);
-    var afterRemove = await grain.GetAsync(CancellationToken.None);
+    await grain.RemoveAsync(TestContext.Current.CancellationToken);
+    var afterRemove = await grain.GetAsync(TestContext.Current.CancellationToken);
     afterRemove.Should().BeNull();
   }
 
@@ -75,12 +75,12 @@ public class VolatileDistributedCacheGrainTests
       AbsoluteExpirationRelativeToNow: TimeSpan.FromMinutes(5),
       SlidingExpiration: null);
 
-    await grain.SetAsync(data, options, CancellationToken.None);
+    await grain.SetAsync(data, options, TestContext.Current.CancellationToken);
 
     // call refresh; since not expired it should remain available
-    await grain.RefreshAsync(CancellationToken.None);
+    await grain.RefreshAsync(TestContext.Current.CancellationToken);
 
-    var fetched = await grain.GetAsync(CancellationToken.None);
+    var fetched = await grain.GetAsync(TestContext.Current.CancellationToken);
     fetched.Should().NotBeNull();
     Assert.Equal(data, fetched);
   }
@@ -97,15 +97,15 @@ public class VolatileDistributedCacheGrainTests
       AbsoluteExpirationRelativeToNow: TimeSpan.FromMilliseconds(50),
       SlidingExpiration: null);
 
-    await grain.SetAsync(data, options, CancellationToken.None);
+    await grain.SetAsync(data, options, TestContext.Current.CancellationToken);
 
     // Wait for the entry to expire
-    await Task.Delay(150);
+    await Task.Delay(150, TestContext.Current.CancellationToken);
 
     // Refresh should detect expiration and remove the entry
-    await grain.RefreshAsync(CancellationToken.None);
+    await grain.RefreshAsync(TestContext.Current.CancellationToken);
 
-    var fetched = await grain.GetAsync(CancellationToken.None);
+    var fetched = await grain.GetAsync(TestContext.Current.CancellationToken);
     fetched.Should().BeNull();
   }
 }
