@@ -1,6 +1,6 @@
-﻿using Microsoft.Extensions.Caching.Distributed;
+﻿using BitFaster.Caching.Lru;
+using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Options;
-using ModCaches.ExtendedDistributedCache.Lru;
 
 namespace ModCaches.ExtendedDistributedCache;
 
@@ -8,7 +8,7 @@ namespace ModCaches.ExtendedDistributedCache;
 // It allows for asynchronous creation of cache entries using a factory function.
 // This implementation uses semaphores to ensure that only one thread can create an entry with same cache key, for cache stampede protection.
 // It also supports a maximum number of locks to prevent excessive memory usage.
-// ConcurrentLruCache implementation is from Microsoft Orleans project.
+// ConcurrentLru cache is from BitFaster.Caching project.
 // Serialization and deserialization of cache entries is handled by ICacheSerializer.
 // The cache entry options can be customized through ExtendedDistributedCacheOptions.
 internal sealed class DefaultExtendedDistributedCache : IExtendedDistributedCache
@@ -16,7 +16,7 @@ internal sealed class DefaultExtendedDistributedCache : IExtendedDistributedCach
   private readonly IDistributedCache _cache;
   private readonly IOptions<ExtendedDistributedCacheOptions> _options;
   private readonly IDistributedCacheSerializer _serializer;
-  private readonly ConcurrentLruCache<string, SemaphoreSlim> _locks;
+  private readonly ConcurrentLru<string, SemaphoreSlim> _locks;
 
   public IDistributedCache DistributedCache => _cache;
 
