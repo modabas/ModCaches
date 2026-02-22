@@ -56,7 +56,7 @@ internal class WeatherForecastCacheGrain :
         Summary = _summaries[Random.Shared.Next(_summaries.Length)]
       }).ToArray()
     };
-    return new CreateRecord<WeatherForecastCacheValue>(Value: value, Options: options);
+    return CreateRecord.From(value, options);
   }
 }
 
