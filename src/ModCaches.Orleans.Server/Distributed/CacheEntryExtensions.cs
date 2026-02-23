@@ -5,15 +5,18 @@ namespace ModCaches.Orleans.Server.Distributed;
 
 internal static class CacheEntryExtensions
 {
-  public static DistributedCacheState ToState(this CacheEntry<ImmutableArray<byte>> cacheEntry)
+  extension(CacheEntry<ImmutableArray<byte>> cacheEntry)
   {
-    var entryData = cacheEntry.GetStoredData();
-    return new()
+    public DistributedCacheState ToState()
     {
-      Value = entryData.Value,
-      AbsoluteExpiration = entryData.AbsoluteExpiration,
-      LastAccessed = entryData.LastAccessed,
-      SlidingExpiration = entryData.SlidingExpiration
-    };
+      var entryData = cacheEntry.GetStoredData();
+      return new()
+      {
+        Value = entryData.Value,
+        AbsoluteExpiration = entryData.AbsoluteExpiration,
+        LastAccessed = entryData.LastAccessed,
+        SlidingExpiration = entryData.SlidingExpiration
+      };
+    }
   }
 }

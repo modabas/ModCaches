@@ -5,11 +5,14 @@ namespace ModCaches.Orleans.Abstractions.Distributed;
 
 internal static class DistributedCacheEntryOptionsExtensions
 {
-  public static CacheEntryOptions ToOrleansCacheEntryOptions(this DistributedCacheEntryOptions options)
+  extension(DistributedCacheEntryOptions options)
   {
-    return new CacheEntryOptions(
-      AbsoluteExpiration: options.AbsoluteExpiration,
-      AbsoluteExpirationRelativeToNow: options.AbsoluteExpirationRelativeToNow,
-      SlidingExpiration: options.SlidingExpiration);
+    public CacheEntryOptions ToOrleansCacheEntryOptions()
+    {
+      return new CacheEntryOptions(
+        AbsoluteExpiration: options.AbsoluteExpiration,
+        AbsoluteExpirationRelativeToNow: options.AbsoluteExpirationRelativeToNow,
+        SlidingExpiration: options.SlidingExpiration);
+    }
   }
 }

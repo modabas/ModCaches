@@ -5,8 +5,14 @@ namespace ModCaches.Orleans.Server.Cluster;
 
 internal static class CacheGrainEntryOptionsExtensions
 {
-  public static CacheEntryOptions ToOrleansCacheEntryOptions(this CacheGrainEntryOptions options)
+  extension(CacheGrainEntryOptions options)
   {
-    return new CacheEntryOptions(options.AbsoluteExpiration, options.AbsoluteExpirationRelativeToNow, options.SlidingExpiration);
+    public CacheEntryOptions ToOrleansCacheEntryOptions()
+    {
+      return new CacheEntryOptions(
+        options.AbsoluteExpiration,
+        options.AbsoluteExpirationRelativeToNow,
+        options.SlidingExpiration);
+    }
   }
 }
