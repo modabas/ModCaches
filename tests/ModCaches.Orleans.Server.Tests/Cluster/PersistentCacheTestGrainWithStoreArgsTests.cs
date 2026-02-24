@@ -128,7 +128,7 @@ public class PersistentCacheTestGrainWithStoreArgsTests
   {
     var grainId = GetGrainId("Refresh_Extends");
     var grain = _fixture.Cluster.GrainFactory.GetGrain<IPersistentCacheTestGrainWithStoreArgs>(grainId);
-    var options = new CacheGrainEntryOptions
+    var options = new ClusterCacheEntryOptions
     (
         AbsoluteExpiration: default,
         AbsoluteExpirationRelativeToNow: default,
@@ -161,7 +161,7 @@ public class PersistentCacheTestGrainWithStoreArgsTests
   {
     var grainId = GetGrainId("Refresh_DoesNotExtend");
     var grain = _fixture.Cluster.GrainFactory.GetGrain<IPersistentCacheTestGrainWithStoreArgs>(grainId);
-    var options = new CacheGrainEntryOptions
+    var options = new ClusterCacheEntryOptions
     (
         AbsoluteExpiration: default,
         AbsoluteExpirationRelativeToNow: TimeSpan.FromMilliseconds(750),
@@ -196,7 +196,7 @@ public class PersistentCacheTestGrainWithStoreArgsTests
     var grainId = GetGrainId("Refresh_Removes_WhenExpired");
     var grain = _fixture.Cluster.GrainFactory.GetGrain<IPersistentCacheTestGrainWithStoreArgs>(grainId);
 
-    var options = new CacheGrainEntryOptions
+    var options = new ClusterCacheEntryOptions
     (
         AbsoluteExpiration: default,
         AbsoluteExpirationRelativeToNow: TimeSpan.FromMilliseconds(50),
@@ -227,7 +227,7 @@ public class PersistentCacheTestGrainWithStoreArgsTests
   {
     var grainId = GetGrainId("Peek_DoesNotExtend");
     var grain = _fixture.Cluster.GrainFactory.GetGrain<IPersistentCacheTestGrainWithStoreArgs>(grainId);
-    var options = new CacheGrainEntryOptions
+    var options = new ClusterCacheEntryOptions
     (
         AbsoluteExpiration: default,
         AbsoluteExpirationRelativeToNow: default,
@@ -263,7 +263,7 @@ public class PersistentCacheTestGrainWithStoreArgsTests
   {
     var grainId = GetGrainId("Expires_After_AbsoluteExpirationRelativeToNow");
     var grain = _fixture.Cluster.GrainFactory.GetGrain<IPersistentCacheTestGrainWithStoreArgs>(grainId);
-    var options = new CacheGrainEntryOptions
+    var options = new ClusterCacheEntryOptions
     (
         AbsoluteExpiration: default,
         AbsoluteExpirationRelativeToNow: TimeSpan.FromMilliseconds(100),
@@ -338,7 +338,7 @@ public class PersistentCacheTestGrainWithStoreArgsTests
   {
     var grainId = GetGrainId("State_IsNotSavedAfterGet_IfDoesntHaveSlidingExpiration");
     var grain = _fixture.Cluster.GrainFactory.GetGrain<IPersistentCacheTestGrainWithStoreArgs>(grainId);
-    var options = new CacheGrainEntryOptions
+    var options = new ClusterCacheEntryOptions
     (
         AbsoluteExpiration: default,
         AbsoluteExpirationRelativeToNow: TimeSpan.FromMinutes(5),
@@ -367,7 +367,7 @@ public class PersistentCacheTestGrainWithStoreArgsTests
   {
     var grainId = GetGrainId("State_IsNotSavedAfterRefresh_IfDoesntHaveSlidingExpiration");
     var grain = _fixture.Cluster.GrainFactory.GetGrain<IPersistentCacheTestGrainWithStoreArgs>(grainId);
-    var options = new CacheGrainEntryOptions
+    var options = new ClusterCacheEntryOptions
     (
         AbsoluteExpiration: default,
         AbsoluteExpirationRelativeToNow: TimeSpan.FromMinutes(5),
@@ -394,7 +394,7 @@ public class PersistentCacheTestGrainWithStoreArgsTests
   {
     var grainId = GetGrainId("State_IsNotSavedAfterTryGet_IfDoesntHaveSlidingExpiration");
     var grain = _fixture.Cluster.GrainFactory.GetGrain<IPersistentCacheTestGrainWithStoreArgs>(grainId);
-    var options = new CacheGrainEntryOptions
+    var options = new ClusterCacheEntryOptions
     (
         AbsoluteExpiration: default,
         AbsoluteExpirationRelativeToNow: TimeSpan.FromMinutes(5),
@@ -423,7 +423,7 @@ public class PersistentCacheTestGrainWithStoreArgsTests
   {
     var grainId = GetGrainId("State_IsSavedAfterGet_IfHasSlidingExpiration");
     var grain = _fixture.Cluster.GrainFactory.GetGrain<IPersistentCacheTestGrainWithStoreArgs>(grainId);
-    var options = new CacheGrainEntryOptions
+    var options = new ClusterCacheEntryOptions
     (
         AbsoluteExpiration: default,
         AbsoluteExpirationRelativeToNow: TimeSpan.FromMinutes(5),
@@ -452,7 +452,7 @@ public class PersistentCacheTestGrainWithStoreArgsTests
   {
     var grainId = GetGrainId("State_IsSavedAfterRefresh_IfHasSlidingExpiration");
     var grain = _fixture.Cluster.GrainFactory.GetGrain<IPersistentCacheTestGrainWithStoreArgs>(grainId);
-    var options = new CacheGrainEntryOptions
+    var options = new ClusterCacheEntryOptions
     (
         AbsoluteExpiration: default,
         AbsoluteExpirationRelativeToNow: TimeSpan.FromMinutes(5),
@@ -479,7 +479,7 @@ public class PersistentCacheTestGrainWithStoreArgsTests
   {
     var grainId = GetGrainId("State_IsSavedAfterTryGet_IfHasSlidingExpiration");
     var grain = _fixture.Cluster.GrainFactory.GetGrain<IPersistentCacheTestGrainWithStoreArgs>(grainId);
-    var options = new CacheGrainEntryOptions
+    var options = new ClusterCacheEntryOptions
     (
         AbsoluteExpiration: default,
         AbsoluteExpirationRelativeToNow: TimeSpan.FromMinutes(5),

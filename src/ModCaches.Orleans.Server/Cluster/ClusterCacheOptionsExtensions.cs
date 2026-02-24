@@ -6,9 +6,9 @@ internal static class ClusterCacheOptionsExtensions
 {
   extension(ClusterCacheOptions options)
   {
-    public CacheGrainEntryOptions ToCacheGrainEntryOptions()
+    public ClusterCacheEntryOptions ToClusterCacheEntryOptions()
     {
-      return new CacheGrainEntryOptions(
+      return new ClusterCacheEntryOptions(
           AbsoluteExpiration: options.AbsoluteExpiration,
           AbsoluteExpirationRelativeToNow: options.AbsoluteExpirationRelativeToNow,
           SlidingExpiration: options.SlidingExpiration);

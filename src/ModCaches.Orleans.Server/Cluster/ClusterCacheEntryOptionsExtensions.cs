@@ -3,9 +3,9 @@ using ModCaches.Orleans.Abstractions.Common;
 
 namespace ModCaches.Orleans.Server.Cluster;
 
-internal static class CacheGrainEntryOptionsExtensions
+internal static class ClusterCacheEntryOptionsExtensions
 {
-  extension(CacheGrainEntryOptions options)
+  extension(ClusterCacheEntryOptions options)
   {
     public CacheEntryOptions ToOrleansCacheEntryOptions()
     {

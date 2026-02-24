@@ -14,7 +14,7 @@
 /// </param>
 
 [GenerateSerializer]
-public record CacheGrainEntryOptions(
+public record ClusterCacheEntryOptions(
   DateTimeOffset? AbsoluteExpiration,
   TimeSpan? AbsoluteExpirationRelativeToNow,
   TimeSpan? SlidingExpiration);

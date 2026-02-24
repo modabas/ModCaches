@@ -80,7 +80,7 @@ public class VolatileCacheTestGrainTests
   public async Task RefreshAsync_ExtendsSlidingLifetime_WhenNotExpiredAsync()
   {
     var grain = _fixture.Cluster.GrainFactory.GetGrain<IVolatileCacheTestGrain>("Refresh_Extends");
-    var options = new CacheGrainEntryOptions
+    var options = new ClusterCacheEntryOptions
     (
         AbsoluteExpiration: default,
         AbsoluteExpirationRelativeToNow: default,
@@ -109,7 +109,7 @@ public class VolatileCacheTestGrainTests
   public async Task RefreshAsync_DoesNotExtendAbsoluteLifetime_WhenNotExpiredAsync()
   {
     var grain = _fixture.Cluster.GrainFactory.GetGrain<IVolatileCacheTestGrain>("Refresh_DoesNotExtend");
-    var options = new CacheGrainEntryOptions
+    var options = new ClusterCacheEntryOptions
     (
         AbsoluteExpiration: default,
         AbsoluteExpirationRelativeToNow: TimeSpan.FromMilliseconds(750),
@@ -137,7 +137,7 @@ public class VolatileCacheTestGrainTests
   public async Task PeekAsync_DoesNotExtendSlidingLifetimeAsync()
   {
     var grain = _fixture.Cluster.GrainFactory.GetGrain<IVolatileCacheTestGrain>("Peek_DoesNotExtend");
-    var options = new CacheGrainEntryOptions
+    var options = new ClusterCacheEntryOptions
     (
         AbsoluteExpiration: default,
         AbsoluteExpirationRelativeToNow: default,
@@ -168,7 +168,7 @@ public class VolatileCacheTestGrainTests
   public async Task CachedValue_Expires_AfterAbsoluteExpirationRelativeToNowAsync()
   {
     var grain = _fixture.Cluster.GrainFactory.GetGrain<IVolatileCacheTestGrain>("Expires_After_AbsoluteExpirationRelativeToNow");
-    var options = new CacheGrainEntryOptions
+    var options = new ClusterCacheEntryOptions
     (
         AbsoluteExpiration: default,
         AbsoluteExpirationRelativeToNow: TimeSpan.FromMilliseconds(100),

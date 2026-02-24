@@ -39,9 +39,9 @@ internal class WeatherForecastCacheGrain :
   {
   }
 
-  protected override async Task<Result<CacheGrainEntry<WeatherForecastCacheValue>>> CreateFromStoreAsync(
+  protected override async Task<Result<ClusterCacheEntry<WeatherForecastCacheValue>>> CreateFromStoreAsync(
     WeatherForecastCacheArgs? args,
-    CacheGrainEntryOptions options,
+    ClusterCacheEntryOptions options,
     CancellationToken ct)
   {
     var dayCount = args?.DayCount ?? 5;
@@ -56,7 +56,7 @@ internal class WeatherForecastCacheGrain :
         Summary = _summaries[Random.Shared.Next(_summaries.Length)]
       }).ToArray()
     };
-    return CacheGrainEntry.CreateResult(value, options);
+    return ClusterCacheEntry.CreateResult(value, options);
   }
 }
 

@@ -52,7 +52,7 @@ public abstract class PersistentCacheGrain<TValue>
 
   public sealed override async Task<Result<TValue>> GetOrCreateAsync(
     CancellationToken ct,
-    CacheGrainEntryOptions? options = null)
+    ClusterCacheEntryOptions? options = null)
   {
     var ret = await GetOrCreateInternalAsync(ct, options);
     if (ret.IsOk)
@@ -67,7 +67,7 @@ public abstract class PersistentCacheGrain<TValue>
 
   public sealed override async Task<Result<TValue>> CreateAsync(
     CancellationToken ct,
-    CacheGrainEntryOptions? options = null)
+    ClusterCacheEntryOptions? options = null)
   {
     var ret = await base.CreateAsync(ct, options);
     if (ret.IsOk)
@@ -114,7 +114,7 @@ public abstract class PersistentCacheGrain<TValue>
   public sealed override async Task SetAsync(
     TValue value,
     CancellationToken ct,
-    CacheGrainEntryOptions? options = null)
+    ClusterCacheEntryOptions? options = null)
   {
     await base.SetAsync(value, ct, options);
     await WriteStateAsync(ct);
@@ -123,7 +123,7 @@ public abstract class PersistentCacheGrain<TValue>
   public sealed override async Task<Result<TValue>> SetAndWriteAsync(
     TValue value,
     CancellationToken ct,
-    CacheGrainEntryOptions? options = null)
+    ClusterCacheEntryOptions? options = null)
   {
     var ret = await base.SetAndWriteAsync(value, ct, options);
     if (ret.IsOk)
@@ -228,7 +228,7 @@ public abstract class PersistentCacheGrain<TValue, TStoreArgs>
   public sealed override async Task<Result<TValue>> GetOrCreateAsync(
     TStoreArgs? args,
     CancellationToken ct,
-    CacheGrainEntryOptions? options = null)
+    ClusterCacheEntryOptions? options = null)
   {
     var ret = await GetOrCreateInternalAsync(args, ct, options);
     if (ret.IsOk)
@@ -244,7 +244,7 @@ public abstract class PersistentCacheGrain<TValue, TStoreArgs>
   public sealed override async Task<Result<TValue>> CreateAsync(
     TStoreArgs? args,
     CancellationToken ct,
-    CacheGrainEntryOptions? options = null)
+    ClusterCacheEntryOptions? options = null)
   {
     var ret = await base.CreateAsync(args, ct, options);
     if (ret.IsOk)
@@ -291,7 +291,7 @@ public abstract class PersistentCacheGrain<TValue, TStoreArgs>
   public sealed override async Task SetAsync(
     TValue value,
     CancellationToken ct,
-    CacheGrainEntryOptions? options = null)
+    ClusterCacheEntryOptions? options = null)
   {
     await base.SetAsync(value, ct, options);
     await WriteStateAsync(ct);
@@ -301,7 +301,7 @@ public abstract class PersistentCacheGrain<TValue, TStoreArgs>
     TStoreArgs? args,
     TValue value,
     CancellationToken ct,
-    CacheGrainEntryOptions? options = null)
+    ClusterCacheEntryOptions? options = null)
   {
     var ret = await base.SetAndWriteAsync(args, value, ct, options);
     if (ret.IsOk)

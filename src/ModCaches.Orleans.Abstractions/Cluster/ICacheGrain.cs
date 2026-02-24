@@ -47,5 +47,5 @@ public interface ICacheGrain<TValue> : IGrainWithStringKey
   Task SetAsync(
     TValue value,
     CancellationToken ct,
-    CacheGrainEntryOptions? options = null);
+    ClusterCacheEntryOptions? options = null);
 }

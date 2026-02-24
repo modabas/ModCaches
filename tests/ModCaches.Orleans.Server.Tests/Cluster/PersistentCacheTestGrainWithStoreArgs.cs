@@ -16,23 +16,23 @@ internal class PersistentCacheTestGrainWithStoreArgs : PersistentCacheGrain<Cach
   {
   }
 
-  protected override async Task<Result<CacheGrainEntry<CacheTestValue>>> CreateFromStoreAsync(
+  protected override async Task<Result<ClusterCacheEntry<CacheTestValue>>> CreateFromStoreAsync(
     int args,
-    CacheGrainEntryOptions options,
+    ClusterCacheEntryOptions options,
     CancellationToken ct)
   {
-    return CacheGrainEntry.Create(
+    return ClusterCacheEntry.Create(
       new CacheTestValue() { Data = $"persistent in cluster cache {args}" },
       options);
   }
 
-  protected override async Task<Result<CacheGrainEntry<CacheTestValue>>> WriteToStoreAsync(
+  protected override async Task<Result<ClusterCacheEntry<CacheTestValue>>> WriteToStoreAsync(
     int args,
     CacheTestValue value,
-    CacheGrainEntryOptions options,
+    ClusterCacheEntryOptions options,
     CancellationToken ct)
   {
-    return CacheGrainEntry.Create(
+    return ClusterCacheEntry.Create(
       new CacheTestValue() { Data = $"write-through {value.Data}" },
       options);
   }
