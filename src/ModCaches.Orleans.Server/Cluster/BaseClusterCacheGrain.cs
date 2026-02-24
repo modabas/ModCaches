@@ -57,7 +57,7 @@ public abstract class BaseClusterCacheGrain<TValue>
     CancellationToken ct,
     ClusterCacheEntryOptions? options = null)
   {
-    var result = await CreateFromStoreAsync(options ?? DefaultEntryOptions, ct);
+    var result = await CreateFromStoreAsync(ResolveEntryOptions(options), ct);
     if (result.IsOk)
     {
       CacheEntry = new CacheEntry<TValue>(
@@ -91,7 +91,7 @@ public abstract class BaseClusterCacheGrain<TValue>
     CancellationToken ct,
     ClusterCacheEntryOptions? options = null)
   {
-    var result = await WriteToStoreAsync(value, options ?? DefaultEntryOptions, ct);
+    var result = await WriteToStoreAsync(value, ResolveEntryOptions(options), ct);
     if (result.IsOk)
     {
       SetInternal(result.Value.Value, result.Value.Options);
@@ -214,7 +214,7 @@ public abstract class BaseClusterCacheGrain<TValue, TStoreArgs>
     CancellationToken ct,
     ClusterCacheEntryOptions? options = null)
   {
-    var result = await CreateFromStoreAsync(args, options ?? DefaultEntryOptions, ct);
+    var result = await CreateFromStoreAsync(args, ResolveEntryOptions(options), ct);
     if (result.IsOk)
     {
       CacheEntry = new CacheEntry<TValue>(
@@ -253,7 +253,7 @@ public abstract class BaseClusterCacheGrain<TValue, TStoreArgs>
     CancellationToken ct,
     ClusterCacheEntryOptions? options = null)
   {
-    var result = await WriteToStoreAsync(args, value, options ?? DefaultEntryOptions, ct);
+    var result = await WriteToStoreAsync(args, value, ResolveEntryOptions(options), ct);
     if (result.IsOk)
     {
       SetInternal(result.Value.Value, result.Value.Options);
