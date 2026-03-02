@@ -21,7 +21,7 @@ public abstract class BaseCacheGrain<TValue>
 
   internal Func<DateTimeOffset> TimeProviderFunc { get; }
 
-  internal CacheGrainEntryOptions DefaultEntryOptions { get; }
+  private readonly ClusterCacheEntryOptions _defaultEntryOptions;
 
   internal bool HasSlidingExpiration =>
     CacheEntry?.HasSlidingExpiration ?? false;
@@ -36,7 +36,12 @@ public abstract class BaseCacheGrain<TValue>
     TimeProviderFunc = () => timeProvider.GetUtcNow();
     var defaultOptions = serviceProvider.GetService<IOptions<ClusterCacheOptions>>() ??
       Options.Create(new ClusterCacheOptions());
-    DefaultEntryOptions = defaultOptions.Value.ToCacheGrainEntryOptions();
+    _defaultEntryOptions = defaultOptions.Value.ToClusterCacheEntryOptions();
+  }
+
+  internal ClusterCacheEntryOptions ResolveEntryOptions(ClusterCacheEntryOptions? options)
+  {
+    return options ?? _defaultEntryOptions;
   }
 
   public virtual Task RemoveAsync(CancellationToken ct)
@@ -88,16 +93,15 @@ public abstract class BaseCacheGrain<TValue>
   public virtual Task SetAsync(
     TValue value,
     CancellationToken ct,
-    CacheGrainEntryOptions? options = null)
+    ClusterCacheEntryOptions? options = null)
   {
-    var entryOptions = options ?? DefaultEntryOptions;
-    SetInternal(value, entryOptions);
+    SetInternal(value, ResolveEntryOptions(options));
     return Task.CompletedTask;
   }
 
   internal void SetInternal(
     TValue value,
-    CacheGrainEntryOptions options)
+    ClusterCacheEntryOptions options)
   {
     CacheEntry = new CacheEntry<TValue>(
       value,

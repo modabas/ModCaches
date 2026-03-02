@@ -25,7 +25,7 @@ public interface IWriteThroughCacheGrain<TValue, TStoreArgs> : IWriteThroughCach
     TStoreArgs? args,
     TValue value,
     CancellationToken ct,
-    CacheGrainEntryOptions? options = null);
+    ClusterCacheEntryOptions? options = null);
 
   /// <summary>
   /// Performs deletion from backing data store and removal from cache.<br/>
@@ -60,7 +60,7 @@ public interface IWriteThroughCacheGrain<TValue> : ICacheGrain<TValue>
   Task<Result<TValue>> SetAndWriteAsync(
     TValue value,
     CancellationToken ct,
-    CacheGrainEntryOptions? options = null);
+    ClusterCacheEntryOptions? options = null);
 
   /// <summary>
   /// Performs deletion from backing data store and removal from cache.<br/>

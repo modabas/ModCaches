@@ -16,13 +16,22 @@ internal class PersistentCacheTestGrain : PersistentCacheGrain<CacheTestValue>, 
   {
   }
 
-  protected override Task<Result<CreateRecord<CacheTestValue>>> CreateFromStoreAsync(CacheGrainEntryOptions options, CancellationToken ct)
+  protected override Task<Result<ClusterCacheEntry<CacheTestValue>>> CreateFromStoreAsync(
+    ClusterCacheEntryOptions options,
+    CancellationToken ct)
   {
-    return Task.FromResult(Result.Ok(new CreateRecord<CacheTestValue>(new CacheTestValue() { Data = "persistent in cluster cache" }, options)));
+    return Task.FromResult(ClusterCacheEntry.CreateResult(
+      new CacheTestValue() { Data = "persistent in cluster cache" },
+      options));
   }
 
-  protected override Task<Result<WriteRecord<CacheTestValue>>> WriteToStoreAsync(CacheTestValue value, CacheGrainEntryOptions options, CancellationToken ct)
+  protected override Task<Result<ClusterCacheEntry<CacheTestValue>>> WriteToStoreAsync(
+    CacheTestValue value,
+    ClusterCacheEntryOptions options,
+    CancellationToken ct)
   {
-    return Task.FromResult(Result.Ok(new WriteRecord<CacheTestValue>(new CacheTestValue() { Data = "write-through persistent in cluster cache" }, options)));
+    return Task.FromResult(ClusterCacheEntry.Create(
+      new CacheTestValue() { Data = "write-through persistent in cluster cache" },
+      options).ToResult());
   }
 }

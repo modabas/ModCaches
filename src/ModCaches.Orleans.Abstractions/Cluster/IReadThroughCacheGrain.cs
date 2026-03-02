@@ -23,7 +23,7 @@ public interface IReadThroughCacheGrain<TValue, TStoreArgs> : IReadThroughCacheG
   Task<Result<TValue>> GetOrCreateAsync(
     TStoreArgs? args,
     CancellationToken ct,
-    CacheGrainEntryOptions? options = null);
+    ClusterCacheEntryOptions? options = null);
 
   /// <summary>
   /// Creates a new entry from backing data store.<br/>
@@ -37,7 +37,7 @@ public interface IReadThroughCacheGrain<TValue, TStoreArgs> : IReadThroughCacheG
   Task<Result<TValue>> CreateAsync(
     TStoreArgs? args,
     CancellationToken ct,
-    CacheGrainEntryOptions? options = null);
+    ClusterCacheEntryOptions? options = null);
 }
 
 /// <summary>
@@ -57,7 +57,7 @@ public interface IReadThroughCacheGrain<TValue> : ICacheGrain<TValue>
   /// <returns>A <see cref="Result{TValue}"/> that represents the outcome and the data, either from cache or the underlying value generation method.</returns>
   Task<Result<TValue>> GetOrCreateAsync(
     CancellationToken ct,
-    CacheGrainEntryOptions? options = null);
+    ClusterCacheEntryOptions? options = null);
 
   /// <summary>
   /// Creates a new entry from backing data store.<br/>
@@ -69,5 +69,5 @@ public interface IReadThroughCacheGrain<TValue> : ICacheGrain<TValue>
   /// <returns>A <see cref="Result{TValue}"/> that represents the outcome and the data from underlying value generation method if successful.</returns>
   Task<Result<TValue>> CreateAsync(
     CancellationToken ct,
-    CacheGrainEntryOptions? options = null);
+    ClusterCacheEntryOptions? options = null);
 }

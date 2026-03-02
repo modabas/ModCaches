@@ -4,11 +4,14 @@ namespace ModCaches.Orleans.Server.Cluster;
 
 internal static class ClusterCacheOptionsExtensions
 {
-  public static CacheGrainEntryOptions ToCacheGrainEntryOptions(this ClusterCacheOptions options)
+  extension(ClusterCacheOptions options)
   {
-    return new CacheGrainEntryOptions(
-        AbsoluteExpiration: options.AbsoluteExpiration,
-        AbsoluteExpirationRelativeToNow: options.AbsoluteExpirationRelativeToNow,
-        SlidingExpiration: options.SlidingExpiration);
+    public ClusterCacheEntryOptions ToClusterCacheEntryOptions()
+    {
+      return new ClusterCacheEntryOptions(
+          AbsoluteExpiration: options.AbsoluteExpiration,
+          AbsoluteExpirationRelativeToNow: options.AbsoluteExpirationRelativeToNow,
+          SlidingExpiration: options.SlidingExpiration);
+    }
   }
 }

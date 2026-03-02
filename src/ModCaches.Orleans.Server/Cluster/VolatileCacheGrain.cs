@@ -18,14 +18,14 @@ public abstract class VolatileCacheGrain<TValue>
 
   public sealed override Task<Result<TValue>> GetOrCreateAsync(
     CancellationToken ct,
-    CacheGrainEntryOptions? options = null)
+    ClusterCacheEntryOptions? options = null)
   {
     return base.GetOrCreateAsync(ct, options);
   }
 
   public sealed override Task<Result<TValue>> CreateAsync(
     CancellationToken ct,
-    CacheGrainEntryOptions? options = null)
+    ClusterCacheEntryOptions? options = null)
   {
     return base.CreateAsync(ct, options);
   }
@@ -45,12 +45,12 @@ public abstract class VolatileCacheGrain<TValue>
     return base.RemoveAndDeleteAsync(ct);
   }
 
-  public sealed override Task SetAsync(TValue value, CancellationToken ct, CacheGrainEntryOptions? options = null)
+  public sealed override Task SetAsync(TValue value, CancellationToken ct, ClusterCacheEntryOptions? options = null)
   {
     return base.SetAsync(value, ct, options);
   }
 
-  public sealed override Task<Result<TValue>> SetAndWriteAsync(TValue value, CancellationToken ct, CacheGrainEntryOptions? options = null)
+  public sealed override Task<Result<TValue>> SetAndWriteAsync(TValue value, CancellationToken ct, ClusterCacheEntryOptions? options = null)
   {
     return base.SetAndWriteAsync(value, ct, options);
   }
@@ -84,7 +84,7 @@ public abstract class VolatileCacheGrain<TValue, TStoreArgs>
   public sealed override Task<Result<TValue>> GetOrCreateAsync(
     TStoreArgs? args,
     CancellationToken ct,
-    CacheGrainEntryOptions? options = null)
+    ClusterCacheEntryOptions? options = null)
   {
     return base.GetOrCreateAsync(args, ct, options);
   }
@@ -92,7 +92,7 @@ public abstract class VolatileCacheGrain<TValue, TStoreArgs>
   public sealed override Task<Result<TValue>> CreateAsync(
     TStoreArgs? args,
     CancellationToken ct,
-    CacheGrainEntryOptions? options = null)
+    ClusterCacheEntryOptions? options = null)
   {
     return base.CreateAsync(args, ct, options);
   }
@@ -112,7 +112,7 @@ public abstract class VolatileCacheGrain<TValue, TStoreArgs>
     return base.RemoveAndDeleteAsync(args, ct);
   }
 
-  public sealed override Task SetAsync(TValue value, CancellationToken ct, CacheGrainEntryOptions? options = null)
+  public sealed override Task SetAsync(TValue value, CancellationToken ct, ClusterCacheEntryOptions? options = null)
   {
     return base.SetAsync(value, ct, options);
   }
@@ -121,7 +121,7 @@ public abstract class VolatileCacheGrain<TValue, TStoreArgs>
     TStoreArgs? args,
     TValue value,
     CancellationToken ct,
-    CacheGrainEntryOptions? options = null)
+    ClusterCacheEntryOptions? options = null)
   {
     return base.SetAndWriteAsync(args, value, ct, options);
   }

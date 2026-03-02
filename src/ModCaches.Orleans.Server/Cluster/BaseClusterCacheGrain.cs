@@ -27,7 +27,7 @@ public abstract class BaseClusterCacheGrain<TValue>
 
   public virtual async Task<Result<TValue>> GetOrCreateAsync(
     CancellationToken ct,
-    CacheGrainEntryOptions? options = null)
+    ClusterCacheEntryOptions? options = null)
   {
     var ret = await GetOrCreateInternalAsync(ct, options);
     return ret.ToResult(r => r.Value);
@@ -35,7 +35,7 @@ public abstract class BaseClusterCacheGrain<TValue>
 
   internal async Task<Result<(bool IsCreated, TValue Value)>> GetOrCreateInternalAsync(
     CancellationToken ct,
-    CacheGrainEntryOptions? options = null)
+    ClusterCacheEntryOptions? options = null)
   {
     if (CacheEntry?.TryGetValue(TimeProviderFunc, out var value, out var expiresIn) == true)
     {
@@ -48,16 +48,16 @@ public abstract class BaseClusterCacheGrain<TValue>
 
   public virtual Task<Result<TValue>> CreateAsync(
     CancellationToken ct,
-    CacheGrainEntryOptions? options = null)
+    ClusterCacheEntryOptions? options = null)
   {
     return CreateInternalAsync(ct, options);
   }
 
   private async Task<Result<TValue>> CreateInternalAsync(
     CancellationToken ct,
-    CacheGrainEntryOptions? options = null)
+    ClusterCacheEntryOptions? options = null)
   {
-    var result = await CreateFromStoreAsync(options ?? DefaultEntryOptions, ct);
+    var result = await CreateFromStoreAsync(ResolveEntryOptions(options), ct);
     if (result.IsOk)
     {
       CacheEntry = new CacheEntry<TValue>(
@@ -80,8 +80,8 @@ public abstract class BaseClusterCacheGrain<TValue>
   /// </summary>
   /// <param name="options">The cache options for the value.</param>
   /// <param name="ct">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
-  /// <returns>A <see cref="Result"/> containing <see cref="CreateRecord{TValue}"/> that represents the outcome and record containing data to be cached and options to be used for caching if successful.</returns>
-  protected virtual Task<Result<CreateRecord<TValue>>> CreateFromStoreAsync(CacheGrainEntryOptions options, CancellationToken ct)
+  /// <returns>A <see cref="Result"/> containing <see cref="ClusterCacheEntry{TValue}"/> that represents the outcome and record containing data to be cached and options to be used for caching if successful.</returns>
+  protected virtual Task<Result<ClusterCacheEntry<TValue>>> CreateFromStoreAsync(ClusterCacheEntryOptions options, CancellationToken ct)
   {
     throw new NotImplementedException("Override and implement CreateFromStoreAsync method in order to use GetOrCreateAsync and CreateAsync methods.");
   }
@@ -89,9 +89,9 @@ public abstract class BaseClusterCacheGrain<TValue>
   public virtual async Task<Result<TValue>> SetAndWriteAsync(
     TValue value,
     CancellationToken ct,
-    CacheGrainEntryOptions? options = null)
+    ClusterCacheEntryOptions? options = null)
   {
-    var result = await WriteToStoreAsync(value, options ?? DefaultEntryOptions, ct);
+    var result = await WriteToStoreAsync(value, ResolveEntryOptions(options), ct);
     if (result.IsOk)
     {
       SetInternal(result.Value.Value, result.Value.Options);
@@ -107,10 +107,10 @@ public abstract class BaseClusterCacheGrain<TValue>
   /// <param name="value">The value to set in the cache.</param>
   /// <param name="options">The cache options for the value.</param>
   /// <param name="ct">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
-  /// <returns>A <see cref="Result"/> containing <see cref="WriteRecord{TValue}"/> that represents the outcome and record containing data to be cached and options to be used for caching if successful.</returns>
-  protected virtual Task<Result<WriteRecord<TValue>>> WriteToStoreAsync(
+  /// <returns>A <see cref="Result"/> containing <see cref="ClusterCacheEntry{TValue}"/> that represents the outcome and record containing data to be cached and options to be used for caching if successful.</returns>
+  protected virtual Task<Result<ClusterCacheEntry<TValue>>> WriteToStoreAsync(
     TValue value,
-    CacheGrainEntryOptions options,
+    ClusterCacheEntryOptions options,
     CancellationToken ct)
   {
     throw new NotImplementedException("Override and implement WriteToStoreAsync method in order to use SetAndWriteAsync method.");
@@ -167,7 +167,7 @@ public abstract class BaseClusterCacheGrain<TValue, TStoreArgs>
   public virtual async Task<Result<TValue>> GetOrCreateAsync(
     TStoreArgs? args,
     CancellationToken ct,
-    CacheGrainEntryOptions? options = null)
+    ClusterCacheEntryOptions? options = null)
   {
     var ret = await GetOrCreateInternalAsync(args, ct, options);
     return ret.ToResult(r => r.Value);
@@ -175,7 +175,7 @@ public abstract class BaseClusterCacheGrain<TValue, TStoreArgs>
 
   public Task<Result<TValue>> GetOrCreateAsync(
     CancellationToken ct,
-    CacheGrainEntryOptions? options = null)
+    ClusterCacheEntryOptions? options = null)
   {
     return GetOrCreateAsync(default, ct, options);
   }
@@ -183,7 +183,7 @@ public abstract class BaseClusterCacheGrain<TValue, TStoreArgs>
   internal async Task<Result<(bool IsCreated, TValue Value)>> GetOrCreateInternalAsync(
     TStoreArgs? args,
     CancellationToken ct,
-    CacheGrainEntryOptions? options = null)
+    ClusterCacheEntryOptions? options = null)
   {
     if (CacheEntry?.TryGetValue(TimeProviderFunc, out var value, out var expiresIn) == true)
     {
@@ -197,14 +197,14 @@ public abstract class BaseClusterCacheGrain<TValue, TStoreArgs>
   public virtual Task<Result<TValue>> CreateAsync(
     TStoreArgs? args,
     CancellationToken ct,
-    CacheGrainEntryOptions? options = null)
+    ClusterCacheEntryOptions? options = null)
   {
     return CreateInternalAsync(args, ct, options);
   }
 
   public Task<Result<TValue>> CreateAsync(
     CancellationToken ct,
-    CacheGrainEntryOptions? options = null)
+    ClusterCacheEntryOptions? options = null)
   {
     return CreateAsync(default, ct, options);
   }
@@ -212,9 +212,9 @@ public abstract class BaseClusterCacheGrain<TValue, TStoreArgs>
   private async Task<Result<TValue>> CreateInternalAsync(
     TStoreArgs? args,
     CancellationToken ct,
-    CacheGrainEntryOptions? options = null)
+    ClusterCacheEntryOptions? options = null)
   {
-    var result = await CreateFromStoreAsync(args, options ?? DefaultEntryOptions, ct);
+    var result = await CreateFromStoreAsync(args, ResolveEntryOptions(options), ct);
     if (result.IsOk)
     {
       CacheEntry = new CacheEntry<TValue>(
@@ -238,10 +238,10 @@ public abstract class BaseClusterCacheGrain<TValue, TStoreArgs>
   /// <param name="args">Parameters for underlying operations from backing data store.</param>
   /// <param name="options">The cache options for the value.</param>
   /// <param name="ct">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
-  /// <returns>A <see cref="Result"/> containing <see cref="CreateRecord{TValue}"/> that represents the outcome and record containing data to be cached and options to be used for caching if successful.</returns>
-  protected virtual Task<Result<CreateRecord<TValue>>> CreateFromStoreAsync(
+  /// <returns>A <see cref="Result"/> containing <see cref="ClusterCacheEntry{TValue}"/> that represents the outcome and record containing data to be cached and options to be used for caching if successful.</returns>
+  protected virtual Task<Result<ClusterCacheEntry<TValue>>> CreateFromStoreAsync(
     TStoreArgs? args,
-    CacheGrainEntryOptions options,
+    ClusterCacheEntryOptions options,
     CancellationToken ct)
   {
     throw new NotImplementedException("Override and implement CreateFromStoreAsync method in order to use GetOrCreateAsync and CreateAsync methods.");
@@ -251,9 +251,9 @@ public abstract class BaseClusterCacheGrain<TValue, TStoreArgs>
     TStoreArgs? args,
     TValue value,
     CancellationToken ct,
-    CacheGrainEntryOptions? options = null)
+    ClusterCacheEntryOptions? options = null)
   {
-    var result = await WriteToStoreAsync(args, value, options ?? DefaultEntryOptions, ct);
+    var result = await WriteToStoreAsync(args, value, ResolveEntryOptions(options), ct);
     if (result.IsOk)
     {
       SetInternal(result.Value.Value, result.Value.Options);
@@ -264,7 +264,7 @@ public abstract class BaseClusterCacheGrain<TValue, TStoreArgs>
   public Task<Result<TValue>> SetAndWriteAsync(
     TValue value,
     CancellationToken ct,
-    CacheGrainEntryOptions? options = null)
+    ClusterCacheEntryOptions? options = null)
   {
     return SetAndWriteAsync(default, value, ct, options);
   }
@@ -278,11 +278,11 @@ public abstract class BaseClusterCacheGrain<TValue, TStoreArgs>
   /// <param name="value">The value to set in the cache.</param>
   /// <param name="options">The cache options for the value.</param>
   /// <param name="ct">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
-  /// <returns>A <see cref="Result"/> containing <see cref="WriteRecord{TValue}"/> that represents the outcome and record containing data to be cached and options to be used for caching if successful.</returns>
-  protected virtual Task<Result<WriteRecord<TValue>>> WriteToStoreAsync(
+  /// <returns>A <see cref="Result"/> containing <see cref="ClusterCacheEntry{TValue}"/> that represents the outcome and record containing data to be cached and options to be used for caching if successful.</returns>
+  protected virtual Task<Result<ClusterCacheEntry<TValue>>> WriteToStoreAsync(
     TStoreArgs? args,
     TValue value,
-    CacheGrainEntryOptions options,
+    ClusterCacheEntryOptions options,
     CancellationToken ct)
   {
     throw new NotImplementedException("Override and implement WriteToStoreAsync method in order to use SetAndWriteAsync method.");
