@@ -30,7 +30,7 @@ public abstract class BaseClusterCacheGrain<TValue>
     ClusterCacheEntryOptions? options = null)
   {
     var ret = await GetOrCreateInternalAsync(ct, options);
-    return ret.ToResult(r => r.Value);
+    return ret.AsResult(r => r.Value);
   }
 
   internal async Task<Result<(bool IsCreated, TValue Value)>> GetOrCreateInternalAsync(
@@ -43,7 +43,7 @@ public abstract class BaseClusterCacheGrain<TValue>
       return (IsCreated: false, Value: value);
     }
     var result = await CreateInternalAsync(ct, options);
-    return result.ToResult(r => (IsCreated: true, Value: r));
+    return result.AsResult(r => (IsCreated: true, Value: r));
   }
 
   public virtual Task<Result<TValue>> CreateAsync(
@@ -70,7 +70,7 @@ public abstract class BaseClusterCacheGrain<TValue>
         DelayDeactivation(expiresIn.Value);
       }
     }
-    return result.ToResult(r => r.Value);
+    return result.AsResult(r => r.Value);
   }
 
   /// <summary>
@@ -96,7 +96,7 @@ public abstract class BaseClusterCacheGrain<TValue>
     {
       SetInternal(result.Value.Value, result.Value.Options);
     }
-    return result.ToResult(r => r.Value);
+    return result.AsResult(r => r.Value);
   }
 
   /// <summary>
@@ -170,7 +170,7 @@ public abstract class BaseClusterCacheGrain<TValue, TStoreArgs>
     ClusterCacheEntryOptions? options = null)
   {
     var ret = await GetOrCreateInternalAsync(args, ct, options);
-    return ret.ToResult(r => r.Value);
+    return ret.AsResult(r => r.Value);
   }
 
   public Task<Result<TValue>> GetOrCreateAsync(
@@ -191,7 +191,7 @@ public abstract class BaseClusterCacheGrain<TValue, TStoreArgs>
       return (IsCreated: false, Value: value);
     }
     var result = await CreateInternalAsync(args, ct, options);
-    return result.ToResult(r => (IsCreated: true, Value: r));
+    return result.AsResult(r => (IsCreated: true, Value: r));
   }
 
   public virtual Task<Result<TValue>> CreateAsync(
@@ -227,7 +227,7 @@ public abstract class BaseClusterCacheGrain<TValue, TStoreArgs>
         DelayDeactivation(expiresIn.Value);
       }
     }
-    return result.ToResult(r => r.Value);
+    return result.AsResult(r => r.Value);
   }
 
   /// <summary>
@@ -258,7 +258,7 @@ public abstract class BaseClusterCacheGrain<TValue, TStoreArgs>
     {
       SetInternal(result.Value.Value, result.Value.Options);
     }
-    return result.ToResult(r => r.Value);
+    return result.AsResult(r => r.Value);
   }
 
   public Task<Result<TValue>> SetAndWriteAsync(

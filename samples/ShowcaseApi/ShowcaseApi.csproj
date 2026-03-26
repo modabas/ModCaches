@@ -8,9 +8,9 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.5" />
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="10.1.5" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="10.1.7" />
     <PackageReference Include="Microsoft.Orleans.Server" Version="10.0.1" />
-    <PackageReference Include="ModEndpoints.Core" Version="2.0.5" />
+    <PackageReference Include="ModEndpoints.Core" Version="2.0.6" />
   </ItemGroup>
 
   <ItemGroup>

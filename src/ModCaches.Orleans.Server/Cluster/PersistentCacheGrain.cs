@@ -62,7 +62,7 @@ public abstract class PersistentCacheGrain<TValue>
         await WriteStateAsync(ct);
       }
     }
-    return ret.ToResult(r => r.Value);
+    return ret.AsResult(r => r.Value);
   }
 
   public sealed override async Task<Result<TValue>> CreateAsync(
@@ -238,7 +238,7 @@ public abstract class PersistentCacheGrain<TValue, TStoreArgs>
         await WriteStateAsync(ct);
       }
     }
-    return ret.ToResult(r => r.Value);
+    return ret.AsResult(r => r.Value);
   }
 
   public sealed override async Task<Result<TValue>> CreateAsync(
