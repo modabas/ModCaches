@@ -4,6 +4,10 @@ on:
   release:
     types: [published]
 
+permissions:
+  contents: read
+  id-token: write
+
 env:
   EXTENDED_DISTRIBUTED_CACHE_PROJECTNAME: "ModCaches.ExtendedDistributedCache"
   ORLEANS_ABSTRACTIONS_PROJECTNAME: "ModCaches.Orleans.Abstractions"
@@ -17,19 +21,21 @@ env:
 jobs:
   build:
     runs-on: ubuntu-latest
+    environment: release
     timeout-minutes: 5
     steps:
     - name: Checkout
-      uses: actions/checkout@v4
+      uses: actions/checkout@v7
       with:
         fetch-depth: 0
     - name: Setup .NET SDK
-      uses: actions/setup-dotnet@v4
+      uses: actions/setup-dotnet@v6
       with:
         dotnet-version: | 
           8.0.x
           9.0.x
           10.0.x
+          11.0.x
     - name: Restore dependencies
       run: dotnet restore
     - name: Build - Extended Distributed Cache
@@ -46,13 +52,13 @@ jobs:
       working-directory: src
 
     - name: Test - Extended Distributed Cache
-      run: dotnet test ${{ env.EXTENDED_DISTRIBUTED_CACHE_TESTS_PROJECTNAME }} --no-restore --verbosity normal
+      run: dotnet test --project ModCaches.ExtendedDistributedCache.Tests/ModCaches.ExtendedDistributedCache.Tests.csproj --no-restore --verbosity normal
       working-directory: tests
     - name: Test - Orleans server cache components
-      run: dotnet test ${{ env.ORLEANS_SERVER_TESTS_PROJECTNAME }} --no-restore --verbosity normal
+      run: dotnet test --project ModCaches.Orleans.Server.Tests/ModCaches.Orleans.Server.Tests.csproj --no-restore --verbosity normal
       working-directory: tests
     - name: Test - Orleans client cache components
-      run: dotnet test ${{ env.ORLEANS_CLIENT_TESTS_PROJECTNAME }} --no-restore --verbosity normal
+      run: dotnet test --project ModCaches.Orleans.Client.Tests/ModCaches.Orleans.Client.Tests.csproj --no-restore --verbosity normal
       working-directory: tests
 
     - name: Package nuget - Extended Distributed Cache
@@ -67,7 +73,11 @@ jobs:
     - name: Package nuget - Orleans client cache components
       run: dotnet pack ${{ env.ORLEANS_CLIENT_PROJECTNAME }} --configuration Release --no-build -o:package
       working-directory: src
-
+    - name: NuGet login (OIDC → temp API key)
+      uses: NuGet/login@v1
+      id: login
+      with:
+        user: ${{secrets.NUGET_USER}}
     - name: Push to NuGet
-      run: dotnet nuget push ./package/*.nupkg --api-key ${{secrets.nuget_api_key}} --source https://api.nuget.org/v3/index.json
+      run: dotnet nuget push ./package/*.nupkg --api-key ${{steps.login.outputs.NUGET_API_KEY}} --source https://api.nuget.org/v3/index.json
       working-directory: src

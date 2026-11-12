@@ -55,6 +55,7 @@ public class PersistentDistributedCacheGrainTests
 
     var state = await GetStateAsync(grainId);
     state.Should().NotBeNull();
+    state.State.Should().NotBeNull();
     state.State.Value.Should().Equal(data);
     var lastAccessed = state.State.LastAccessed;
 
@@ -63,6 +64,7 @@ public class PersistentDistributedCacheGrainTests
     fetched.Value.Should().Equal(data);
     var stateAfterGet = await GetStateAsync(grainId);
     stateAfterGet.Should().NotBeNull();
+    stateAfterGet.State.Should().NotBeNull();
     stateAfterGet.State.Value.Should().Equal(data);
     stateAfterGet.State.LastAccessed.Should().BeAfter(lastAccessed);
   }
@@ -79,6 +81,7 @@ public class PersistentDistributedCacheGrainTests
 
     var state = await GetStateAsync(grainId);
     state.Should().NotBeNull();
+    state.State.Should().NotBeNull();
     state.State.Value.Should().Equal(data);
     var lastAccessed = state.State.LastAccessed;
 
@@ -87,6 +90,7 @@ public class PersistentDistributedCacheGrainTests
     fetched.Value.Should().Equal(data);
     var stateAfterGet = await GetStateAsync(grainId);
     stateAfterGet.Should().NotBeNull();
+    stateAfterGet.State.Should().NotBeNull();
     stateAfterGet.State.Value.Should().Equal(data);
     stateAfterGet.State.LastAccessed.Should().Be(lastAccessed);
   }
@@ -103,12 +107,14 @@ public class PersistentDistributedCacheGrainTests
 
     var state = await GetStateAsync(grainId);
     state.Should().NotBeNull();
+    state.State.Should().NotBeNull();
     state.State.Value.Should().Equal(data);
     var lastAccessed = state.State.LastAccessed;
 
     await grain.RefreshAsync(TestContext.Current.CancellationToken);
     var stateAfterRefresh = await GetStateAsync(grainId);
     stateAfterRefresh.Should().NotBeNull();
+    stateAfterRefresh.State.Should().NotBeNull();
     stateAfterRefresh.State.Value.Should().Equal(data);
     stateAfterRefresh.State.LastAccessed.Should().Be(lastAccessed);
   }
@@ -137,6 +143,7 @@ public class PersistentDistributedCacheGrainTests
     var stateAfterRemove = await GetStateAsync(grainId);
     stateAfterRemove.Should().NotBeNull();
     stateAfterRemove.RecordExists.Should().BeFalse();
+    stateAfterRemove.State.Should().NotBeNull();
     stateAfterRemove.State.LastAccessed.Should().Be(DateTimeOffset.MinValue);
   }
 
@@ -153,6 +160,7 @@ public class PersistentDistributedCacheGrainTests
     var state = await GetStateAsync(grainId);
     state.Should().NotBeNull();
     state.RecordExists.Should().BeTrue();
+    state.State.Should().NotBeNull();
     var lastAccessed = state.State.LastAccessed;
 
     // call refresh; since not expired it should remain available
@@ -161,6 +169,7 @@ public class PersistentDistributedCacheGrainTests
     state = await GetStateAsync(grainId);
     state.Should().NotBeNull();
     state.RecordExists.Should().BeTrue();
+    state.State.Should().NotBeNull();
     state.State.LastAccessed.Should().BeAfter(lastAccessed);
     state.State.Value.Should().Equal(data);
   }
@@ -188,6 +197,7 @@ public class PersistentDistributedCacheGrainTests
     var state = await GetStateAsync(grainId);
     state.Should().NotBeNull();
     state.RecordExists.Should().BeFalse();
+    state.State.Should().NotBeNull();
     state.State.LastAccessed.Should().Be(DateTimeOffset.MinValue);
   }
 
@@ -210,6 +220,7 @@ public class PersistentDistributedCacheGrainTests
     var stateAfterRemove = await GetStateAsync(grainId);
     stateAfterRemove.Should().NotBeNull();
     stateAfterRemove.RecordExists.Should().BeFalse();
+    stateAfterRemove.State.Should().NotBeNull();
     stateAfterRemove.State.LastAccessed.Should().Be(DateTimeOffset.MinValue);
   }
 
@@ -232,6 +243,7 @@ public class PersistentDistributedCacheGrainTests
     fetched.Value.Should().Equal(data);
     var state = await GetStateAsync(grainId);
     state.Should().NotBeNull();
+    state.State.Should().NotBeNull();
     state.State.Value.Should().Equal(data);
   }
 }

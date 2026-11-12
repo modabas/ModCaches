@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.14.36518.9
+# Visual Studio Version 18
+VisualStudioVersion = 18.12.12405.243 stable
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
 EndProject
@@ -9,6 +9,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "__SolutionItems", "__Soluti
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
 		Directory.Build.props = Directory.Build.props
+		global.json = global.json
 		LICENSE.txt = LICENSE.txt
 		README.md = README.md
 	EndProjectSection
@@ -43,8 +44,8 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{7BA935E2-7875-4C76-9A46-68B7E93082BF}"
 	ProjectSection(SolutionItems) = preProject
 		docs\ExtendedDistributedCache.md = docs\ExtendedDistributedCache.md
-		docs\OrleansDistributedCache.md = docs\OrleansDistributedCache.md
 		docs\OrleansClusterCache.md = docs\OrleansClusterCache.md
+		docs\OrleansDistributedCache.md = docs\OrleansDistributedCache.md
 	EndProjectSection
 EndProject
 Global

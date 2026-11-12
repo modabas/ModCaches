@@ -69,6 +69,7 @@ public class PersistentCacheTestGrainWithStoreArgsTests
     created.Value.Data.Should().Be($"{DefaultData} 3");
     var state = await GetStateAsync(grainId);
     state.Should().NotBeNull();
+    state.State.Should().NotBeNull();
     state.State.Value.Data.Should().Be($"{DefaultData} 3");
 
     // Then ensure subsequent GetOrCreate returns value (cached)
@@ -78,6 +79,7 @@ public class PersistentCacheTestGrainWithStoreArgsTests
     fetched.Value.Data.Should().Be($"{DefaultData} 3");
     state = await GetStateAsync(grainId);
     state.Should().NotBeNull();
+    state.State.Should().NotBeNull();
     state.State.Value.Data.Should().Be($"{DefaultData} 3");
   }
 
@@ -94,6 +96,7 @@ public class PersistentCacheTestGrainWithStoreArgsTests
     fetched.Value.Data.Should().Be("custom-value");
     var state = await GetStateAsync(grainId);
     state.Should().NotBeNull();
+    state.State.Should().NotBeNull();
     state.State.Value.Data.Should().Be("custom-value");
   }
 
@@ -110,6 +113,7 @@ public class PersistentCacheTestGrainWithStoreArgsTests
 
     var state = await GetStateAsync(grainId);
     state.Should().NotBeNull();
+    state.State.Should().NotBeNull();
     state.State.Value.Data.Should().Be("to-be-removed");
 
     // remove and verify
@@ -120,6 +124,7 @@ public class PersistentCacheTestGrainWithStoreArgsTests
     var stateAfterRemove = await GetStateAsync(grainId);
     stateAfterRemove.Should().NotBeNull();
     stateAfterRemove.RecordExists.Should().BeFalse();
+    stateAfterRemove.State.Should().NotBeNull();
     stateAfterRemove.State.LastAccessed.Should().Be(DateTimeOffset.MinValue);
   }
 
@@ -153,6 +158,7 @@ public class PersistentCacheTestGrainWithStoreArgsTests
     fetched.Value.Data.Should().Be("refresh-test");
     var state = await GetStateAsync(grainId);
     state.Should().NotBeNull();
+    state.State.Should().NotBeNull();
     state.State.Value.Data.Should().Be("refresh-test");
   }
 
@@ -187,6 +193,7 @@ public class PersistentCacheTestGrainWithStoreArgsTests
     var state = await GetStateAsync(grainId);
     state.Should().NotBeNull();
     state.RecordExists.Should().BeFalse();
+    state.State.Should().NotBeNull();
     state.State.LastAccessed.Should().Be(DateTimeOffset.MinValue);
   }
 
@@ -219,6 +226,7 @@ public class PersistentCacheTestGrainWithStoreArgsTests
     var state = await GetStateAsync(grainId);
     state.Should().NotBeNull();
     state.RecordExists.Should().BeFalse();
+    state.State.Should().NotBeNull();
     state.State.LastAccessed.Should().Be(DateTimeOffset.MinValue);
   }
 
@@ -255,6 +263,7 @@ public class PersistentCacheTestGrainWithStoreArgsTests
     var state = await GetStateAsync(grainId);
     state.Should().NotBeNull();
     state.RecordExists.Should().BeFalse();
+    state.State.Should().NotBeNull();
     state.State.LastAccessed.Should().Be(DateTimeOffset.MinValue);
   }
 
@@ -284,6 +293,7 @@ public class PersistentCacheTestGrainWithStoreArgsTests
     var state = await GetStateAsync(grainId);
     state.Should().NotBeNull();
     state.RecordExists.Should().BeFalse();
+    state.State.Should().NotBeNull();
     state.State.LastAccessed.Should().Be(DateTimeOffset.MinValue);
   }
 
@@ -307,6 +317,7 @@ public class PersistentCacheTestGrainWithStoreArgsTests
     var stateAfterRemove = await GetStateAsync(grainId);
     stateAfterRemove.Should().NotBeNull();
     stateAfterRemove.RecordExists.Should().BeFalse();
+    stateAfterRemove.State.Should().NotBeNull();
     stateAfterRemove.State.LastAccessed.Should().Be(DateTimeOffset.MinValue);
   }
 
@@ -330,6 +341,7 @@ public class PersistentCacheTestGrainWithStoreArgsTests
     fetched.Value.Data.Should().Be("keep-valid-data");
     var state = await GetStateAsync(grainId);
     state.Should().NotBeNull();
+    state.State.Should().NotBeNull();
     state.State.Value.Data.Should().Be("keep-valid-data");
   }
 
@@ -349,6 +361,7 @@ public class PersistentCacheTestGrainWithStoreArgsTests
 
     var state = await GetStateAsync(grainId);
     state.Should().NotBeNull();
+    state.State.Should().NotBeNull();
     state.State.Value.Data.Should().Be($"{DefaultData} 8");
     var lastAccessed = state.State.LastAccessed;
 
@@ -358,6 +371,7 @@ public class PersistentCacheTestGrainWithStoreArgsTests
     fetched.Value.Data.Should().Be($"{DefaultData} 8");
     var stateAfterGet = await GetStateAsync(grainId);
     stateAfterGet.Should().NotBeNull();
+    stateAfterGet.State.Should().NotBeNull();
     stateAfterGet.State.Value.Data.Should().Be($"{DefaultData} 8");
     stateAfterGet.State.LastAccessed.Should().Be(lastAccessed);
   }
@@ -378,6 +392,7 @@ public class PersistentCacheTestGrainWithStoreArgsTests
 
     var state = await GetStateAsync(grainId);
     state.Should().NotBeNull();
+    state.State.Should().NotBeNull();
     state.State.Value.Data.Should().Be($"{DefaultData} 10");
     var lastAccessed = state.State.LastAccessed;
 
@@ -385,6 +400,7 @@ public class PersistentCacheTestGrainWithStoreArgsTests
     refreshed.IsOk.Should().BeTrue();
     var stateAfterRefresh = await GetStateAsync(grainId);
     stateAfterRefresh.Should().NotBeNull();
+    stateAfterRefresh.State.Should().NotBeNull();
     stateAfterRefresh.State.Value.Data.Should().Be($"{DefaultData} 10");
     stateAfterRefresh.State.LastAccessed.Should().Be(lastAccessed);
   }
@@ -405,6 +421,7 @@ public class PersistentCacheTestGrainWithStoreArgsTests
 
     var state = await GetStateAsync(grainId);
     state.Should().NotBeNull();
+    state.State.Should().NotBeNull();
     state.State.Value.Data.Should().Be($"{DefaultData} 11");
     var lastAccessed = state.State.LastAccessed;
 
@@ -414,6 +431,7 @@ public class PersistentCacheTestGrainWithStoreArgsTests
     fetched.Value.Data.Should().Be($"{DefaultData} 11");
     var stateAfterGet = await GetStateAsync(grainId);
     stateAfterGet.Should().NotBeNull();
+    stateAfterGet.State.Should().NotBeNull();
     stateAfterGet.State.Value.Data.Should().Be($"{DefaultData} 11");
     stateAfterGet.State.LastAccessed.Should().Be(lastAccessed);
   }
@@ -434,6 +452,7 @@ public class PersistentCacheTestGrainWithStoreArgsTests
 
     var state = await GetStateAsync(grainId);
     state.Should().NotBeNull();
+    state.State.Should().NotBeNull();
     state.State.Value.Data.Should().Be($"{DefaultData} 8");
     var lastAccessed = state.State.LastAccessed;
 
@@ -443,6 +462,7 @@ public class PersistentCacheTestGrainWithStoreArgsTests
     fetched.Value.Data.Should().Be($"{DefaultData} 8");
     var stateAfterGet = await GetStateAsync(grainId);
     stateAfterGet.Should().NotBeNull();
+    stateAfterGet.State.Should().NotBeNull();
     stateAfterGet.State.Value.Data.Should().Be($"{DefaultData} 8");
     stateAfterGet.State.LastAccessed.Should().BeAfter(lastAccessed);
   }
@@ -464,12 +484,14 @@ public class PersistentCacheTestGrainWithStoreArgsTests
 
     var state = await GetStateAsync(grainId);
     state.Should().NotBeNull();
+    state.State.Should().NotBeNull();
     state.State.Value.Data.Should().Be($"{DefaultData} 10");
     var lastAccessed = state.State.LastAccessed;
 
     await grain.RefreshAsync(TestContext.Current.CancellationToken);
     var stateAfterRefresh = await GetStateAsync(grainId);
     stateAfterRefresh.Should().NotBeNull();
+    stateAfterRefresh.State.Should().NotBeNull();
     stateAfterRefresh.State.Value.Data.Should().Be($"{DefaultData} 10");
     stateAfterRefresh.State.LastAccessed.Should().BeAfter(lastAccessed);
   }
@@ -490,6 +512,7 @@ public class PersistentCacheTestGrainWithStoreArgsTests
 
     var state = await GetStateAsync(grainId);
     state.Should().NotBeNull();
+    state.State.Should().NotBeNull();
     state.State.Value.Data.Should().Be($"{DefaultData} 11");
     var lastAccessed = state.State.LastAccessed;
 
@@ -499,6 +522,7 @@ public class PersistentCacheTestGrainWithStoreArgsTests
     fetched.Value.Data.Should().Be($"{DefaultData} 11");
     var stateAfterGet = await GetStateAsync(grainId);
     stateAfterGet.Should().NotBeNull();
+    stateAfterGet.State.Should().NotBeNull();
     stateAfterGet.State.Value.Data.Should().Be($"{DefaultData} 11");
     stateAfterGet.State.LastAccessed.Should().BeAfter(lastAccessed);
   }
