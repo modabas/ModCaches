@@ -46,12 +46,14 @@ public abstract class BaseCacheGrain<TValue>
 
   public virtual Task RemoveAsync(CancellationToken ct)
   {
+    ct.ThrowIfCancellationRequested();
     RemoveInternal();
     return Task.CompletedTask;
   }
 
   public virtual Task<Result> RefreshAsync(CancellationToken ct)
   {
+    ct.ThrowIfCancellationRequested();
     if (CacheEntry is null ||
       !CacheEntry.TryGetValue(TimeProviderFunc, out _, out var expiresIn))
     {
@@ -72,6 +74,7 @@ public abstract class BaseCacheGrain<TValue>
 
   public virtual Task<Result<TValue>> GetAsync(CancellationToken ct)
   {
+    ct.ThrowIfCancellationRequested();
     if (CacheEntry?.TryGetValue(TimeProviderFunc, out var value, out var expiresIn) == true)
     {
       DelayDeactivation(expiresIn.Value);
@@ -83,6 +86,7 @@ public abstract class BaseCacheGrain<TValue>
 
   public virtual Task<Result<TValue>> PeekAsync(CancellationToken ct)
   {
+    ct.ThrowIfCancellationRequested();
     if (CacheEntry?.TryPeekValue(TimeProviderFunc, out var value, out _) == true)
     {
       return Task.FromResult(Result<TValue>.Ok(value));
@@ -95,6 +99,7 @@ public abstract class BaseCacheGrain<TValue>
     CancellationToken ct,
     ClusterCacheEntryOptions? options = null)
   {
+    ct.ThrowIfCancellationRequested();
     SetInternal(value, ResolveEntryOptions(options));
     return Task.CompletedTask;
   }

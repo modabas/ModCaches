@@ -20,6 +20,7 @@ internal sealed class RemoteOrleansVolatileCache : IDistributedCache
 
   public async Task<byte[]?> GetAsync(string key, CancellationToken token = default)
   {
+    token.ThrowIfCancellationRequested();
     return (await _clusterClient.GetGrain<IVolatileDistributedCacheGrain>(key).GetAsync(token))?.ToArray();
   }
 
@@ -30,6 +31,7 @@ internal sealed class RemoteOrleansVolatileCache : IDistributedCache
 
   public async Task RefreshAsync(string key, CancellationToken token = default)
   {
+    token.ThrowIfCancellationRequested();
     await _clusterClient.GetGrain<IVolatileDistributedCacheGrain>(key).RefreshAsync(token);
   }
 
@@ -40,6 +42,7 @@ internal sealed class RemoteOrleansVolatileCache : IDistributedCache
 
   public async Task RemoveAsync(string key, CancellationToken token = default)
   {
+    token.ThrowIfCancellationRequested();
     await _clusterClient.GetGrain<IVolatileDistributedCacheGrain>(key).RemoveAsync(token);
   }
 
@@ -50,6 +53,7 @@ internal sealed class RemoteOrleansVolatileCache : IDistributedCache
 
   public async Task SetAsync(string key, byte[] value, DistributedCacheEntryOptions options, CancellationToken token = default)
   {
+    token.ThrowIfCancellationRequested();
     await _clusterClient.GetGrain<IVolatileDistributedCacheGrain>(key).SetAsync(value.ToImmutableArray(), options.ToOrleansCacheEntryOptions(), token);
   }
 }

@@ -21,6 +21,7 @@ internal sealed class CoHostedOrleansPersistentCache : IDistributedCache
 
   public async Task<byte[]?> GetAsync(string key, CancellationToken token = default)
   {
+    token.ThrowIfCancellationRequested();
     return (await _grainFactory.GetGrain<IPersistentDistributedCacheGrain>(key).GetAsync(token))?.ToArray();
   }
 
@@ -31,6 +32,7 @@ internal sealed class CoHostedOrleansPersistentCache : IDistributedCache
 
   public async Task RefreshAsync(string key, CancellationToken token = default)
   {
+    token.ThrowIfCancellationRequested();
     await _grainFactory.GetGrain<IPersistentDistributedCacheGrain>(key).RefreshAsync(token);
   }
 
@@ -41,6 +43,7 @@ internal sealed class CoHostedOrleansPersistentCache : IDistributedCache
 
   public async Task RemoveAsync(string key, CancellationToken token = default)
   {
+    token.ThrowIfCancellationRequested();
     await _grainFactory.GetGrain<IPersistentDistributedCacheGrain>(key).RemoveAsync(token);
   }
 
@@ -51,6 +54,7 @@ internal sealed class CoHostedOrleansPersistentCache : IDistributedCache
 
   public async Task SetAsync(string key, byte[] value, DistributedCacheEntryOptions options, CancellationToken token = default)
   {
+    token.ThrowIfCancellationRequested();
     await _grainFactory.GetGrain<IPersistentDistributedCacheGrain>(key).SetAsync(value.ToImmutableArray(), options.ToOrleansCacheEntryOptions(), token);
   }
 }

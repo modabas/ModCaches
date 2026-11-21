@@ -47,6 +47,7 @@ internal sealed class DefaultExtendedDistributedCache : IExtendedDistributedCach
 
   public async Task<T> GetOrCreateAsync<TState, T>(string key, TState state, Func<TState, CancellationToken, Task<T>> factory, CancellationToken ct, DistributedCacheEntryOptions? options = null)
   {
+    ct.ThrowIfCancellationRequested();
     //Read the cache first
     var bytes = await _cache.GetAsync(key, ct).ConfigureAwait(false);
     if (bytes is null)
@@ -57,8 +58,10 @@ internal sealed class DefaultExtendedDistributedCache : IExtendedDistributedCach
       await keyLock.WaitAsync(ct).ConfigureAwait(false);
       try
       {
+        ct.ThrowIfCancellationRequested();
         // Double-check if the cache entry was created while waiting for the lock.
         bytes = await _cache.GetAsync(key, ct).ConfigureAwait(false);
+        ct.ThrowIfCancellationRequested();
         if (bytes is null)
         {
           var value = await factory(state, ct).ConfigureAwait(false);
@@ -83,7 +86,9 @@ internal sealed class DefaultExtendedDistributedCache : IExtendedDistributedCach
     CancellationToken ct,
     DistributedCacheEntryOptions? options = null)
   {
+    ct.ThrowIfCancellationRequested();
     var bytes = await _serializer.SerializeAsync(value, ct).ConfigureAwait(false);
+    ct.ThrowIfCancellationRequested();
     var cacheEntryOptions = GetCacheEntryOptions(options);
     await _cache.SetAsync(key, bytes.ToArray(), cacheEntryOptions, ct).ConfigureAwait(false);
   }
@@ -100,7 +105,9 @@ internal sealed class DefaultExtendedDistributedCache : IExtendedDistributedCach
 
   public async Task<(bool IsOk, T? Value)> TryGetValueAsync<T>(string key, CancellationToken ct)
   {
+    ct.ThrowIfCancellationRequested();
     var bytes = await _cache.GetAsync(key, ct).ConfigureAwait(false);
+    ct.ThrowIfCancellationRequested();
     if (bytes is null)
     {
       return (IsOk: false, Value: default);

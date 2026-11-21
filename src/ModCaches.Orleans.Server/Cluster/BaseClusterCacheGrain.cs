@@ -37,6 +37,7 @@ public abstract class BaseClusterCacheGrain<TValue>
     CancellationToken ct,
     ClusterCacheEntryOptions? options = null)
   {
+    ct.ThrowIfCancellationRequested();
     if (CacheEntry?.TryGetValue(TimeProviderFunc, out var value, out var expiresIn) == true)
     {
       DelayDeactivation(expiresIn.Value);
@@ -57,6 +58,7 @@ public abstract class BaseClusterCacheGrain<TValue>
     CancellationToken ct,
     ClusterCacheEntryOptions? options = null)
   {
+    ct.ThrowIfCancellationRequested();
     var result = await CreateFromStoreAsync(ResolveEntryOptions(options), ct);
     if (result.IsOk)
     {
@@ -91,6 +93,7 @@ public abstract class BaseClusterCacheGrain<TValue>
     CancellationToken ct,
     ClusterCacheEntryOptions? options = null)
   {
+    ct.ThrowIfCancellationRequested();
     var result = await WriteToStoreAsync(value, ResolveEntryOptions(options), ct);
     if (result.IsOk)
     {
@@ -119,6 +122,7 @@ public abstract class BaseClusterCacheGrain<TValue>
   public virtual async Task<Result> RemoveAndDeleteAsync(
     CancellationToken ct)
   {
+    ct.ThrowIfCancellationRequested();
     var result = await DeleteFromStoreAsync(ct);
     if (result.IsOk)
     {
@@ -185,6 +189,7 @@ public abstract class BaseClusterCacheGrain<TValue, TStoreArgs>
     CancellationToken ct,
     ClusterCacheEntryOptions? options = null)
   {
+    ct.ThrowIfCancellationRequested();
     if (CacheEntry?.TryGetValue(TimeProviderFunc, out var value, out var expiresIn) == true)
     {
       DelayDeactivation(expiresIn.Value);
@@ -214,6 +219,7 @@ public abstract class BaseClusterCacheGrain<TValue, TStoreArgs>
     CancellationToken ct,
     ClusterCacheEntryOptions? options = null)
   {
+    ct.ThrowIfCancellationRequested();
     var result = await CreateFromStoreAsync(args, ResolveEntryOptions(options), ct);
     if (result.IsOk)
     {
@@ -253,6 +259,7 @@ public abstract class BaseClusterCacheGrain<TValue, TStoreArgs>
     CancellationToken ct,
     ClusterCacheEntryOptions? options = null)
   {
+    ct.ThrowIfCancellationRequested();
     var result = await WriteToStoreAsync(args, value, ResolveEntryOptions(options), ct);
     if (result.IsOk)
     {
@@ -292,6 +299,7 @@ public abstract class BaseClusterCacheGrain<TValue, TStoreArgs>
     TStoreArgs? args,
     CancellationToken ct)
   {
+    ct.ThrowIfCancellationRequested();
     var result = await DeleteFromStoreAsync(args, ct);
     if (result.IsOk)
     {

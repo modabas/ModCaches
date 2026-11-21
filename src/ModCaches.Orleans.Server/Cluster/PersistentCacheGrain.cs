@@ -158,6 +158,7 @@ public abstract class PersistentCacheGrain<TValue>
 
   private async Task WriteStateAsync(CancellationToken ct)
   {
+    ct.ThrowIfCancellationRequested();
     //This is the expected case where we have a valid cache entry to write
     if (CacheEntry is not null)
     {
@@ -169,6 +170,7 @@ public abstract class PersistentCacheGrain<TValue>
 
   private async Task ClearStateAsync(CancellationToken ct)
   {
+    ct.ThrowIfCancellationRequested();
     if (!_stateCleared && _persistentState.RecordExists)
     {
       await _persistentState.ClearStateAsync(ct);
@@ -336,6 +338,7 @@ public abstract class PersistentCacheGrain<TValue, TStoreArgs>
 
   private async Task WriteStateAsync(CancellationToken ct)
   {
+    ct.ThrowIfCancellationRequested();
     //This is the expected case where we have a valid cache entry to write
     if (CacheEntry is not null)
     {
@@ -347,6 +350,7 @@ public abstract class PersistentCacheGrain<TValue, TStoreArgs>
 
   private async Task ClearStateAsync(CancellationToken ct)
   {
+    ct.ThrowIfCancellationRequested();
     if (!_stateCleared && _persistentState.RecordExists)
     {
       await _persistentState.ClearStateAsync(ct);

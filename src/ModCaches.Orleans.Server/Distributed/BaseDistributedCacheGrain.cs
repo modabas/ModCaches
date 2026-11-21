@@ -20,6 +20,7 @@ internal abstract class BaseDistributedCacheGrain : BaseGrain, IBaseDistributedC
 
   public virtual Task<ImmutableArray<byte>?> GetAsync(CancellationToken ct)
   {
+    ct.ThrowIfCancellationRequested();
     if (CacheEntry?.TryGetValue(TimeProviderFunc, out var value, out var expiresIn) == true)
     {
       DelayDeactivation(expiresIn.Value);
@@ -31,6 +32,7 @@ internal abstract class BaseDistributedCacheGrain : BaseGrain, IBaseDistributedC
 
   public virtual Task SetAsync(ImmutableArray<byte> value, CacheEntryOptions options, CancellationToken ct)
   {
+    ct.ThrowIfCancellationRequested();
     CacheEntry = new CacheEntry<ImmutableArray<byte>>(value, options, TimeProviderFunc);
     // Delay deactivation to ensure it remains active while it has a valid cache entry
     if (CacheEntry.TryGetExpiresIn(TimeProviderFunc, out var expiresIn))
@@ -42,12 +44,14 @@ internal abstract class BaseDistributedCacheGrain : BaseGrain, IBaseDistributedC
 
   public virtual Task RemoveAsync(CancellationToken ct)
   {
+    ct.ThrowIfCancellationRequested();
     RemoveInternal();
     return Task.CompletedTask;
   }
 
   public virtual Task<bool> RefreshAsync(CancellationToken ct)
   {
+    ct.ThrowIfCancellationRequested();
     if (CacheEntry is null ||
       !CacheEntry.TryGetValue(TimeProviderFunc, out _, out var expiresIn))
     {
